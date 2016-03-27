@@ -2,13 +2,13 @@ import socket
 
 import eventlet
 
-from .. constants import DEFAULT_REALM, DEFAULT_ROLES
-from .. exceptions import MessageRouterConnectionError
-from .. logger import get_logger
-from .. networking.connections.wamp import WampConnection
+from . constants import DEFAULT_REALM, DEFAULT_ROLES
+from . exceptions import MessageRouterConnectionError
+from . logger import get_logger
 from . messages.hello import Hello
 from . messages import MESSAGE_TYPE_MAP
 from . messages import Message
+from . networking.connections.wamp import WampConnection
 
 
 eventlet.monkey_patch()

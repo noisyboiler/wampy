@@ -1,11 +1,11 @@
 import eventlet
 
-from .. exceptions import MessageRouterConnectionError
-from .. helpers import Singleton
-from .. logger import get_logger
-from .. registry import PeerRegistry
+from . exceptions import MessageRouterConnectionError
+from . helpers import Singleton
+from . logger import get_logger
 from . messages import MESSAGE_TYPE_MAP, Message
 from . messages.yield_ import Yield
+from . registry import PeerRegistry
 from . session import Session
 
 

@@ -4,11 +4,11 @@ import signal
 import socket
 import subprocess
 
+from wampy.networking.connections.tcp import TCPConnection
 from wampy.constants import DEALER
 from wampy.exceptions import ConnectionError
+from wampy.interfaces import Peer
 from wampy.logger import get_logger
-from wampy.networking.connections.tcp import TCPConnection
-from wampy.wamp.interfaces import Peer
 
 
 logger = get_logger('examples.peers.routers.crossbar')

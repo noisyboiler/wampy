@@ -4,7 +4,7 @@ import pytest
 from wampy.logger import get_logger
 from wampy.networking.connections.wamp import WampConnection
 from wampy.registry import PeerRegistry
-from wampy.wamp.session import Session
+from wampy.session import Session
 
 from . routers.crossbar import CrossbarDealer
 from . servers.http import start_pong_server

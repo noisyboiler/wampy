@@ -9,7 +9,7 @@ messages:
 4. "UNREGISTERED"
 5. "ERROR"
 """
-from wampy.wamp.messages.register import Register
+from wampy.messages.register import Register
 
 
 def test_register_endpoint(basic_profile_router, session):
