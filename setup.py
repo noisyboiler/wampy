@@ -30,7 +30,7 @@ setup(
         'Programming Language :: Python :: 2.7',
     ],
     keywords='python WAMP',
-    packages=find_packages(exclude=['wampy', 'test']),
+    packages=find_packages(),
     install_requires=[
         "crossbar==0.13.0",
         "eventlet==0.18.4",
