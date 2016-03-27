@@ -1,0 +1,24 @@
+CALLEE = 'CALLEE'
+CALLER = 'CALLER'
+DEALER = 'DEALER'
+
+DEFAULT_REALM = "realm1"
+
+# Basic Profile
+DEFAULT_ROLES = {
+    'roles': {
+        'subscriber': {},
+        'publisher': {},
+    },
+}
+
+DEFAULT_WEB_SERVER_PORT = 8090
+DEFAULT_WEB_SERVER_HOST = '127.0.0.1'
+
+
+WEBSOCKET_VERSION = 13
+WEBSOCKET_SUBPROTOCOLS = 'wamp.2.json'
+WEBSOCKET_SUCCESS_STATUS = 101
+
+DEFAULT_HOST = 'localhost'
+DEFAULT_PORT = 8080

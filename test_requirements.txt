@@ -1,0 +1,2 @@
+crossbar==0.13.0
+pytest==2.8.7
