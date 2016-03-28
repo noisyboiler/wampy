@@ -54,7 +54,7 @@ class CrossbarDealer(Crossbar):
         # starts the process from the root of the test namespace
         proc = subprocess.Popen([
             'crossbar', 'start', '--cbdir', './',
-            '--config', './test/routers/config.json',
+            '--config', './wampy/testing/routers/config.json',
         ])
 
         atexit.register(self.shutdown, proc.pid)

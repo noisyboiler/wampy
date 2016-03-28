@@ -6,8 +6,8 @@ from wampy.networking.connections.wamp import WampConnection
 from wampy.registry import PeerRegistry
 from wampy.session import Session
 
-from . routers.crossbar import CrossbarDealer
-from . servers.http import start_pong_server
+from wampy.testing.routers.crossbar import CrossbarDealer
+from wampy.testing.servers.http import start_pong_server
 
 
 logger = get_logger('pywamp.test.conftest')
