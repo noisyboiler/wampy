@@ -13,11 +13,13 @@ logger = get_logger('wampy.networking.connections.websocket')
 
 class WebsocketConnection(HttpConnection):
 
-    def __init__(self, host, port):
-        super(WebsocketConnection, self).__init__(host, port)
+    def __init__(self, config=None):
+        super(WebsocketConnection, self).__init__(config)
 
         self.key = encodestring(uuid.uuid4().bytes).decode('utf-8').strip()
         self.data = None
+
+        logger.info('New WebsocketConnection: %s:%s', self.host, self.port)
 
     def connect(self):
         self._connect()
@@ -72,11 +74,11 @@ class WebsocketConnection(HttpConnection):
         # Sec-WebSocket-Accept header. This is intended to prevent a caching
         # proxy from re-sending a previous WebSocket conversation and does not
         # provide any authentication, privacy or integrity
-        key = self.key
-        headers.append("Sec-WebSocket-Key: %s" % key)
+        headers.append("Sec-WebSocket-Key: %s" % self.key)
 
         headers.append("Sec-WebSocket-Version: %s" % WEBSOCKET_VERSION)
         headers.append(
-            "WebSocket-Location: ws://{}:{}/ws".format(self.host, self.port))
+            "WebSocket-Location: ws://{}:{}/ws".format(self.host, self.port)
+        )
 
         return headers

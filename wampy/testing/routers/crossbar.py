@@ -20,7 +20,7 @@ class Crossbar(Peer):
         os.kill(pid, signal.SIGKILL)
 
     def wait_for_successful_connection(self, timeout=7):
-        connection = TCPConnection("localhost", 8080)
+        connection = TCPConnection()
 
         from time import time as now
         end = now() + timeout

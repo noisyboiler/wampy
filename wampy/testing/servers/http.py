@@ -1,7 +1,7 @@
 import eventlet
 from eventlet import wsgi
 
-from wampy.constants import DEFAULT_WEB_SERVER_PORT
+from wampy.constants import DEFAULT_HOST, DEFAULT_PORT
 
 
 def pong_server(env, start_response):
@@ -12,4 +12,4 @@ def pong_server(env, start_response):
 
 def start_pong_server():
     wsgi.server(
-        eventlet.listen(('', DEFAULT_WEB_SERVER_PORT)), pong_server)
+        eventlet.listen((DEFAULT_HOST, DEFAULT_PORT)), pong_server)

@@ -1,4 +1,3 @@
-from ... constants import DEFAULT_WEB_SERVER_PORT, DEFAULT_HOST
 from ... logger import get_logger
 from . tcp import TCPConnection
 
@@ -8,8 +7,8 @@ logger = get_logger('wampy.networking.connections.http')
 
 class HttpConnection(TCPConnection):
 
-    def __init__(self, host=DEFAULT_HOST, port=DEFAULT_WEB_SERVER_PORT):
-        super(HttpConnection, self).__init__(host, port)
+    def __init__(self, config=None):
+        super(HttpConnection, self).__init__(config)
 
     def connect(self):
         self._connect()

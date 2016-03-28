@@ -8,12 +8,12 @@ logger = get_logger('wampy.networking.connections.wamp')
 
 
 class WampConnection(WebsocketConnection):
-    def __init__(self, host, port, realm=DEFAULT_REALM, roles=DEFAULT_ROLES):
-        super(WampConnection, self).__init__(host, port)
+    def __init__(self, config=None):
+        super(WampConnection, self).__init__(config)
 
-        self.realm = realm
-        self.roles = roles
-        self.websocket_wamp_connected = False
+        router = self.config['peers']['router']
+        self.realm = router.get('realm', DEFAULT_REALM)
+        self.roles = router.get('roles', DEFAULT_ROLES)
 
     def _get_handshake_headers(self):
         """ Do an HTTP upgrade handshake with the server.

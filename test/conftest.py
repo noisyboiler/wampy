@@ -27,7 +27,7 @@ def session():
 
 @pytest.fixture
 def connection():
-    connection = WampConnection(host='localhost', port=8080)
+    connection = WampConnection()
     connection.connect()
     handshake = connection._read_handshake_response()
     status, headers = handshake

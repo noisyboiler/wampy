@@ -1,3 +1,7 @@
+import yaml
+
+from . constants import CONFIG_PATH
+
 
 class Singleton(type):
     _instances = {}
@@ -8,3 +12,10 @@ class Singleton(type):
                 Singleton, cls).__call__(*args, **kwargs)
 
         return cls._instances[cls]
+
+
+def collect_configuration():
+    with open(CONFIG_PATH, 'r') as fh:
+        docs = yaml.load(fh)
+
+    return docs

@@ -1,7 +1,9 @@
 import socket
+from socket import error as socket_error
 
 from ... constants import DEFAULT_HOST, DEFAULT_PORT
 from ... exceptions import ConnectionError
+from ... helpers import collect_configuration
 from ... logger import get_logger
 
 
@@ -11,14 +13,28 @@ logger = get_logger('wampy.networking.connections.tcp')
 class TCPConnection(object):
     """ A TCP socket connection
     """
-    def __init__(self, host=DEFAULT_HOST, port=DEFAULT_PORT):
-        self.host = host
-        self.port = port
+    def __init__(self, config=None):
+        _config = config or collect_configuration()
+        router = _config['peers']['router']
+
+        self.host = router.get('host', DEFAULT_HOST)
+        self.port = router.get('port', DEFAULT_PORT)
+        self.config = _config
         self.socket = None
 
     def _connect(self):
         _socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        _socket.connect((self.host, self.port))
+        logger.info('attempting connection to %s:%s', self.host, self.port)
+
+        try:
+            _socket.connect((self.host, self.port))
+        except socket_error as exc:
+            if exc.errno == 61:
+                logger.warning(
+                    'unable to connect to %s:%s', self.host, self.port)
+            logger.error(exc)
+            raise
+
         self.socket = _socket
 
     def connect(self):
