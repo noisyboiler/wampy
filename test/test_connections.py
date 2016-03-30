@@ -6,8 +6,22 @@ from wampy.networking.connections.websocket import (
 from wampy.networking.connections.wamp import WampConnection
 
 
+CONFIG = {
+    'connection': {
+        'host': 'localhost',
+        'port': 8080,
+    },
+    'peers': {
+        'router': {
+            'name': 'Crossbar',
+            'local_configuration': 'wampy/testing/routers/config.json',
+        },
+    },
+}
+
+
 def test_http_connection(http_pong_server):
-    connection = HttpConnection()
+    connection = HttpConnection(CONFIG)
     connection.connect()
 
     assert connection.status == 200
@@ -20,16 +34,7 @@ def test_http_connection(http_pong_server):
 
 
 def test_websocket_connection(http_pong_server):
-    config = {
-        'peers': {
-            'router': {
-                'host': 'localhost',
-                'port': 8080,
-            }
-        }
-    }
-
-    connection = WebsocketConnection(config)
+    connection = WebsocketConnection(CONFIG)
     connection.connect()
 
     assert connection.status == 200
@@ -42,7 +47,7 @@ def test_websocket_connection(http_pong_server):
 
 
 def test_wamp_connection(basic_profile_router):
-    connection = WampConnection()
+    connection = WampConnection(CONFIG)
     connection.connect()
 
     # it's the same as a websocket, but other hoops have been jumped through

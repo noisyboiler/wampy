@@ -28,7 +28,7 @@ class Session(object):
         self.session = None
         # keep a WAMP conection to the router open in the background
         # with a cross-greenlet queue to pass messages to the main thread
-        self.connection = WampConnection(host='localhost', port=8080)
+        self.connection = WampConnection()
         self.message_queue = eventlet.Queue(maxsize=1)
 
     def _wait_for_message(self):

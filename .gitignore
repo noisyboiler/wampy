@@ -64,3 +64,6 @@ target/
 .crossbar
 node.pid
 node.key
+
+#wampy
+config.yaml

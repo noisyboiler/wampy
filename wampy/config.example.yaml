@@ -1,0 +1,9 @@
+connection:
+    host: localhost
+    port: 8080
+    location: /
+
+peers:
+    router:
+        name: Crossbar
+        local_configuration: wampy/testing/routers/config.json

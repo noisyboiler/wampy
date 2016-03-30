@@ -7,6 +7,7 @@ import subprocess
 from wampy.networking.connections.tcp import TCPConnection
 from wampy.constants import DEALER
 from wampy.exceptions import ConnectionError
+from wampy.helpers import collect_configuration
 from wampy.interfaces import Peer
 from wampy.logger import get_logger
 
@@ -51,10 +52,13 @@ class CrossbarDealer(Crossbar):
         return DEALER
 
     def start(self):
+        config = collect_configuration()
+        crossbar_config = config['peers']['router']['local_configuration']
+
         # starts the process from the root of the test namespace
         proc = subprocess.Popen([
             'crossbar', 'start', '--cbdir', './',
-            '--config', './wampy/testing/routers/config.json',
+            '--config', crossbar_config,
         ])
 
         atexit.register(self.shutdown, proc.pid)

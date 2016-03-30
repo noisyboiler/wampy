@@ -6,6 +6,7 @@ logger = get_logger('wampy.networking.connections.http')
 
 
 class HttpConnection(TCPConnection):
+    type_ = 'http'
 
     def __init__(self, config=None):
         super(HttpConnection, self).__init__(config)

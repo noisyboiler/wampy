@@ -1,7 +1,6 @@
 import socket
 from socket import error as socket_error
 
-from ... constants import DEFAULT_HOST, DEFAULT_PORT
 from ... exceptions import ConnectionError
 from ... helpers import collect_configuration
 from ... logger import get_logger
@@ -15,12 +14,16 @@ class TCPConnection(object):
     """
     def __init__(self, config=None):
         _config = config or collect_configuration()
-        router = _config['peers']['router']
-
-        self.host = router.get('host', DEFAULT_HOST)
-        self.port = router.get('port', DEFAULT_PORT)
         self.config = _config
         self.socket = None
+
+    @property
+    def host(self):
+        return self.config['connection']['host']
+
+    @property
+    def port(self):
+        return self.config['connection']['port']
 
     def _connect(self):
         _socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

@@ -12,6 +12,7 @@ logger = get_logger('wampy.networking.connections.websocket')
 
 
 class WebsocketConnection(HttpConnection):
+    type_ = 'websocket'
 
     def __init__(self, config=None):
         super(WebsocketConnection, self).__init__(config)

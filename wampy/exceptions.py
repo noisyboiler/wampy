@@ -1,3 +1,7 @@
+class ConfigurationError(Exception):
+    pass
+
+
 class ConnectionError(Exception):
     pass
 
