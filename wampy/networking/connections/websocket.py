@@ -20,8 +20,6 @@ class WebsocketConnection(HttpConnection):
         self.key = encodestring(uuid.uuid4().bytes).decode('utf-8').strip()
         self.data = None
 
-        logger.info('New WebsocketConnection: %s:%s', self.host, self.port)
-
     def connect(self):
         self._connect()
 
