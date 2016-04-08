@@ -5,6 +5,10 @@ class Peer(object):
     __metaclass__ = ABCMeta
 
     @abstractproperty
+    def config(self):
+        pass
+
+    @abstractproperty
     def name(self):
         pass
 

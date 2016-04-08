@@ -5,23 +5,39 @@ import socket
 import subprocess
 
 from wampy.networking.connections.tcp import TCPConnection
-from wampy.constants import DEALER
+from wampy.constants import DEALER, DEFAULT_HOST, DEFAULT_PORT
 from wampy.exceptions import ConnectionError
-from wampy.helpers import collect_configuration
 from wampy.interfaces import Peer
 from wampy.logger import get_logger
+from wampy.registry import PeerRegistry
 
 
-logger = get_logger('examples.peers.routers.crossbar')
+logger = get_logger('wampy.testing.routers.crossbar')
 
 
 class Crossbar(Peer):
+
+    @property
+    def config(self):
+        return PeerRegistry.config_registry[self.name]
+
+    @property
+    def router_name(self):
+        return self.config['name']
+
+    @property
+    def realm(self):
+        return self.config['realm']
+
+    @property
+    def roles(self):
+        return self.config['roles']
 
     def shutdown(self, pid):
         os.kill(pid, signal.SIGKILL)
 
     def wait_for_successful_connection(self, timeout=7):
-        connection = TCPConnection()
+        connection = TCPConnection(host=DEFAULT_HOST, port=DEFAULT_PORT)
 
         from time import time as now
         end = now() + timeout
@@ -52,13 +68,14 @@ class CrossbarDealer(Crossbar):
         return DEALER
 
     def start(self):
-        config = collect_configuration()
-        crossbar_config = config['peers']['router']['local_configuration']
+        crossbar_config_path = self.config['local_configuration']
+        cbdir = self.config['cbdir']
 
         # starts the process from the root of the test namespace
         proc = subprocess.Popen([
-            'crossbar', 'start', '--cbdir', './',
-            '--config', crossbar_config,
+            'crossbar', 'start',
+            '--cbdir', cbdir,
+            '--config', crossbar_config_path,
         ])
 
         atexit.register(self.shutdown, proc.pid)

@@ -4,24 +4,11 @@ from wampy.networking.connections.http import HttpConnection
 from wampy.networking.connections.websocket import (
     WebsocketConnection)
 from wampy.networking.connections.wamp import WampConnection
-
-
-CONFIG = {
-    'connection': {
-        'host': 'localhost',
-        'port': 8080,
-    },
-    'peers': {
-        'router': {
-            'name': 'Crossbar',
-            'local_configuration': 'wampy/testing/routers/config.json',
-        },
-    },
-}
+from wampy.session import Session
 
 
 def test_http_connection(http_pong_server):
-    connection = HttpConnection(CONFIG)
+    connection = HttpConnection(host='localhost', port=8080)
     connection.connect()
 
     assert connection.status == 200
@@ -34,7 +21,7 @@ def test_http_connection(http_pong_server):
 
 
 def test_websocket_connection(http_pong_server):
-    connection = WebsocketConnection(CONFIG)
+    connection = WebsocketConnection(host='localhost', port=8080)
     connection.connect()
 
     assert connection.status == 200
@@ -47,7 +34,7 @@ def test_websocket_connection(http_pong_server):
 
 
 def test_wamp_connection(basic_profile_router):
-    connection = WampConnection(CONFIG)
+    connection = WampConnection(host='localhost', port=8080)
     connection.connect()
 
     # it's the same as a websocket, but other hoops have been jumped through
@@ -62,3 +49,12 @@ def test_wamp_connection(basic_profile_router):
         'upgrade': 'websocket',
         'x-powered-by': ANY,
     }
+
+
+def test_wamp_session(connection):
+    session = Session(name="test session", connection=connection)
+    assert session.session_id is None
+
+    session.begin()
+
+    assert session.session_id is not None

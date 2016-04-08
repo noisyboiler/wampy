@@ -1,9 +1,7 @@
-import socket
-
 import eventlet
 
 from . constants import DEFAULT_REALM, DEFAULT_ROLES
-from . exceptions import MessageRouterConnectionError
+from . exceptions import WampProtocolError
 from . logger import get_logger
 from . messages.hello import Hello
 from . messages import MESSAGE_TYPE_MAP
@@ -13,23 +11,45 @@ from . networking.connections.wamp import WampConnection
 
 eventlet.monkey_patch()
 
+
 logger = get_logger('wampy.wamp.session')
+
+
+def listen_on_connection(connection, message_queue):
+    def connection_handler():
+        while True:
+            try:
+                data = connection.recv()
+                if data:
+                    message_queue.put(data)
+            except (SystemExit, KeyboardInterrupt):
+                break
+
+    eventlet.spawn(connection_handler)
 
 
 class Session(object):
 
     def __init__(
-            self, name, realm=DEFAULT_REALM, roles=DEFAULT_ROLES):
+            self, name, connection, realm=DEFAULT_REALM, roles=DEFAULT_ROLES):
 
+        if not isinstance(connection, WampConnection):
+            raise WampProtocolError(
+                'Not a valid connection for a WAMP Session'
+            )
+
+        assert connection.connected is True
+
+        self.session_id = None
+
+        message_queue = eventlet.Queue(maxsize=1)
+        listen_on_connection(connection, message_queue)
+
+        self.connection = connection
+        self.message_queue = message_queue
         self.name = name
         self.realm = realm
         self.roles = roles
-
-        self.session = None
-        # keep a WAMP conection to the router open in the background
-        # with a cross-greenlet queue to pass messages to the main thread
-        self.connection = WampConnection()
-        self.message_queue = eventlet.Queue(maxsize=1)
 
     def _wait_for_message(self):
         # must re-import because of some context-switching namespace
@@ -46,36 +66,7 @@ class Session(object):
         message = frame.payload
         return message
 
-    def _connect(self):
-        connection = self.connection
-
-        def connection_handler():
-            while True:
-                try:
-                    data = self.connection.recv()
-                    if data:
-                        self.message_queue.put(data)
-                except (SystemExit, KeyboardInterrupt):
-                    break
-
-        try:
-            connection.connect()
-        except socket.error as exc:
-            if 'ECONNREFUSED' in str(exc):
-                raise MessageRouterConnectionError(
-                    'The client cannot connect to a message router - '
-                    'is one running? \nEither start one yourself, else '
-                    'run Crossbar.io in the background by starting the '
-                    'default dealer role using the `setup_roles` '
-                    'shortcut (see docs for more help).'
-                )
-
-            raise
-
-        eventlet.spawn(connection_handler)
-
     def begin(self):
-        self._connect()
         message = Hello(self.realm, self.roles)
         message.construct()
 

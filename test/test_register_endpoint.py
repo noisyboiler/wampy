@@ -12,7 +12,7 @@ messages:
 from wampy.messages.register import Register
 
 
-def test_register_endpoint(basic_profile_router, session):
+def test_register_endpoint(session):
     """ If the _Dealer_ is able to fulfill and allowing the registration, it
     answers by sending a "REGISTERED" message to the "Callee" ::
 
@@ -21,8 +21,8 @@ def test_register_endpoint(basic_profile_router, session):
     """
     message = Register(procedure="com.foo.bar")
     message.construct()
-    response_message = session.send_and_receive(message)
 
+    response_message = session.send_and_receive(message)
     message_code, request_id, registration_id = response_message
 
     assert message_code == Register.REGISTERED

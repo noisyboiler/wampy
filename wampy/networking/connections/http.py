@@ -8,12 +8,10 @@ logger = get_logger('wampy.networking.connections.http')
 class HttpConnection(TCPConnection):
     type_ = 'http'
 
-    def __init__(self, config=None):
-        super(HttpConnection, self).__init__(config)
+    def __init__(self, host, port):
+        super(HttpConnection, self).__init__(host, port)
 
-    def connect(self):
-        self._connect()
-
+    def _upgrade(self):
         headers = self._get_handshake_headers()
         handshake = '\n\r'.join(headers) + "\r\n\r\n"
         self.socket.send(handshake)
@@ -41,8 +39,10 @@ class HttpConnection(TCPConnection):
             try:
                 line = line.decode('utf-8')
             except:
-                line = u'{}'.format(line)
-
+                try:
+                    line = u'{}'.format(line)
+                except:
+                    print line
             if line == "\r\n" or line == "\n":
                 break
 
