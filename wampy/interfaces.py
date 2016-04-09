@@ -5,12 +5,12 @@ class Peer(object):
     __metaclass__ = ABCMeta
 
     @abstractproperty
-    def config(self):
-        pass
+    def name(self):
+        """ Should return a string identifier for the Peer """
 
     @abstractproperty
-    def name(self):
-        pass
+    def config(self):
+        """ Should return a dictionary configuration for the Peer """
 
     @abstractproperty
     def role(self):

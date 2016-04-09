@@ -7,7 +7,7 @@ from wampy.networking.connections.wamp import WampConnection
 from wampy.registry import PeerRegistry
 from wampy.session import Session
 
-from wampy.testing.routers.crossbar import CrossbarDealer
+from wampy.testing.routers.crossbar import Crossbar
 from wampy.testing.servers.http import start_pong_server
 
 
@@ -21,7 +21,9 @@ def basic_profile_router():
         'local_configuration': './wampy/testing/routers/config.json',
     }
 
-    PeerRegistry.register_peer(CrossbarDealer, config)
+    crossbar = Crossbar(host=DEFAULT_HOST)
+    PeerRegistry.register_peer(crossbar, config)  # fix this!
+    return crossbar
 
 
 @pytest.fixture
@@ -36,9 +38,8 @@ def connection(basic_profile_router):
 
 
 @pytest.fixture
-def session(connection):
-    _session = Session(
-        name="Test Runner WAMP Session", connection=connection)
+def session(basic_profile_router):
+    _session = Session(basic_profile_router)
     _session.begin()
     return _session
 

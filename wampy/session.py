@@ -1,7 +1,5 @@
 import eventlet
 
-from . constants import DEFAULT_REALM, DEFAULT_ROLES
-from . exceptions import WampProtocolError
 from . logger import get_logger
 from . messages.hello import Hello
 from . messages import MESSAGE_TYPE_MAP
@@ -29,27 +27,52 @@ def listen_on_connection(connection, message_queue):
 
 
 class Session(object):
+    """ A WAMP Session.
 
-    def __init__(
-            self, name, connection, realm=DEFAULT_REALM, roles=DEFAULT_ROLES):
+    A Session is a transient conversation between two Peers attached to a
+    Realm and running over a Transport.
 
-        if not isinstance(connection, WampConnection):
-            raise WampProtocolError(
-                'Not a valid connection for a WAMP Session'
-            )
+    WAMP Sessions are established over a WAMP Connection.
 
+    A WAMP Session is joined to a Realm on a Router.
+
+    """
+
+    def __init__(self, router):
+        host = router.host
+        port = router.port
+
+        connection = WampConnection(host=host, port=port)
+        connection.connect()
         assert connection.connected is True
 
+        self.router = router
+        self.connection = connection
         self.session_id = None
 
         message_queue = eventlet.Queue(maxsize=1)
         listen_on_connection(connection, message_queue)
-
-        self.connection = connection
         self.message_queue = message_queue
-        self.name = name
-        self.realm = realm
-        self.roles = roles
+
+    @property
+    def realms(self):
+        return self.router.config['workers'][0]['realms']
+
+    @property
+    def realm(self):
+        # ensure our simpilfied world holds true
+        assert len(self.realms) == 1
+        # then return it
+        return self.realms[0]['name']
+
+    @property
+    def roles(self):
+        realm = self.realm
+        roles = realm['roles']
+        # ensure our simpilfied world holds true
+        assert len(roles) == 1
+        # then return it
+        return roles[0]
 
     def _wait_for_message(self):
         # must re-import because of some context-switching namespace
@@ -67,9 +90,14 @@ class Session(object):
         return message
 
     def begin(self):
-        message = Hello(self.realm, self.roles)
+        DEFAULT_ROLES = {
+            'roles': {
+                'subscriber': {},
+                'publisher': {},
+            },
+        }
+        message = Hello(self.realm, DEFAULT_ROLES)
         message.construct()
-
         response_message = self.send_and_receive(message)
         welcome_or_challenge, session_id, dealer_roles = response_message
 
@@ -79,19 +107,17 @@ class Session(object):
         self.session_id = session_id
         self.dealer_roles = dealer_roles
 
-        logger.info('session started for "{}" with ID: {}'.format(
-            self.name, self.session_id))
+        logger.info('session started with ID: {}'.format(self.session_id))
 
     def send(self, message):
         logger.info(
-            'sending "%s" message for "%s"',
-            MESSAGE_TYPE_MAP[message.WAMP_CODE], self.name
+            'sending "%s" message', MESSAGE_TYPE_MAP[message.WAMP_CODE]
         )
 
         if not message.serialized:
             message = message.serialize()
 
-        self.connection.send(message)
+        self.connection.send(str(message))
 
     def send_and_receive(self, message):
         self.send(message)
@@ -100,8 +126,7 @@ class Session(object):
     def recv(self):
         message = self._wait_for_message()
         logger.info(
-            'received "%s" message for "%s"',
-            MESSAGE_TYPE_MAP[message[0]], self.name
+            'received "%s" message', MESSAGE_TYPE_MAP[message[0]]
         )
 
         return message

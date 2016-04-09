@@ -21,9 +21,6 @@ class Hello(Message):
         self.realm = realm
         self.roles = roles
 
-    def __str__(self):
-        return str(self.construct())
-
     def construct(self):
         self.message = [
             Message.HELLO, self.realm, self.roles

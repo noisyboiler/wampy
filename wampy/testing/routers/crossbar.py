@@ -1,4 +1,5 @@
 import atexit
+import json
 import os
 import signal
 import socket
@@ -7,36 +8,47 @@ import subprocess
 from wampy.networking.connections.tcp import TCPConnection
 from wampy.constants import DEALER, DEFAULT_HOST, DEFAULT_PORT
 from wampy.exceptions import ConnectionError
-from wampy.interfaces import Peer
 from wampy.logger import get_logger
 from wampy.registry import PeerRegistry
+
+from . router import Router
 
 
 logger = get_logger('wampy.testing.routers.crossbar')
 
 
-class Crossbar(Peer):
+class Crossbar(Router):
+
+    @property
+    def name(self):
+        return 'crossbar'
+
+    @property
+    def role(self):
+        return DEALER
 
     @property
     def config(self):
-        return PeerRegistry.config_registry[self.name]
+        try:
+            self._config
+        except AttributeError:
+            raw_config = PeerRegistry.config_registry[self.name]
+            config_path = raw_config['local_configuration']
+            with open(config_path) as data_file:
+                data = json.load(data_file)
+
+            self._config = data
+            self._config.update(raw_config)
+
+        return self._config
 
     @property
-    def router_name(self):
-        return self.config['name']
+    def port(self):
+        # this is loaded with assumptions and requires proper consideration.
+        return self.config['workers'][0]['transports'][0]['endpoint']['port']
 
-    @property
-    def realm(self):
-        return self.config['realm']
-
-    @property
-    def roles(self):
-        return self.config['roles']
-
-    def shutdown(self, pid):
-        os.kill(pid, signal.SIGKILL)
-
-    def wait_for_successful_connection(self, timeout=7):
+    def _wait_until_ready(self, timeout=7):
+        # we're only ready when it's possible to connect over TCP to us
         connection = TCPConnection(host=DEFAULT_HOST, port=DEFAULT_PORT)
 
         from time import time as now
@@ -57,16 +69,6 @@ class Crossbar(Peer):
             else:
                 waiting = False
 
-
-class CrossbarDealer(Crossbar):
-
-    @property
-    def name(self):
-        return 'Crossbar'
-
-    def role(self):
-        return DEALER
-
     def start(self):
         crossbar_config_path = self.config['local_configuration']
         cbdir = self.config['cbdir']
@@ -80,6 +82,9 @@ class CrossbarDealer(Crossbar):
 
         atexit.register(self.shutdown, proc.pid)
         logger.info('waiting for router connection....')
-        self.wait_for_successful_connection()
+        self._wait_until_ready()
         logger.info('%s router is up and running', self.name)
         return True
+
+    def shutdown(self, pid):
+        os.kill(pid, signal.SIGKILL)

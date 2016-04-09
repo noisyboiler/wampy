@@ -1,7 +1,6 @@
 connection:
     host: localhost
     port: 8080
-    location: /
 
 peers:
     router:

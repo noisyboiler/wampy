@@ -95,6 +95,8 @@ class ClientFrame(Frame):
         self.opcode = self.OPCODE_TEXT
         self.payload = self.generate_payload()
 
+    # be carefule here: Python 2 a string is a byte string, but beyond this
+    # it is not
     def generate_mask(self, mask_key, data):
         """ Mask data.
 

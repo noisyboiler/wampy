@@ -51,8 +51,9 @@ def test_wamp_connection(basic_profile_router):
     }
 
 
-def test_wamp_session(connection):
-    session = Session(name="test session", connection=connection)
+def test_wamp_session(basic_profile_router):
+    router = basic_profile_router
+    session = Session(router)
     assert session.session_id is None
 
     session.begin()
