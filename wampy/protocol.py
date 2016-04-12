@@ -58,8 +58,6 @@ class WampProtocol(object):
                             eventlet.sleep(0)
 
         else:
-            import pdb
-            pdb.set_trace()
             # this project is work in progress, sorry
             raise WampProtocolError(
                 'not implemented yet: "{}"'.format(peer.role)
