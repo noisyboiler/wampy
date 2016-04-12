@@ -1,12 +1,18 @@
 # wampy
 
-## Experimental (and incomplete) WAMP Implementation. WIP.
+## An experimental (and incomplete) WAMP Implementation.
 
-The WAMP protocol connects Clients through either RPC or pub/sub over a Router. A Client is some kind of application, maybe a Caller, maybe a Callee, else a Publisher or a Subscriber. A Router is another type of application - a message broker - and highly likely to be Crossbar. Whatever application you're dealing with, WAMP refers to these as a "Peer".
+The WAMP protocol connects Clients through either RPC or pub/sub over a Router. A Client is some kind of application, maybe a Caller, maybe a Callee, else a Publisher or a Subscriber. A Router is another type of application - a message broker - and highly likely to be Crossbar.
 
-With this project you can (so far) create and register Peers to implement the WAMP roles: Callee, Caller and Dealer.
+Whatever application you're dealing with, WAMP refers to these as a "Peer".
 
-# Quickstart: A Router Peer
+## WAMP Peers
+
+It helps me to first think about "peers" when trying to understand the WAMP protocol. You need to write some kind off app or script that talks like a "Peer".
+
+So with this project you can create and register Peers to implement some WAMP roles: Callee, Caller and Dealer.
+
+### Quickstart: A Router Peer
 
 Before any messaging can happen you need to register a Peer to act as your router, which must implement the Dealer or Broler roles. or both.
 
@@ -47,7 +53,7 @@ You'll be assigned the session ID.
 
 With this session you can make RPC calls to any Calle registered with the router.
 
-# Quickstart: A Callee Peer
+### Quickstart: A Callee Peer
 
 Any client, callee or caller, (as with a Router Peer) must implement the Peer interface.
 
