@@ -47,23 +47,23 @@ You'll be assigned the session ID.
 
 With this session you can make RPC calls to any Calle registered with the router.
 
-# Quickstart: RPC call
+# Quickstart: A Calle Peer
 
-
-Just ensure that your application impliments the Peer interface.
+Any client, callee or caller, (as with a Router Peer) must implement the Peer interface.
 
 	In [1]: from wampy.interfaces import Peer
 
 	In [2]: callee = CalleApp(Peer):
-		...:	pass
+	   ...:		pass
 
-And that you decorate your entrypoints appropriately.
+Decorate your Callee's entrypoints appropriately.
 
-	In [1]: from wampy.entrypoints import rpc
+	In [3]: from wampy.entrypoints import rpc
 
-	In [2]: callee = CalleApp(Peer):
+	In [4]: class CalleApp(Peer):
+		...:
 		...:     @rpc
-		...:     def application_entrypoint(self):
+		...:     def callee_application_entrypoint(self):
 		...:         """ An exposed method to be called over RPC """
 		...:
 
@@ -74,3 +74,9 @@ You can test your applications by using the built-in Crossbar Router.
 	In [2]: register_peer(Crossbar)
 
 	... watch some Crossbar.io logging go past....
+
+	In [3]: app = CalleApp()
+
+	In [4]: register_peer(app)
+
+All you need next is a new Session with the Router to call this entrypoint.
