@@ -1,7 +1,6 @@
 import atexit
 import json
-import os
-import signal
+import psutil
 import socket
 import subprocess
 
@@ -9,7 +8,6 @@ from wampy.networking.connections.tcp import TCPConnection
 from wampy.constants import DEALER, DEFAULT_HOST, DEFAULT_PORT
 from wampy.exceptions import ConnectionError
 from wampy.logger import get_logger
-from wampy.registry import PeerRegistry
 
 from . router import Router
 
@@ -18,6 +16,11 @@ logger = get_logger('wampy.testing.routers.crossbar')
 
 
 class Crossbar(Router):
+
+    def __init__(self, host, config_path, crossbar_directory=None):
+        super(Crossbar, self).__init__(host, config_path)
+        self.crossbar_directory = crossbar_directory
+        self.pid = None
 
     @property
     def name(self):
@@ -32,13 +35,10 @@ class Crossbar(Router):
         try:
             self._config
         except AttributeError:
-            raw_config = PeerRegistry.config_registry[self.name]
-            config_path = raw_config['local_configuration']
-            with open(config_path) as data_file:
+            with open(self.config_path) as data_file:
                 data = json.load(data_file)
 
             self._config = data
-            self._config.update(raw_config)
 
         return self._config
 
@@ -70,8 +70,8 @@ class Crossbar(Router):
                 waiting = False
 
     def start(self):
-        crossbar_config_path = self.config['local_configuration']
-        cbdir = self.config['cbdir']
+        crossbar_config_path = self.config_path
+        cbdir = self.crossbar_directory
 
         # starts the process from the root of the test namespace
         proc = subprocess.Popen([
@@ -80,11 +80,20 @@ class Crossbar(Router):
             '--config', crossbar_config_path,
         ])
 
-        atexit.register(self.shutdown, proc.pid)
+        atexit.register(self.stop)
         logger.info('waiting for router connection....')
         self._wait_until_ready()
+
+        self.pid = proc.pid
         logger.info('%s router is up and running', self.name)
         return True
 
-    def shutdown(self, pid):
-        os.kill(pid, signal.SIGKILL)
+    def stop(self):
+        if self.pid is None:
+            return
+        parent = psutil.Process(self.pid)
+        for child in parent.children(recursive=True):
+            child.kill()
+        parent.kill()
+
+        self.pid = None

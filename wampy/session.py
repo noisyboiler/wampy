@@ -48,7 +48,7 @@ class Session(object):
 
         self.router = router
         self.connection = connection
-        self.session_id = None
+        self.id = None
 
         message_queue = eventlet.Queue(maxsize=1)
         listen_on_connection(connection, message_queue)
@@ -104,10 +104,10 @@ class Session(object):
         if welcome_or_challenge != Message.WELCOME:
             raise Exception('Not welcomed by dealer')
 
-        self.session_id = session_id
+        self.id = session_id
         self.dealer_roles = dealer_roles
 
-        logger.info('session started with ID: {}'.format(self.session_id))
+        logger.info('session started with ID: {}'.format(self.id))
 
     def send(self, message):
         logger.info(

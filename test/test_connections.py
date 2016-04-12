@@ -33,7 +33,7 @@ def test_websocket_connection(http_pong_server):
     }
 
 
-def test_wamp_connection(basic_profile_router):
+def test_wamp_connection(router):
     connection = WampConnection(host='localhost', port=8080)
     connection.connect()
 
@@ -51,11 +51,10 @@ def test_wamp_connection(basic_profile_router):
     }
 
 
-def test_wamp_session(basic_profile_router):
-    router = basic_profile_router
+def test_wamp_session(router):
     session = Session(router)
-    assert session.session_id is None
+    assert session.id is None
 
     session.begin()
 
-    assert session.session_id is not None
+    assert session.id is not None
