@@ -47,7 +47,7 @@ You'll be assigned the session ID.
 
 With this session you can make RPC calls to any Calle registered with the router.
 
-# Quickstart: A Calle Peer
+# Quickstart: A Callee Peer
 
 Any client, callee or caller, (as with a Router Peer) must implement the Peer interface.
 
@@ -80,3 +80,5 @@ You can test your applications by using the built-in Crossbar Router.
 	In [4]: register_peer(app)
 
 All you need next is a new Session with the Router to call this entrypoint.
+
+	.... more to follow.
