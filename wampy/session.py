@@ -114,9 +114,7 @@ class Session(object):
             'sending "%s" message', MESSAGE_TYPE_MAP[message.WAMP_CODE]
         )
 
-        if not message.serialized:
-            message = message.serialize()
-
+        message = message.serialize()
         self.connection.send(str(message))
 
     def send_and_receive(self, message):
