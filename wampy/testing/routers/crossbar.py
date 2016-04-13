@@ -5,7 +5,7 @@ import socket
 import subprocess
 
 from wampy.networking.connections.tcp import TCPConnection
-from wampy.constants import DEALER, DEFAULT_HOST, DEFAULT_PORT
+from wampy.constants import DEALER
 from wampy.exceptions import ConnectionError
 from wampy.logger import get_logger
 
@@ -19,6 +19,7 @@ class Crossbar(Router):
 
     def __init__(self, host, config_path, crossbar_directory=None):
         super(Crossbar, self).__init__(host, config_path)
+        self.host = host
         self.crossbar_directory = crossbar_directory
         self.pid = None
 
@@ -49,7 +50,7 @@ class Crossbar(Router):
 
     def _wait_until_ready(self, timeout=7):
         # we're only ready when it's possible to connect over TCP to us
-        connection = TCPConnection(host=DEFAULT_HOST, port=DEFAULT_PORT)
+        connection = TCPConnection(host=self.host, port=self.port)
 
         from time import time as now
         end = now() + timeout
