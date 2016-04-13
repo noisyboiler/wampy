@@ -3,6 +3,7 @@ import json
 import psutil
 import socket
 import subprocess
+from time import sleep
 
 from wampy.networking.connections.tcp import TCPConnection
 from wampy.constants import DEALER
@@ -98,3 +99,5 @@ class Crossbar(Router):
         parent.kill()
 
         self.pid = None
+        # give the processes time to stop
+        sleep(1)
