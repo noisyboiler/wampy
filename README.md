@@ -2,15 +2,15 @@
 
 ## An experimental (and incomplete) WAMP Implementation.
 
-The WAMP protocol connects Clients through either RPC or pub/sub over a Router. A Client is some kind of application, maybe a Caller, maybe a Callee, else a Publisher or a Subscriber. A Router is another type of application - a message broker - and highly likely to be Crossbar.
+The WAMP protocol connects Clients through either RPC or pub/sub over a Router. A Client is some kind of application, maybe a *Caller*, maybe a *Callee*, else a *Publisher* or a *Subscriber*. A *Router* is another type of application - a message broker - and highly likely to be Crossbar.
 
-Whatever application you're dealing with, WAMP refers to these as a "Peer".
+Whatever application you're dealing with, WAMP refers to these as a __Peer__.
 
 ## WAMP Peers
 
-It helps me to first think about "peers" when trying to understand the WAMP protocol. You need to write some kind off app or script that talks like a "Peer".
+It helps me to always think about these "peers" when trying to understand the WAMP protocol. You need to write some kind off app or script that talks like a *Peer*.
 
-So with this project you can create and register Peers to implement some WAMP roles: Callee, Caller and Dealer.
+So with __wampy__ you can create and register Peers to implement some WAMP roles: Callee, Caller and Dealer.
 
 ### Quickstart: A Router Peer
 
@@ -51,7 +51,7 @@ You'll be assigned the session ID.
 	In [8]: session.id
 	Out[10]: 1602973961705819
 
-With this session you can make RPC calls to any Calle registered with the router.
+With this session you can make RPC calls to any Callee registered with the router.
 
 ### Quickstart: A Callee Peer
 
@@ -77,7 +77,7 @@ And when you register Peers implementing the "CALLEE" Role, these entrypoints wi
 
 	In [5]: app = CalleeApp()
 
-This is where wampy registers the apps's entrypoints for you.
+This is where __wampy__ registers the apps's entrypoints for you.
 
 	In [6]: register_peer(app)
 
@@ -99,3 +99,5 @@ All you need next is a new Session with the Router to call this entrypoint.
 	In [5]: message.construct()
 
 	In [6]: session.send(message)
+
+Please do have some fun!
