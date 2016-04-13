@@ -89,11 +89,11 @@ You can test your applications by using the built-in Crossbar Router.
 
 	... watch the Crossbar.io logging fly past again.
 
-	In [3]: app = CalleeApp()
+	In [4]: app = CalleeApp()
 
 This is where wampy registers your entrypoints for you.
 
-	In [4]: register_peer(app)
+	In [5]: register_peer(app)
 
 All you need next is a new Session with the Router to call this entrypoint.
 
