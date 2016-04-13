@@ -97,17 +97,19 @@ This is where wampy registers your entrypoints for you.
 
 All you need next is a new Session with the Router to call this entrypoint.
 
-	In [5]: from wampy.session import Session
+### Quickstart: A Caller Peer
 
-	In [6]: session = Session(crossbar)
+	In [1]: from wampy.session import Session
 
-	In [7]: from wampy.messages.call import Call
+	In [2]: session = Session(crossbar)
 
-	In [8]: message = Call(
+	In [3]: from wampy.messages.call import Call
+
+	In [4]: message = Call(
 	   ...: 	procedure='callee_application_entrypoint',
 	   ...: 	options=None, args=None, kwargs=None,
 	   ...: )
 
-	In [9]: message.construct()
+	In [5]: message.construct()
 
-	In [10]: session.send(message)
+	In [6]: session.send(message)
