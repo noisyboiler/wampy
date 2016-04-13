@@ -1,6 +1,6 @@
 import eventlet
 
-from . constants import CALLEE, DEALER
+from . constants import CALLEE, CALLER, DEALER
 from . exceptions import WampProtocolError
 from . helpers import Singleton
 from . logger import get_logger
@@ -56,6 +56,9 @@ class WampProtocol(object):
                         while (peer.__class__, entrypoint_name) not in \
                                 WampProtocol.registration_map.values():
                             eventlet.sleep(0)
+
+        elif peer.role == CALLER:
+            pass
 
         else:
             # this project is work in progress, sorry
