@@ -12,7 +12,7 @@ It helps me to always think about these "peers" when trying to understand the WA
 
 So with __wampy__ you can create and register Peers to implement some WAMP roles: Callee, Caller and Dealer.
 
-### Quickstart: A Router Peer
+### Quickstart: A Dealer Peer
 
 Before any messaging can happen you need to register a Peer to act as your router, which must implement the Dealer or Broler roles. or both.
 
