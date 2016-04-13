@@ -55,36 +55,59 @@ With this session you can make RPC calls to any Calle registered with the router
 
 ### Quickstart: A Callee Peer
 
-Any client, callee or caller, (as with a Router Peer) must implement the Peer interface.
+Any client, callee or caller, (as with a Router Peer) must subclass Pee and implement its interface.
 
 	In [1]: from wampy.interfaces import Peer
 
-	In [2]: callee = CalleApp(Peer):
+	In [2]: callee = CalleeApp(Peer):
 	   ...:		pass
 
 Decorate your Callee's entrypoints appropriately.
 
 	In [3]: from wampy.entrypoints import rpc
 
-	In [4]: class CalleApp(Peer):
+	In [4]: class CalleeApp(Peer):
 		...:
 		...:     @rpc
 		...:     def callee_application_entrypoint(self):
 		...:         """ An exposed method to be called over RPC """
 		...:
 
+And when you register Peers implementing the "CALLEE" Role, these entrypoints will be registered with the Router actor.
+
 You can test your applications by using the built-in Crossbar Router.
 
 	In [1]: from wampy.testing import Crossbar
 
-	In [2]: register_peer(Crossbar)
+	In [2]: crossbar = Crossbar(
+	   ...: 	host='localhost',
+       ...: 	config_path='./wampy/testing/routers/config.json',
+       ...: 	crossbar_directory='./'
+       ...: )
 
-	... watch some Crossbar.io logging go past....
+    In [3]: register_peer(crossbar)
 
-	In [3]: app = CalleApp()
+	... watch the Crossbar.io logging fly past again.
+
+	In [3]: app = CalleeApp()
+
+This is where wampy registers your entrypoints for you.
 
 	In [4]: register_peer(app)
 
 All you need next is a new Session with the Router to call this entrypoint.
 
-	.... more to follow.
+	In [5]: from wampy.session import Session
+
+	In [6]: session = Session(crossbar)
+
+	In [7]: from wampy.messages.call import Call
+
+	In [8]: message = Call(
+	   ...: 	procedure='callee_application_entrypoint',
+	   ...: 	options=None, args=None, kwargs=None,
+	   ...: )
+
+	In [9]: message.construct()
+
+	In [10]: session.send(message)
