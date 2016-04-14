@@ -8,7 +8,7 @@ Whatever application you're dealing with, WAMP refers to these as a __Peer__.
 
 ## WAMP Peers
 
-It helps me to always think about these "peers" when trying to understand the WAMP protocol. You need to write some kind off app or script that talks like a *Peer*.
+It helps me to always think about these "peers" when trying to understand the WAMP protocol. You need to write some kind of app or script that talks like a *Peer*.
 
 So with __wampy__ you can create and register Peers to implement some WAMP roles: Callee, Caller and Dealer.
 
