@@ -163,7 +163,7 @@ def register_client(client):
     service_runner.register_client(client)
 
 
-def get_peer_registry():
+def get_client_registry():
     service_runner = ServiceRunner()
     return service_runner.client_registry
 

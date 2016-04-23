@@ -13,7 +13,7 @@ from wampy.messages.register import Register
 from wampy.session import Session
 from wampy.testing.clients.callees import CalleeApp
 from wampy.waas import (
-    register_client, get_registered_entrypoints, get_peer_registry)
+    register_client, get_registered_entrypoints, get_client_registry)
 
 
 def test_register_endpoint(router):
@@ -39,7 +39,7 @@ def test_register_endpoint(router):
 
 
 def test_callee_app_register_on_startup(service_runner):
-    registered_peers = get_peer_registry()
+    registered_peers = get_client_registry()
     entrypoints = get_registered_entrypoints()
 
     assert 'test app' not in registered_peers
@@ -49,7 +49,7 @@ def test_callee_app_register_on_startup(service_runner):
 
     register_client(app)
 
-    registered_peers = get_peer_registry()
+    registered_peers = get_client_registry()
     entrypoints = get_registered_entrypoints()
 
     assert 'test app' in registered_peers
