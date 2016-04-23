@@ -1,4 +1,5 @@
 from mock import ANY
+from mock import Mock
 
 from wampy.networking.connections.http import HttpConnection
 from wampy.networking.connections.websocket import (
@@ -52,7 +53,8 @@ def test_wamp_connection(router):
 
 
 def test_wamp_session(router):
-    session = Session(router)
+    client = Mock(name="test client")
+    session = Session(router, client)
     assert session.id is None
 
     session.begin()

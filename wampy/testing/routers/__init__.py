@@ -1,1 +1,1 @@
-from . crossbar import Crossbar
+from . crossbar import Crossbar  # NOQA

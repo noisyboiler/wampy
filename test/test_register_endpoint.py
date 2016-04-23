@@ -10,19 +10,23 @@ messages:
 5. "ERROR"
 """
 from wampy.messages.register import Register
-from wampy.entrypoints import rpc
-from wampy.interfaces import Peer
-from wampy.protocol import (
-    register_peer, get_registered_entrypoints, get_peer_registry)
+from wampy.session import Session
+from wampy.testing.clients.callees import CalleeApp
+from wampy.waas import (
+    register_client, get_registered_entrypoints, get_peer_registry)
 
 
-def test_register_endpoint(session):
+def test_register_endpoint(router):
     """ If the Dealer_is able to fulfill and allowing the registration, it
     answers by sending a "REGISTERED" message to the "Callee" ::
 
         [REGISTERED, REGISTER.Request|id, Registration|id]
 
     """
+    client = CalleeApp()
+    session = Session(router, client=client)
+    session.begin()
+
     message = Register(procedure="com.foo.bar")
     message.construct()
 
@@ -34,35 +38,7 @@ def test_register_endpoint(session):
     assert registration_id is not None
 
 
-def test_callee_app_register_on_startup(router):
-    class CalleeApp(Peer):
-        @property
-        def name(self):
-            return 'test app'
-
-        @property
-        def config(self):
-            return {}
-
-        @property
-        def role(self):
-            return 'CALLEE'
-
-        @property
-        def start(self):
-            print('test app starting up')
-
-        @property
-        def stop(self):
-            print('test app stopping running')
-
-        @rpc
-        def this_is_callable_over_rpc(self):
-            pass
-
-    # register a Router/Broker
-    register_peer(router)
-
+def test_callee_app_register_on_startup(service_runner):
     registered_peers = get_peer_registry()
     entrypoints = get_registered_entrypoints()
 
@@ -70,7 +46,8 @@ def test_callee_app_register_on_startup(router):
     assert not entrypoints
 
     app = CalleeApp()
-    register_peer(app)
+
+    register_client(app)
 
     registered_peers = get_peer_registry()
     entrypoints = get_registered_entrypoints()

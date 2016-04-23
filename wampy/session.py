@@ -38,7 +38,7 @@ class Session(object):
 
     """
 
-    def __init__(self, router):
+    def __init__(self, router, client):
         host = router.host
         port = router.port
 
@@ -47,6 +47,7 @@ class Session(object):
         assert connection.connected is True
 
         self.router = router
+        self.client = client
         self.connection = connection
         self.id = None
 
@@ -111,7 +112,8 @@ class Session(object):
 
     def send(self, message):
         logger.info(
-            'sending "%s" message', MESSAGE_TYPE_MAP[message.WAMP_CODE]
+            '%s sending "%s" message',
+            self.client.name, MESSAGE_TYPE_MAP[message.WAMP_CODE]
         )
 
         message = message.serialize()
@@ -124,7 +126,8 @@ class Session(object):
     def recv(self):
         message = self._wait_for_message()
         logger.info(
-            'received "%s" message', MESSAGE_TYPE_MAP[message[0]]
+            '%s received "%s" message',
+            self.client.name, MESSAGE_TYPE_MAP[message[0]]
         )
 
         return message

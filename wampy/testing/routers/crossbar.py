@@ -45,6 +45,10 @@ class Crossbar(Router):
         return self._config
 
     @property
+    def started(self):
+        return bool(self.pid)
+
+    @property
     def port(self):
         # this is loaded with assumptions and requires proper consideration.
         return self.config['workers'][0]['transports'][0]['endpoint']['port']
@@ -91,13 +95,25 @@ class Crossbar(Router):
         return True
 
     def stop(self):
+        logger.info('attempting to shut down crossbar')
         if self.pid is None:
+            logger.info('crossbar was not running')
             return
+
         parent = psutil.Process(self.pid)
+
+        logger.info('known PID: %d', self.pid)
+        logger.info('parent PID: %d', parent.pid)
+
         for child in parent.children(recursive=True):
+            logger.info('killing %s', child.pid)
             child.kill()
+
+        logger.info('killing parent with ID %d', parent.pid)
         parent.kill()
 
         self.pid = None
+
         # give the processes time to stop
         sleep(1)
+        logger.info('crossbar shut down')

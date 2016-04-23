@@ -23,3 +23,7 @@ class Peer(object):
     @abstractmethod
     def stop(self):
         pass
+
+    @abstractproperty
+    def started(self):
+        """ Should return a boolean """
