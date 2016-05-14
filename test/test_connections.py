@@ -58,5 +58,7 @@ def test_wamp_session(router):
     assert session.id is None
 
     session.begin()
+    assert session.alive is True
 
-    assert session.id is not None
+    session.end()
+    assert session.alive is False

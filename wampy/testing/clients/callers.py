@@ -1,5 +1,6 @@
 import eventlet
 
+from ... constants import CALLER
 from ... messages import Message
 from ... roles import Caller
 from ... logger import get_logger
@@ -21,7 +22,7 @@ class StandAloneClient(Caller):
 
     @property
     def role(self):
-        return 'CALLER'
+        return CALLER
 
     @property
     def router(self):

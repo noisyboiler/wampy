@@ -6,32 +6,33 @@ class Peer(object):
 
     @abstractproperty
     def name(self):
-        """ Should return a string identifier for the Peer """
+        """ Return a string identifier for the Peer """
 
     @abstractproperty
     def config(self):
-        """ Should return a dictionary configuration for the Peer """
+        """ Return a dictionary configuration for the Peer """
 
     @abstractproperty
     def role(self):
-        pass
+        """ Return the Role implemented by the Peer as a string """
 
     @abstractmethod
     def start(self):
-        pass
+        """ Start up procedures for the Peer """
 
     @abstractmethod
     def stop(self):
-        pass
+        """ Shut down procedures for the Peer """
 
     @abstractproperty
     def started(self):
-        """ Should return a boolean """
+        """ Return a boolean """
 
     @abstractproperty
     def router(self):
-        """ """
+        """ Return an instance of the Router that a Session is
+        established with """
 
     @abstractmethod
     def handle_message(self):
-        """ """
+        """ Process incoming or outgoing WAMP messages """

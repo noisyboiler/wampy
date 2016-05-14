@@ -141,6 +141,7 @@ class Crossbar(Router):
             self.proc.kill()
             logger.info('killed parent process instead')
 
+        # give the Router a chance to shut down
         from time import sleep
         sleep(1)
 
