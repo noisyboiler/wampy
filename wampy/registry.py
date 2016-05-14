@@ -17,3 +17,10 @@ def get_client_registry():
 
 def get_registered_entrypoints():
     return Registry.registration_map
+
+
+def get_registered_entrypoint_names():
+    entrypoints = get_registered_entrypoints()
+    return [
+        app_name_tuple[1] for app_name_tuple in entrypoints.values()
+    ]

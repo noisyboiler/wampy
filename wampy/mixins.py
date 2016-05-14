@@ -9,7 +9,7 @@ from . session import Session
 logger = get_logger('wampy.mixins')
 
 
-class ClientMixin:
+class ClientMixin(object):
 
     @property
     def started(self):

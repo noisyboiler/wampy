@@ -1,5 +1,6 @@
 import eventlet
 
+from ... messages.call import Call
 from ... constants import CALLER
 from ... messages import Message
 from ... roles import Caller
@@ -16,6 +17,8 @@ class StandAloneClient(Caller):
         self._router = router
         self._results = []
 
+        self.start()
+
     @property
     def name(self):
         return 'Stand Alone Client'
@@ -31,6 +34,14 @@ class StandAloneClient(Caller):
     @property
     def config(self):
         return {}
+
+    def rpc(self, procedure):
+        message = Call(procedure=procedure)
+        message.construct()
+        self.send(message)
+
+        response = self.wait_for_response()
+        return response
 
     def send(self, message):
         self.session.send(message)

@@ -40,9 +40,6 @@ def test_application_register_endpoint_with_router_running(router):
     assert "get_todays_date" in get_entrypoint_names()
 
     client = StandAloneClient(router=router)
-    assert not client.started
-
-    client.start()
     assert client.started
 
     message = Call(procedure="get_todays_date")

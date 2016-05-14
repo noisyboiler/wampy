@@ -2,102 +2,67 @@
 
 ## An experimental (and incomplete) WAMP Implementation.
 
-The WAMP protocol connects Clients through either RPC or pub/sub over a Router. A Client is some kind of application, maybe a *Caller*, maybe a *Callee*, else a *Publisher* or a *Subscriber*. A *Router* is another type of application - a message broker - and highly likely to be Crossbar.
+The WAMP protocol connects Clients over RPC or pub/sub via a Router. A Client is some kind of application, maybe a *Caller*, maybe a *Callee*, else a *Publisher* or a *Subscriber*. A *Router* is another type of application - a message broker - and highly likely to be Crossbar.
 
 Whatever application you're dealing with, WAMP refers to these as a __Peer__.
 
 ## WAMP Peers
 
-It helps me to always think about these "peers" when trying to understand the WAMP protocol. You need to write some kind off app or script that talks like a *Peer*.
+With __wampy__ you can create Peers to implement WAMP roles: Callee, Caller, Publisher, Subscriber, Broker and Dealer.
 
-So with __wampy__ you can create and register Peers to implement some WAMP roles: Callee, Caller and Dealer.
+### Quickstart: wampy from a Python console.
 
-### Quickstart: A Dealer Peer
+Before any messaging can happen you need a Peer to implement the Dealer or Broler roles, or both.
 
-Before any messaging can happen you need to register a Peer to act as your router, which must implement the Dealer or Broler roles. or both.
+For example, using the built-in Crossbar router to act as an RPC Dealer.
 
-For example, using the built-in Crossbar router.
+	In [1]: from wampy.testing.routers import Crossbar
 
-	In [1]: from wampy import register_peer
-
-	In [2]: from wampy.testing.routers import Crossbar
-
-	In [3]: crossbar = Crossbar(
+	In [2]: crossbar = Crossbar(
 	   ...: 	host='localhost',
        ...: 	config_path='./wampy/testing/routers/config.json',
        ...: 	crossbar_directory='./'
        ...: )
 
-    In [4]: register_peer(crossbar)
+    In [3]: crossbar.start()
 
     ... watch plenty of Crossbar.io logging ouput fly by....
 
-You can then begin a Session with the Router.
+A client can then begin a Session with the Router.
 
-	In [5]: from wampy.session import Session
+	In [4]: from wampy.testing.clients.callees import DateService
 
-	In [6]: session = Session(crossbar)
+	In [5]: service = DateService(crossbar)
 
-From instantiation you have a TCP connection to the router, upgraded to a websocket. The final step to establish a WAMP session is explicit and involves message transfer.
+	In [6]: service.start()
 
-	In [7]: session.begin()
+	In [7]: service.session.id
+	Out[7]: 3941615218422338
 
-	2016-04-11 18:31:16,676 - wampy.wamp.session - INFO - sending "HELLO" message
-	2016-04-11 18:31:16,678 - wampy.wamp.session - INFO - received "WELCOME" message
-	2016-04-11 18:31:16,678 - wampy.wamp.session - INFO - session started with ID: 1602973961705819
+If a Peer implements the "Callee" Role, then by starting the Peer you instruct the Peer to register its RPC entrypoints with the Router.
 
-You'll be assigned the session ID.
+	In [8]: service.role
+	Out[8]: 'CALLEE' 
 
-	In [8]: session.id
-	Out[10]: 1602973961705819
+	In [9]: from wampy.registry import get_registered_entrypoints
+	Out[9]: {347361574427174: (wampy.testing.clients.callees.DateService,
+  'get_todays_date')}
 
-With this session you can make RPC calls to any Callee registered with the router.
+Any method of the Peer decorated with @rpc will have been registered as publically availabile over the Router.
 
-### Quickstart: A Callee Peer
+	In [10]: from wampy.testing.clients.callers import StandAloneClient
 
-Any client, callee or caller, (as with a Router Peer) must subclass `Peer` and implement its interface.
+	In [11]: client = StandAloneClient(crossbar)
 
-	In [1]: from wampy.interfaces import Peer
+The built in stand alone client knows about the entrypoints made available by the ``DateService`` and using it you can call them directly.
 
-	In [2]: callee = CalleeApp(Peer):
-	   ...:		pass
+	In [12]: client.rpc(procedure="get_todays_date")
+	Out [12]: u'2016-05-14'
 
-Decorate your Callee's entrypoints appropriately.
+When you're done playing, stop the Router, as it is running in a subprocess and needs to be managed carefully.
 
-	In [3]: from wampy.entrypoints import rpc
+	In [13]: crossbar.stop()
 
-	In [4]: class CalleeApp(Peer):
-		...:
-		...:     @rpc
-		...:     def callee_application_entrypoint(self):
-		...:         """ An exposed method to be called over RPC """
-		...:
+	In [14]: exit()
 
-And when you register Peers implementing the "CALLEE" Role, these entrypoints will be registered with the Router actor.
 
-	In [5]: app = CalleeApp()
-
-This is where __wampy__ registers the apps's entrypoints for you.
-
-	In [6]: register_peer(app)
-
-All you need next is a new Session with the Router to call this entrypoint.
-
-### Quickstart: A Caller Peer
-
-	In [1]: from wampy.session import Session
-
-	In [2]: session = Session(crossbar)
-
-	In [3]: from wampy.messages.call import Call
-
-	In [4]: message = Call(
-	   ...: 	procedure='callee_application_entrypoint',
-	   ...: 	options=None, args=None, kwargs=None,
-	   ...: )
-
-	In [5]: message.construct()
-
-	In [6]: session.send(message)
-
-Please do have some fun!
