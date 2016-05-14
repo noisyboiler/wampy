@@ -6,7 +6,7 @@ Specifically WAMP Callee clients as a service.
 import eventlet
 
 from . constants import DEALER
-from . interfaces import Peer
+from . peer import Peer
 from . logger import get_logger
 from . messages import MESSAGE_TYPE_MAP, Message
 from . messages.register import Register
@@ -29,9 +29,6 @@ class ServiceRunner(Peer):
     """
     __instance = None
 
-    router = None
-    session = None
-
     # simple Singleton pattern to ensure that there is only one
     # service runner with only one router, session and maps.
     def __new__(cls):
@@ -41,6 +38,8 @@ class ServiceRunner(Peer):
 
     def __init__(self):
         self.gthread = None
+        self.session = None
+        self._router = None
 
     @property
     def name(self):
@@ -53,6 +52,10 @@ class ServiceRunner(Peer):
     @property
     def config(self):
         return {}
+
+    @property
+    def router(self):
+        return self._router
 
     @property
     def started(self):
@@ -81,7 +84,7 @@ class ServiceRunner(Peer):
         self.router.stop()
         self.gthread.kill()
 
-        self.router = None
+        self._router = None
         self.client_registry = {}
         self.registration_map = {}
         self.request_map = {}
@@ -91,7 +94,7 @@ class ServiceRunner(Peer):
         assert peer.role == DEALER
         assert peer.started
 
-        self.router = peer
+        self._router = peer
 
     def register_client(self, client):
         """ Register a Callee WAMP Client with the ``ServiecRunner``.
@@ -99,7 +102,7 @@ class ServiceRunner(Peer):
         :Parameters:
             client : instance
                 An instance of a class implementing the
-                :class:`~interfaces.Peer` interface.
+                :class:`~peer.Peer` interface.
 
         """
         logger.info('registering entrypoints')

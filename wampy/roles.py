@@ -1,4 +1,4 @@
-from . interfaces import Peer
+from . peer import Peer
 from . mixins import ClientMixin
 
 
