@@ -39,17 +39,25 @@ class HttpConnection(TCPConnection):
             try:
                 line = line.decode('utf-8')
             except:
-                try:
-                    line = u'{}'.format(line)
-                except:
-                    print line
+                line = u'{}'.format(line)
             if line == "\r\n" or line == "\n":
                 break
 
             line = line.strip()
+
+            if line == '':
+                continue
+
             if not status:
                 status_info = line.split(" ", 2)
-                status = int(status_info[1])
+                try:
+                    status = int(status_info[1])
+                except IndexError:
+                    import pdb
+                    pdb.set_trace()
+                    logger.warning('unexpected handshake resposne')
+                    logger.error('%s', status_info)
+                    raise
 
                 headers['status_info'] = status_info
                 headers['status'] = status

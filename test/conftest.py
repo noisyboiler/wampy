@@ -4,12 +4,12 @@ import pytest
 from wampy.constants import DEFAULT_HOST, DEFAULT_PORT
 from wampy.logger import get_logger
 from wampy.networking.connections.wamp import WampConnection
+from wampy.services import ServiceRunner
 from wampy.testing.routers.crossbar import Crossbar
 from wampy.testing.servers.http import start_pong_server
-from wampy.waas import ServiceRunner
 
 
-logger = get_logger('pywamp.test.conftest')
+logger = get_logger('wampy.test.conftest')
 
 
 @pytest.yield_fixture
@@ -21,12 +21,12 @@ def router():
     )
 
     crossbar.start()
-    assert crossbar.pid is not None
+    assert crossbar.started is True
 
     yield crossbar
 
     crossbar.stop()
-    assert crossbar.pid is None
+    assert crossbar.started is False
 
 
 @pytest.fixture
@@ -42,21 +42,27 @@ def connection(router):
 
 @pytest.yield_fixture
 def service_runner():
-    runner = ServiceRunner()
     crossbar = Crossbar(
         host=DEFAULT_HOST,
         config_path='./wampy/testing/routers/config.json',
         crossbar_directory='./',
     )
+    crossbar.start()
 
+    runner = ServiceRunner()
     runner.register_router(crossbar)
     runner.start()
+
+    assert runner.router == crossbar
+    assert runner.started
+
+    logger.info('started the service runner: "%s"', id(runner))
 
     yield runner
 
     runner.stop()
 
-    assert runner.peer is None
+    assert runner.router is None
 
 
 @pytest.yield_fixture

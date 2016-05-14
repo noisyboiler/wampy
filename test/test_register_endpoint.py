@@ -9,57 +9,71 @@ messages:
 4. "UNREGISTERED"
 5. "ERROR"
 """
-from wampy.messages.register import Register
-from wampy.session import Session
-from wampy.testing.clients.callees import CalleeApp
-from wampy.waas import (
-    register_client, get_registered_entrypoints, get_client_registry)
+from datetime import date
+from wampy.messages.call import Call
+from wampy.registry import get_client_registry, get_registered_entrypoints
+
+from wampy.testing.clients.callers import StandAloneClient
+from wampy.testing.clients.callees import DateService
 
 
-def test_register_endpoint(router):
-    """ If the Dealer_is able to fulfill and allowing the registration, it
-    answers by sending a "REGISTERED" message to the "Callee" ::
+def test_application_register_endpoint_with_router_running(router):
+    registered_peers = get_client_registry()
+    registered_entrypoints = get_registered_entrypoints()
 
-        [REGISTERED, REGISTER.Request|id, Registration|id]
+    def get_entrypoint_names():
+        return [
+            app_name_tuple[1] for app_name_tuple in
+            registered_entrypoints.values()
+        ]
 
-    """
-    client = CalleeApp()
-    session = Session(router, client=client)
-    session.begin()
+    app = DateService(router)
+    assert app.name not in registered_peers
+    assert "get_todays_date" not in get_entrypoint_names()
 
-    message = Register(procedure="com.foo.bar")
+    assert not app.started
+
+    app.start()
+    assert app.started
+
+    assert app.name in registered_peers
+    assert "get_todays_date" in get_entrypoint_names()
+
+    client = StandAloneClient(router=router)
+    assert not client.started
+
+    client.start()
+    assert client.started
+
+    message = Call(procedure="get_todays_date")
     message.construct()
 
-    response_message = session.send_and_receive(message)
-    message_code, request_id, registration_id = response_message
+    client.send(message)
+    response = client.wait_for_response()
 
-    assert message_code == Register.REGISTERED
-    assert request_id is not None
-    assert registration_id is not None
+    today = date.today()
+
+    assert response == today.isoformat()
+
+    client.stop()
+    app.stop()
 
 
-def test_callee_app_register_on_startup(service_runner):
+def test_service_runner_register_endpoint(service_runner):
     registered_peers = get_client_registry()
-    entrypoints = get_registered_entrypoints()
+    registered_entrypoints = get_registered_entrypoints()
 
-    assert 'test app' not in registered_peers
-    assert not entrypoints
+    def get_entrypoint_names():
+        return [
+            app_name_tuple[1] for app_name_tuple in
+            registered_entrypoints.values()
+        ]
 
-    app = CalleeApp()
+    app = DateService()
+    assert app.name not in registered_peers
+    assert "get_todays_date" not in get_entrypoint_names()
 
-    register_client(app)
+    service_runner.register_client(app)
 
-    registered_peers = get_client_registry()
-    entrypoints = get_registered_entrypoints()
-
-    assert 'test app' in registered_peers
-    assert len(entrypoints.keys()) == 1
-
-    registration_id, registration_source = entrypoints.items()[0]
-
-    assert registration_id is not None
-
-    registering_app, registered_entrypoint_name = registration_source
-
-    assert issubclass(registering_app, CalleeApp)
-    assert registered_entrypoint_name == 'this_is_callable_over_rpc'
+    assert app.name in registered_peers
+    assert "get_todays_date" in get_entrypoint_names()

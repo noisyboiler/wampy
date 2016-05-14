@@ -4,6 +4,10 @@ import os
 from struct import pack, unpack_from
 
 from .. exceptions import WebsocktProtocolError, IncompleteFrameError
+from .. logger import get_logger
+
+
+logger = get_logger('wampy.networking.frames')
 
 
 class Frame(object):
@@ -198,7 +202,14 @@ class ServerFrame(Frame):
     def __init__(self, bytes):
         super(ServerFrame, self).__init__(bytes)
 
-        self.payload_length_indicator = bytes[1] & 0b1111111
+        if not bytes:
+            return
+
+        try:
+            self.payload_length_indicator = bytes[1] & 0b1111111
+        except Exception:
+            logger.error('unable to parse payload length indicator')
+            raise IncompleteFrameError(bytes)
 
         # if this doesn't raise, all the above will receive a value
         self.ensure_complete_frame(bytes)

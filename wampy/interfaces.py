@@ -27,3 +27,11 @@ class Peer(object):
     @abstractproperty
     def started(self):
         """ Should return a boolean """
+
+    @abstractproperty
+    def router(self):
+        """ """
+
+    @abstractmethod
+    def handle_message(self):
+        """ """

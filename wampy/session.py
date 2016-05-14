@@ -2,6 +2,7 @@ import eventlet
 
 from . logger import get_logger
 from . messages.hello import Hello
+from . messages.goodbye import Goodbye
 from . messages import MESSAGE_TYPE_MAP
 from . messages import Message
 from . networking.connections.wamp import WampConnection
@@ -13,23 +14,10 @@ eventlet.monkey_patch()
 logger = get_logger('wampy.wamp.session')
 
 
-def listen_on_connection(connection, message_queue):
-    def connection_handler():
-        while True:
-            try:
-                data = connection.recv()
-                if data:
-                    message_queue.put(data)
-            except (SystemExit, KeyboardInterrupt):
-                break
-
-    eventlet.spawn(connection_handler)
-
-
 class Session(object):
     """ A WAMP Session.
 
-    A Session is a transient conversation between two Peers attached to a
+    A Session is a transient conversation between two roles attached to a
     Realm and running over a Transport.
 
     WAMP Sessions are established over a WAMP Connection.
@@ -50,10 +38,24 @@ class Session(object):
         self.client = client
         self.connection = connection
         self.id = None
+        self.gthread = None
 
         message_queue = eventlet.Queue(maxsize=1)
-        listen_on_connection(connection, message_queue)
+        self.listen_on_connection(connection, message_queue)
         self.message_queue = message_queue
+
+    def listen_on_connection(self, connection, message_queue):
+        def connection_handler():
+            while True:
+                try:
+                    data = connection.recv()
+                    if data:
+                        message_queue.put(data)
+                except (SystemExit, KeyboardInterrupt):
+                    break
+
+        gthread = eventlet.spawn(connection_handler)
+        self.gthread = gthread
 
     @property
     def realms(self):
@@ -74,6 +76,12 @@ class Session(object):
         assert len(roles) == 1
         # then return it
         return roles[0]
+
+    @property
+    def alive(self):
+        if self.id and self.gthread.dead is False:
+            return True
+        return False
 
     def _wait_for_message(self):
         # must re-import because of some context-switching namespace
@@ -110,6 +118,14 @@ class Session(object):
 
         logger.info('session started with ID: {}'.format(self.id))
 
+    def end(self):
+        logger.info('"%s" saying GOODBYE', self.client.name)
+        message = Goodbye()
+        message.construct()
+        self.send(message)
+        # kill the green thread listenting to messages
+        self.gthread.kill()
+
     def send(self, message):
         logger.info(
             '%s sending "%s" message',
@@ -124,6 +140,10 @@ class Session(object):
         return self.recv()
 
     def recv(self):
+        logger.info(
+            '%s waiting to receive a message', self.client.name,
+        )
+
         message = self._wait_for_message()
         logger.info(
             '%s received "%s" message',
