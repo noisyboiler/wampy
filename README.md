@@ -6,8 +6,6 @@ The WAMP protocol connects Clients over RPC or pub/sub via a Router. A Client is
 
 Whatever application you're dealing with, WAMP refers to these as a __Peer__.
 
-## WAMP Peers
-
 With __wampy__ you can create Peers to implement WAMP roles: Callee, Caller, Publisher, Subscriber, Broker and Dealer.
 
 ### Quickstart: wampy from a Python console.
@@ -64,5 +62,3 @@ When you're done playing, stop the Router, as it is running in a subprocess and 
 	In [13]: crossbar.stop()
 
 	In [14]: exit()
-
-
