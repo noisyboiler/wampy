@@ -43,8 +43,7 @@ If a Peer implements the "Callee" Role, then by starting the Peer you instruct t
 	Out[8]: 'CALLEE' 
 
 	In [9]: from wampy.registry import get_registered_entrypoints
-	Out[9]: {347361574427174: (wampy.testing.clients.callees.DateService,
-  'get_todays_date')}
+	Out[9]: {347361574427174: (wampy.testing.clients.callees.DateService, 'get_todays_date')}
 
 Any method of the Peer decorated with @rpc will have been registered as publically availabile over the Router.
 
