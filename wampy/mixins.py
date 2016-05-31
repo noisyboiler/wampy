@@ -5,7 +5,6 @@ from . messages.yield_ import Yield
 from . logger import get_logger
 from . messages import Message
 from . registry import Registry
-from . session import Session
 
 
 logger = get_logger('wampy.mixins')
@@ -34,7 +33,6 @@ class ClientMixin(object):
 
         assert self.router.started
 
-        self.session = Session(self.router, client=self)
         self.session.begin()
 
         logger.info('%s has the session: "%s"', self.name, self.session.id)
@@ -96,7 +94,7 @@ class HandleMessageMixin:
 
         wamp_code = message[0]
 
-        if wamp_code == Message.REGISTERED:
+        if wamp_code == Message.REGISTERED:  # 64
             _, request_id, registration_id = message
             app, func_name = Registry.request_map[request_id]
             Registry.registration_map[registration_id] = app, func_name
@@ -106,7 +104,7 @@ class HandleMessageMixin:
                 self.name, func_name, app.__name__
             )
 
-        elif wamp_code == Message.INVOCATION:
+        elif wamp_code == Message.INVOCATION:  # 68
             logger.info('%s handling invocation', self.name)
             _, request_id, registration_id, details = message
 
@@ -121,16 +119,22 @@ class HandleMessageMixin:
             message.construct()
             self.session.send(message)
 
-        elif wamp_code == Message.GOODBYE:
+        elif wamp_code == Message.GOODBYE:  # 6
             logger.info('%s handling goodbye', self.name)
             _, _, response_message = message
             assert response_message == 'wamp.close.normal'
 
-        elif wamp_code == Message.RESULT:
+        elif wamp_code == Message.RESULT:  # 50
             logger.info('%s handling a RESULT', self.name)
             _, request_id, data, response_list = message
             response = response_list[0]
             self._results.append(response)
+
+        elif wamp_code == Message.WELCOME:  # 2
+            logger.info('handling WELCOME for %s', self.name)
+            self.message_queue.put(message)
+            # switch back to the main context
+            eventlet.sleep(0)
 
         else:
             logger.exception(

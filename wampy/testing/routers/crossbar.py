@@ -18,15 +18,15 @@ logger = get_logger('wampy.testing.routers.crossbar')
 
 
 class Crossbar(Router):
-    """ Wrapper around a Crossbar.io router instance described
-    by ``Crossbar.config``.
+    """ Wrapper around a Crossbar.io router instance described by
+    ``Crossbar.config``.
 
     """
     def __init__(self, host, config_path, crossbar_directory=None):
-        super(Crossbar, self).__init__(host, config_path)
-
         self.host = host
+        self.config_path = config_path
         self.crossbar_directory = crossbar_directory
+
         self.proc = None
         self._router_running = None
 
@@ -35,9 +35,30 @@ class Crossbar(Router):
         return 'Crossbar'
 
     @property
+    def realms(self):
+        return self.config['workers'][0]['realms']
+
+    @property
+    def realm(self):
+        realms = self.config['workers'][0]['realms']
+        # ensure our simpilfied world holds true
+        assert len(realms) == 1
+        # then return it
+        return realms[0]['name']
+
+    @property
+    def roles(self):
+        roles = self.realms[0]['roles']
+        # ensure our simpilfied world holds true
+        assert len(roles) == 1
+        # then return it
+        return roles[0]
+
+    @property
     def role(self):
         return DEALER
 
+    # TODO: wierdness
     @property
     def router(self):
         return self

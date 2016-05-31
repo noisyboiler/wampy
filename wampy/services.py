@@ -8,10 +8,8 @@ import eventlet
 from . constants import DEALER
 from . peer import Peer
 from . logger import get_logger
-from . messages import MESSAGE_TYPE_MAP, Message
 from . messages.register import Register
 from . mixins import HandleMessageMixin
-from . messages.yield_ import Yield
 from . registry import Registry
 from . session import Session
 

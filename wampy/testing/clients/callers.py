@@ -2,7 +2,6 @@ import eventlet
 
 from ... messages.call import Call
 from ... constants import CALLER
-from ... messages import Message
 from ... mixins import HandleMessageMixin
 from ... roles import Caller
 from ... logger import get_logger
@@ -18,6 +17,7 @@ class StandAloneClient(HandleMessageMixin, Caller):
         self._router = router
         self._results = []
 
+        # this opens a session with the router
         self.start()
 
     @property
