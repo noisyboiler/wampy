@@ -1,7 +1,8 @@
 import eventlet
 import pytest
 
-from wampy.constants import DEFAULT_HOST, DEFAULT_PORT
+from wampy.constants import (
+    DEFAULT_HOST, DEFAULT_PORT, DEFAULT_REALM, DEFAULT_ROLES)
 from wampy.logger import get_logger
 from wampy.networking.connections.wamp import WampConnection
 from wampy.services import ServiceRunner
@@ -49,20 +50,18 @@ def service_runner():
     )
     crossbar.start()
 
-    runner = ServiceRunner()
-    runner.register_router(crossbar)
+    runner = ServiceRunner(
+        router=crossbar,
+        realm=DEFAULT_REALM,
+        roles=DEFAULT_ROLES,
+    )
     runner.start()
-
-    assert runner.router == crossbar
-    assert runner.started
 
     logger.info('started the service runner: "%s"', id(runner))
 
     yield runner
 
     runner.stop()
-
-    assert runner.router is None
 
 
 @pytest.yield_fixture

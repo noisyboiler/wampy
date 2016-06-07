@@ -1,11 +1,9 @@
 from mock import ANY
-from mock import Mock
 
 from wampy.networking.connections.http import HttpConnection
 from wampy.networking.connections.websocket import (
     WebsocketConnection)
 from wampy.networking.connections.wamp import WampConnection
-from wampy.session import Session
 
 
 def test_http_connection(http_pong_server):
@@ -50,15 +48,3 @@ def test_wamp_connection(router):
         'upgrade': 'websocket',
         'x-powered-by': ANY,
     }
-
-
-def test_wamp_session(router):
-    client = Mock(name="test client")
-    session = Session(router, client)
-    assert session.id is None
-
-    session.begin()
-    assert session.alive is True
-
-    session.end()
-    assert session.alive is False

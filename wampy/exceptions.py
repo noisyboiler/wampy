@@ -14,6 +14,10 @@ class MessageRouterConnectionError(Exception):
     pass
 
 
+class SessionError(Exception):
+    pass
+
+
 class WampProtocolError(Exception):
     pass
 
