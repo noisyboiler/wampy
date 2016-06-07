@@ -6,18 +6,17 @@ Specifically WAMP Callee clients as a service.
 import eventlet
 
 from . constants import DEALER
-from . peer import Peer
 from . logger import get_logger
+from . messages.hello import Hello
 from . messages.register import Register
-from . mixins import HandleMessageMixin
+from . mixins import ConnectionMixin, HandleMessageMixin
 from . registry import Registry
-from . session import Session
 
 
 logger = get_logger('wampy.wamp.services')
 
 
-class ServiceRunner(HandleMessageMixin, Peer):
+class ServiceRunner(ConnectionMixin, HandleMessageMixin):
     """ A coordinator of WAMP Callee Client applications exposing
     their entrypoints as a service.
 
@@ -26,19 +25,22 @@ class ServiceRunner(HandleMessageMixin, Peer):
     entrypoints for each registered Callee and act as a proxy.
 
     """
-    __instance = None
 
-    # simple Singleton pattern to ensure that there is only one
-    # service runner with only one router, session and maps.
-    def __new__(cls):
-        if ServiceRunner.__instance is None:
-            ServiceRunner.__instance = object.__new__(cls)
-        return ServiceRunner.__instance
+    def __init__(self, router, realm, roles):
+        self.router = router
+        self.realm = realm
+        self.roles = roles
 
-    def __init__(self):
-        self.gthread = None
-        self.session = None
-        self._router = None
+        self._session = None
+        self._gthread = None
+
+        # a WAMP connection will be made with the Router.
+        self.connection = None
+
+        # we spawn a green thread to listen for incoming messages
+        self.managed_thread = None
+        # incoming messages will be consumed from a Queue
+        self.message_queue = eventlet.Queue(maxsize=1)
 
     @property
     def name(self):
@@ -49,51 +51,45 @@ class ServiceRunner(HandleMessageMixin, Peer):
         return DEALER
 
     @property
-    def config(self):
-        return {}
-
-    @property
-    def router(self):
-        return self._router
-
-    @property
-    def started(self):
-        if self.router is None:
-            return False
-        return self.router.started
+    def session(self):
+        return self._session
 
     def start(self):
-        assert self.router.started
+        # kick off the connection and the listener of it
+        self._manage_connection()
+        # then then the session over the connection
+        self.hello()
 
-        session = Session(self.router, client=self)
-        session.begin()
-        self.session = session
-        logger.info('%s has the session: "%s"', self.name, self.session.id)
+        def wait_for_session():
+            with eventlet.Timeout(5):
+                while self.session is None:
+                    eventlet.sleep(0)
 
-        def run():
-            while True:
-                message = self.session.recv()
-                self.handle_message(message)
+        wait_for_session()
 
-        self.gthread = eventlet.spawn(run)
-        logger.info('service runner started')
+        logger.info('%s has started up', self.name)
 
     def stop(self):
-        self.session.end()
-        self.router.stop()
-        self.gthread.kill()
+        # kill a green thread
+        self.managed_thread.kill()
+        assert self.managed_thread.dead is True
 
+        # stop a subprocess
+        self.router.stop()
+
+        # reset variables
         self._router = None
         self.client_registry = {}
         self.registration_map = {}
         self.request_map = {}
-        logger.info('service runner stopped')
 
-    def register_router(self, peer):
-        assert peer.role == DEALER
-        assert peer.started
+        logger.info('%s stopped', self.name)
 
-        self._router = peer
+    def hello(self):
+        message = Hello(self.realm, self.roles)
+        message.construct()
+        self._send(message)
+        logger.info('sent HELLO')
 
     def register_client(self, client):
         """ Register a Callee WAMP Client with the ``ServiecRunner``.
@@ -121,7 +117,7 @@ class ServiceRunner(HandleMessageMixin, Peer):
                 Registry.request_map[request_id] = (
                     client.__class__, entrypoint_name)
 
-                self.session.send(message)
+                self._send(message)
 
                 # wait for INVOCATION from Dealer
                 with eventlet.Timeout(5):
@@ -131,8 +127,3 @@ class ServiceRunner(HandleMessageMixin, Peer):
 
         Registry.client_registry[client.name] = client
         logger.info('%s has registered client: "%s"', self.name, client.name)
-
-
-def register_client(client):
-    service_runner = ServiceRunner()
-    service_runner.register_client(client)

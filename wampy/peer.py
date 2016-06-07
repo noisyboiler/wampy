@@ -2,17 +2,17 @@ from abc import ABCMeta, abstractproperty, abstractmethod
 
 import eventlet
 
-from . constants import DEFAULT_REALM, DEFAULT_ROLES
-from . exceptions import ConnectionError, SessionError
 from . logger import get_logger
 from . messages.hello import Hello
-from . messages import Message, MESSAGE_TYPE_MAP
-from . networking.connections.wamp import WampConnection
-from . mixins import HandleMessageMixin
-from . session import Session
+from . messages.register import Register
+from . mixins import ConnectionMixin, HandleMessageMixin
+
+from . registry import Registry
 
 
 logger = get_logger('wampy.peers')
+
+eventlet.monkey_patch()
 
 
 # The messages concerning the WAMP session itself are mandatory for all
@@ -126,9 +126,9 @@ class ClientInterface(object):
         """ Process incoming or outgoing WAMP messages """
 
 
-class ClientBase(HandleMessageMixin, ClientInterface):
+class ClientBase(ConnectionMixin, HandleMessageMixin, ClientInterface):
 
-    def __init__(self, name, router, realm=DEFAULT_REALM, roles=DEFAULT_ROLES):
+    def __init__(self, name, realm, roles, router=None):
         """ Base class for any WAMP Client.
 
         The Client must be initialised with a representation of the Router it
@@ -138,9 +138,6 @@ class ClientBase(HandleMessageMixin, ClientInterface):
         :Paramaters:
             name : string
                 An identifier for the Client.
-
-            router : instance
-                An subclass instance of :class:`~RouterBase`.
 
             realm : string
                 The Realm on the Router that the Client should connect to.
@@ -156,6 +153,10 @@ class ClientBase(HandleMessageMixin, ClientInterface):
                             'publisher': {},
                         },
                     }
+
+            router : instance
+                An subclass instance of :class:`~RouterBase`. Optional, because
+                the Client may be ran as a service.
 
         :Raises:
             ConnectionError
@@ -226,14 +227,15 @@ class ClientBase(HandleMessageMixin, ClientInterface):
         # then then the session over the connection
         self.hello()
 
-        response_message = self._recv()
-        welcome_or_challenge, session_id, dealer_roles = response_message
-        if welcome_or_challenge != Message.WELCOME:
-            raise SessionError('Not welcomed by dealer')
+        def wait_for_session():
+            with eventlet.Timeout(5):
+                while self.session is None:
+                    eventlet.sleep(0)
 
-        self._session = Session(session_id)
-        logger.info(
-            '%s has the session: "%s"', self.name, self.session.id)
+        wait_for_session()
+        self._register_entrypoints()
+
+        logger.info('%s has started up', self.name)
 
     def stop(self):
         """
@@ -248,66 +250,38 @@ class ClientBase(HandleMessageMixin, ClientInterface):
         message = Hello(self.realm, self.roles)
         message.construct()
         self._send(message)
+        logger.info('sent HELLO')
 
-    def _manage_connection(self):
-        connection = WampConnection(
-            host=self.router.host, port=self.router.port
-        )
+    def _register_entrypoints(self):
+        logger.info('registering entrypoints')
 
-        try:
-            connection.connect()
-            self._listen_on_connection(connection, self.message_queue)
-        except Exception as exc:
-            raise ConnectionError(exc)
+        for maybe_rpc_entrypoint in self.__class__.__dict__.values():
+            if hasattr(maybe_rpc_entrypoint, 'rpc'):
+                entrypoint_name = maybe_rpc_entrypoint.func_name
 
-        self.connection = connection
+                message = Register(procedure=entrypoint_name)
+                message.construct()
+                request_id = message.request_id
 
-    def _listen_on_connection(self, connection, message_queue):
-        def connection_handler():
-            while True:
-                try:
-                    frame = connection.recv()
-                    if frame:
-                        message = frame.payload
-                        self.handle_message(message)
-                except (SystemExit, KeyboardInterrupt):
-                    break
+                logger.info(
+                    'registering entrypoint "%s"', entrypoint_name
+                )
 
-        gthread = eventlet.spawn(connection_handler)
-        self.managed_thread = gthread
+                Registry.request_map[request_id] = (
+                    self.__class__, entrypoint_name)
 
-    def _send(self, message):
+                self._send(message)
+
+                # wait for INVOCATION from Dealer
+                with eventlet.Timeout(5):
+                    while (self.__class__, entrypoint_name) not in \
+                            Registry.registration_map.values():
+                        eventlet.sleep(0)
+
+        Registry.client_registry[self.name] = self
         logger.info(
-            '%s sending "%s" message',
-            self.name, MESSAGE_TYPE_MAP[message.WAMP_CODE]
+            'registered entrypoints for client: "%s"', self.name
         )
-
-        message = message.serialize()
-        self.connection.send(str(message))
-
-    def _recv(self):
-        logger.info(
-            '%s waiting to receive a message', self.name,
-        )
-
-        message = self._wait_for_message()
-
-        logger.info(
-            '%s received "%s" message',
-            self.name, MESSAGE_TYPE_MAP[message[0]]
-        )
-
-        return message
-
-    def _wait_for_message(self):
-        q = self.message_queue
-        while q.qsize() == 0:
-            # if the expected message is not there, switch context to
-            # allow other threads to continue working to fetch it for us
-            eventlet.sleep(0)
-
-        message = q.get()
-        return message
 
 
 class Router(RouterInterface):

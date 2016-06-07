@@ -30,34 +30,43 @@ A client can then begin a Session with the Router.
 
 	In [4]: from wampy.testing.clients.callees import DateService
 
-	In [5]: service = DateService(crossbar)
+	In [5]: from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
 
-	In [6]: service.start()
+	In [6]: service = DateService(
+        name="Date Service", router=crossbar,
+        realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
+    )
 
-	In [7]: service.session.id
-	Out[7]: 3941615218422338
+	In [7]: service.start()
+
+	In [8]: service.session.id
+	Out[8]: 3941615218422338
+
 
 If a Peer implements the "Callee" Role, then by starting the Peer you instruct the Peer to register its RPC entrypoints with the Router.
 
-	In [8]: service.role
-	Out[8]: 'CALLEE' 
+	In [9]: service.role
+	Out[9]: 'CALLEE' 
 
-	In [9]: from wampy.registry import get_registered_entrypoints
-	Out[9]: {347361574427174: (wampy.testing.clients.callees.DateService, 'get_todays_date')}
+	In [10]: from wampy.registry import get_registered_entrypoints
+	Out[10]: {347361574427174: (wampy.testing.clients.callees.DateService, 'get_todays_date')}
 
 Any method of the Peer decorated with @rpc will have been registered as publically availabile over the Router.
 
-	In [10]: from wampy.testing.clients.callers import StandAloneClient
+	In [11]: from wampy.testing.clients.callers import StandAloneClient
 
-	In [11]: client = StandAloneClient(crossbar)
+	In [12]: client = StandAloneClient(
+        name="Caller", router=crossbar,
+        realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
+    )
 
 The built in stand alone client knows about the entrypoints made available by the ``DateService`` and using it you can call them directly.
 
-	In [12]: client.rpc(procedure="get_todays_date")
-	Out [12]: u'2016-05-14'
+	In [13]: client.rpc(procedure="get_todays_date")
+	Out [13]: u'2016-05-14'
 
 When you're done playing, stop the Router, as it is running in a subprocess and needs to be managed carefully.
 
-	In [13]: crossbar.stop()
+	In [14]: crossbar.stop()
 
-	In [14]: exit()
+	In [15]: exit()

@@ -1,3 +1,4 @@
+import eventlet
 import json
 import socket
 import os
@@ -162,10 +163,8 @@ class Crossbar(Router):
             self.proc.kill()
             logger.info('killed parent process instead')
 
-        # give the Router a chance to shut down
-        from time import sleep
-        sleep(1)
-
+        # let the shutdown happen
+        eventlet.sleep(1)
         self._router_running = False
 
         logger.info('crossbar shut down')
