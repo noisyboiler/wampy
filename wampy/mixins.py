@@ -9,7 +9,7 @@ from . registry import Registry
 from . session import Session
 
 
-logger = get_logger('wampy.peers')
+logger = get_logger('wampy.mixins')
 
 
 class ConnectionMixin(object):
@@ -75,6 +75,23 @@ class ConnectionMixin(object):
 
 
 class HandleMessageMixin(object):
+
+    # The messages concerning the WAMP session itself are mandatory for all
+    # Peers, i.e. a Client MUST implement "HELLO", "ABORT" and "GOODBYE",
+    # while a Router MUST implement "WELCOME", "ABORT" and "GOODBYE".
+
+    def hello(self):
+        pass
+
+    def welcome(self):
+        pass
+
+    def goodbye(self):
+        pass
+
+    def abort(self):
+        pass
+
     def handle_message(self, message):
         logger.info('%s handling a message: "%s"', self.name, message)
 

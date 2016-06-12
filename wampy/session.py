@@ -16,5 +16,7 @@ class Session(object):
 
     """
 
-    def __init__(self, session_id):
+    def __init__(self, client, router, session_id):
         self.id = session_id
+        self.client = client
+        self.router = router

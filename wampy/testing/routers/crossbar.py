@@ -1,21 +1,11 @@
 import eventlet
 import json
-import socket
 import os
 import signal
 import subprocess
-from time import time as now
 
-from wampy.networking.connections.tcp import TCPConnection
-from wampy.constants import DEALER
-from wampy.exceptions import ConnectionError
-from wampy.logger import get_logger
-
+from ... peers import Router
 from ... registry import Registry
-from . router import Router
-
-
-logger = get_logger('wampy.testing.routers.crossbar')
 
 
 class Crossbar(Router):
@@ -23,21 +13,23 @@ class Crossbar(Router):
     ``Crossbar.config``.
 
     """
-    def __init__(self, host, config_path, crossbar_directory=None):
-        self.host = host
+
+    def __init__(
+            self, host, port, config_path, crossbar_directory=None):
+
+        super(Crossbar, self).__init__(host, port)
+
+        with open(config_path) as data_file:
+            config_data = json.load(data_file)
+
+        self.config = config_data
         self.config_path = config_path
         self.crossbar_directory = crossbar_directory
-
         self.proc = None
-        self._router_running = None
 
     @property
     def name(self):
-        return 'Crossbar'
-
-    @property
-    def realms(self):
-        return self.config['workers'][0]['realms']
+        return 'Crossbar.io'
 
     @property
     def realm(self):
@@ -56,74 +48,12 @@ class Crossbar(Router):
         return roles[0]
 
     @property
-    def role(self):
-        return DEALER
-
-    # TODO: wierdness
-    @property
-    def router(self):
-        return self
-
-    @property
-    def config(self):
-        try:
-            self._config
-        except AttributeError:
-            with open(self.config_path) as data_file:
-                data = json.load(data_file)
-
-            self._config = data
-
-        return self._config
-
-    @property
-    def started(self):
-        return self._router_running
-
-    @property
-    def port(self):
-        # this is loaded with assumptions and requires proper consideration.
-        return self.config['workers'][0]['transports'][0]['endpoint']['port']
-
-    def handle_message(self):
-        pass
-
-    def wait_until_ready(self, timeout=7, raise_if_not_ready=True):
-        logger.info('create TCPConnection')
-        # we're only ready when it's possible to connect over TCP to us
-        connection = TCPConnection(host=self.host, port=self.port)
-        end = now() + timeout
-
-        ready = False
-        logger.info('wait until ready')
-
-        while not ready:
-            timeout = end - now()
-            if timeout < 0:
-                if raise_if_not_ready:
-                    logger.exception('%s unable to connect', self.name)
-                    raise ConnectionError(
-                        'Failed to connect to router'
-                    )
-                else:
-                    return ready
-
-            try:
-                connection.connect()
-            except socket.error:
-                logger.error('failed to connect')
-            else:
-                ready = True
-
-        return ready
+    def session(self):
+        return self._session
 
     def start(self):
         """ Start Crossbar.io in a subprocess.
         """
-        if self.started is True:
-            logger.info('%s already started', self.name)
-            return
-
         # will attempt to connect or start up the router
         crossbar_config_path = self.config_path
         cbdir = self.crossbar_directory
@@ -135,38 +65,30 @@ class Crossbar(Router):
             '--config', crossbar_config_path,
         ]
 
-        if self.started is None or self.started is False:
-            logger.info('%s not started', self.name)
-            logger.info('%s router starting up', self.name)
-            self.proc = subprocess.Popen(cmd, preexec_fn=os.setsid)
+        self.proc = subprocess.Popen(cmd, preexec_fn=os.setsid)
 
-        logger.info('waiting for router connection....')
-        self.wait_until_ready()
-        logger.info('ready')
-
-        self._router_running = True
-
-        logger.info(
+        self.logger.info('waiting for router connection....')
+        self._wait_until_ready()
+        self.logger.info(
             '%s router is up and running with PID "%s"',
             self.name, self.proc.pid
         )
 
     def stop(self):
-        logger.info('attempting to shut down crossbar')
+        self.logger.info('attempting to shut down crossbar')
 
         try:
-            logger.info('sending SIGTERM to %s', self.proc.pid)
+            self.logger.info('sending SIGTERM to %s', self.proc.pid)
             os.killpg(os.getpgid(self.proc.pid), signal.SIGTERM)
         except Exception as exc:
-            logger.exception(exc)
-            logger.warning('could not kill process group')
+            self.logger.exception(exc)
+            self.logger.warning('could not kill process group')
             self.proc.kill()
-            logger.info('killed parent process instead')
+            self.logger.info('killed parent process instead')
 
         # let the shutdown happen
         eventlet.sleep(1)
-        self._router_running = False
 
-        logger.info('crossbar shut down')
+        self.logger.info('crossbar shut down')
         Registry.clear()
-        logger.info('registry cleared')
+        self.logger.info('registry cleared')

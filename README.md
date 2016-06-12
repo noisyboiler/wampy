@@ -26,9 +26,19 @@ For example, using the built-in Crossbar router to act as an RPC Dealer.
 
     ... watch plenty of Crossbar.io logging ouput fly by....
 
-A client can then begin a Session with the Router.
+A client (either a Caller or a Callee) can then begin a Session with the Router.
 
-	In [4]: from wampy.testing.clients.callees import DateService
+	In [4]: class DateService(ClientBase):
+	   ...: 	""" A service that tells you todays date """
+	   ...: 	
+	   ...: 	    @property
+	   ...: 	    def name(self):
+	   ...: 	        return 'Date Service'
+	   ...: 	
+	   ...: 	    @rpc
+	   ...: 	    def get_todays_date(self):
+	   ...: 	        logger.info('getting todays date')
+	   ...: 	        return datetime.date.today().isoformat()
 
 	In [5]: from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
 

@@ -3,12 +3,12 @@ from wampy.constants import (
     DEFAULT_HOST, DEFAULT_REALM, DEFAULT_ROLES)
 from wampy.entrypoints import rpc
 from wampy.registry import get_client_registry, get_registered_entrypoints
-from wampy.peer import ClientBase
+from wampy.clients import Client
 from wampy.services import ServiceRunner
 from wampy.testing.routers.crossbar import Crossbar
 
 
-class DateService(ClientBase):
+class DateService(Client):
     """ A service that tells you todays date """
 
     @property

@@ -1,4 +1,4 @@
-from wampy.peer import Peer
+from wampy.peers import Peer
 
 
 class Router(Peer):

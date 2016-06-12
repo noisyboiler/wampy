@@ -17,17 +17,16 @@ logger = get_logger('wampy.test.conftest')
 def router():
     crossbar = Crossbar(
         host=DEFAULT_HOST,
+        port=DEFAULT_PORT,
         config_path='./wampy/testing/routers/config.json',
         crossbar_directory='./',
     )
 
     crossbar.start()
-    assert crossbar.started is True
 
     yield crossbar
 
     crossbar.stop()
-    assert crossbar.started is False
 
 
 @pytest.fixture
@@ -45,6 +44,7 @@ def connection(router):
 def service_runner():
     crossbar = Crossbar(
         host=DEFAULT_HOST,
+        port=DEFAULT_PORT,
         config_path='./wampy/testing/routers/config.json',
         crossbar_directory='./',
     )

@@ -3,12 +3,12 @@ from datetime import date
 
 from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
 from wampy.entrypoints import rpc
-from wampy.peer import ClientBase
+from wampy.clients import Client
 
-from wampy.testing.clients.callers import StandAloneClient
+from wampy.clients import StandAloneClient
 
 
-class DateService(ClientBase):
+class DateService(Client):
     """ A service that tells you todays date """
 
     @property

@@ -1,13 +1,13 @@
 from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
+from wampy.clients import StandAloneClient
+from wampy.peers import Client
 from wampy.entrypoints import rpc
-from wampy.peer import ClientBase
 from wampy.registry import get_client_registry, get_registered_entrypoints
-from wampy.testing.clients.callers import StandAloneClient
 
 
 def test_client_connects_to_router(router):
 
-    class MyClient(ClientBase):
+    class MyClient(Client):
         pass
 
     client = MyClient(
@@ -15,17 +15,17 @@ def test_client_connects_to_router(router):
         realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
     )
 
-    assert client.running is False
     assert client.session is None
 
     client.start()
 
-    assert client.running is True
-    assert client.session is not None
+    session = client.session
+    assert session.id is not None
+    assert session.client is client
+    assert session.router is router
 
     client.stop()
 
-    assert client.running is False
     assert client.session is None
 
 
@@ -43,7 +43,7 @@ def test_client_registers_entrypoints_with_router(router):
     assert registered_entrypoints == {}
     assert get_entrypoint_names() == []
 
-    class MyClient(ClientBase):
+    class MyClient(Client):
         @rpc
         def get_foo(self):
             pass
@@ -57,7 +57,6 @@ def test_client_registers_entrypoints_with_router(router):
         realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
     )
     app.start()
-    assert app.running
 
     assert app.name in registered_peers
     assert "get_foo" in get_entrypoint_names()
@@ -72,7 +71,6 @@ def test_can_start_two_clients(router):
         realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
     )
     app_one.start()
-    assert app_one.running
     assert app_one.session.id
 
     app_two = StandAloneClient(
@@ -80,10 +78,10 @@ def test_can_start_two_clients(router):
         realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
     )
     app_two.start()
-    assert app_two.running
+    assert app_two.session.id
 
     app_one.stop()
     app_two.stop()
 
-    assert app_one.running is False
-    assert app_two.running is False
+    assert app_one.session is None
+    assert app_two.session is None
