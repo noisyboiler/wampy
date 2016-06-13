@@ -1,11 +1,9 @@
 import eventlet
 import pytest
 
-from wampy.constants import (
-    DEFAULT_HOST, DEFAULT_PORT, DEFAULT_REALM, DEFAULT_ROLES)
+from wampy.constants import DEFAULT_HOST, DEFAULT_PORT
 from wampy.logger import get_logger
 from wampy.networking.connections.wamp import WampConnection
-from wampy.services import ServiceRunner
 from wampy.testing.routers.crossbar import Crossbar
 from wampy.testing.servers.http import start_pong_server
 
@@ -38,30 +36,6 @@ def connection(router):
     assert connection.headers['upgrade'] == 'websocket'
 
     return connection
-
-
-@pytest.yield_fixture
-def service_runner():
-    crossbar = Crossbar(
-        host=DEFAULT_HOST,
-        port=DEFAULT_PORT,
-        config_path='./wampy/testing/routers/config.json',
-        crossbar_directory='./',
-    )
-    crossbar.start()
-
-    runner = ServiceRunner(
-        router=crossbar,
-        realm=DEFAULT_REALM,
-        roles=DEFAULT_ROLES,
-    )
-    runner.start()
-
-    logger.info('started the service runner: "%s"', id(runner))
-
-    yield runner
-
-    runner.stop()
 
 
 @pytest.yield_fixture
