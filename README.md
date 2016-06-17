@@ -28,9 +28,9 @@ For example, using the built-in Crossbar router to act as an RPC Dealer.
 
 A client (either a Caller or a Callee) can then begin a Session with the Router.
 
-	In [3]: from wampy.peers.clients import ClientBase
+	In [4]: from wampy.peers.clients import WampClient
 
-	In [4]: class DateService(ClientBase):
+	In [5]: class DateService(WampClient):
 	   ...: 	""" A service that tells you todays date """
 	   ...: 	
 	   ...: 	    @property
@@ -42,43 +42,42 @@ A client (either a Caller or a Callee) can then begin a Session with the Router.
 	   ...: 	        logger.info('getting todays date')
 	   ...: 	        return datetime.date.today().isoformat()
 
-	In [5]: from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
+	In [6]: from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
 
-	In [6]: service = DateService(
+	In [7]: service = DateService(
         name="Date Service", router=crossbar,
         realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
     )
 
-	In [7]: service.start()
+	In [8]: service.start()
 
-	In [8]: service.session.id
-	Out[8]: 3941615218422338
-
+	In [9]: service.session.id
+	Out[9]: 3941615218422338
 
 If a Peer implements the "Callee" Role, then by starting the Peer you instruct the Peer to register its RPC entrypoints with the Router.
 
-	In [9]: service.role
-	Out[9]: 'CALLEE' 
+	In [10]: service.role
+	Out[10]: 'CALLEE' 
 
-	In [10]: from wampy.registry import get_registered_entrypoints
-	Out[10]: {347361574427174: (wampy.testing.clients.callees.DateService, 'get_todays_date')}
+	In [11]: from wampy.registry import get_registered_entrypoints
+	Out[11]: {347361574427174: (wampy.testing.clients.callees.DateService, 'get_todays_date')}
 
 Any method of the Peer decorated with @rpc will have been registered as publically availabile over the Router.
 
-	In [11]: from wampy.testing.clients.callers import StandAloneClient
+	In [12]: from wampy.peers.clients import RpcClient
 
-	In [12]: client = StandAloneClient(
+	In [13]: client = RpcClient(
         name="Caller", router=crossbar,
         realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
     )
 
 The built in stand alone client knows about the entrypoints made available by the ``DateService`` and using it you can call them directly.
 
-	In [13]: client.rpc(procedure="get_todays_date")
-	Out [13]: u'2016-05-14'
+	In [14]: client.rpc.get_todays_date()
+	Out [14]: u'2016-05-14'
 
 When you're done playing, stop the Router, as it is running in a subprocess and needs to be managed carefully.
 
-	In [14]: crossbar.stop()
+	In [15]: crossbar.stop()
 
-	In [15]: exit()
+	In [16]: exit()
