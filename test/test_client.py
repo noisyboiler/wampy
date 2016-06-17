@@ -1,12 +1,12 @@
 from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
 from wampy.rpc import rpc
-from wampy.peers.clients import Client
+from wampy.peers.clients import WampClient
 from wampy.registry import get_client_registry, get_registered_entrypoints
 
 
 def test_client_connects_to_router(router):
 
-    class MyClient(Client):
+    class MyClient(WampClient):
         pass
 
     client = MyClient(
@@ -42,7 +42,7 @@ def test_client_registers_entrypoints_with_router(router):
     assert registered_entrypoints == {}
     assert get_entrypoint_names() == []
 
-    class MyClient(Client):
+    class MyClient(WampClient):
         @rpc
         def get_foo(self):
             pass
@@ -66,7 +66,7 @@ def test_client_registers_entrypoints_with_router(router):
 
 def test_can_start_two_clients(router):
 
-    class MyClient(Client):
+    class MyClient(WampClient):
         pass
 
     app_one = MyClient(
