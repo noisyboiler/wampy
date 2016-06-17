@@ -33,21 +33,21 @@ A client (either a Caller or a Callee) can then begin a Session with the Router.
 	In [5]: class DateService(WampClient):
 	   ...: 	""" A service that tells you todays date """
 	   ...: 	
-	   ...: 	    @property
-	   ...: 	    def name(self):
-	   ...: 	        return 'Date Service'
+	   ...: 	@property
+	   ...: 	def name(self):
+	   ...: 	    return 'Date Service'
 	   ...: 	
-	   ...: 	    @rpc
-	   ...: 	    def get_todays_date(self):
-	   ...: 	        logger.info('getting todays date')
-	   ...: 	        return datetime.date.today().isoformat()
+	   ...: 	@rpc
+	   ...: 	def get_todays_date(self):
+	   ...: 	    logger.info('getting todays date')
+	   ...: 	    return datetime.date.today().isoformat()
 
 	In [6]: from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
 
 	In [7]: service = DateService(
-        name="Date Service", router=crossbar,
-        realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
-    )
+	   ...:		name="Date Service", router=crossbar,
+	   ...: 	realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
+	   ...: )
 
 	In [8]: service.start()
 
@@ -67,9 +67,9 @@ Any method of the Peer decorated with @rpc will have been registered as publical
 	In [12]: from wampy.peers.clients import RpcClient
 
 	In [13]: client = RpcClient(
-        name="Caller", router=crossbar,
-        realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
-    )
+	    ...: 	name="Caller", router=crossbar,
+	    ...: 	realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
+	    ...: )
 
 The built in stand alone client knows about the entrypoints made available by the ``DateService`` and using it you can call them directly.
 
