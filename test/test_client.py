@@ -1,5 +1,4 @@
 from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
-from wampy.clients import StandAloneClient
 from wampy.entrypoints import rpc
 from wampy.peers import Client
 from wampy.registry import get_client_registry, get_registered_entrypoints
@@ -66,14 +65,18 @@ def test_client_registers_entrypoints_with_router(router):
 
 
 def test_can_start_two_clients(router):
-    app_one = StandAloneClient(
-        name="Client One", router=router,
+
+    class MyClient(Client):
+        pass
+
+    app_one = MyClient(
+        name="my test client", router=router,
         realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
     )
     app_one.start()
     assert app_one.session.id
 
-    app_two = StandAloneClient(
+    app_two = MyClient(
         name="Client Two", router=router,
         realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
     )

@@ -3,9 +3,7 @@ from datetime import date
 
 from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
 from wampy.entrypoints import rpc
-from wampy.clients import Client
-
-from wampy.clients import StandAloneClient
+from wampy.peers import Client
 
 
 class DateService(Client):
@@ -27,7 +25,7 @@ def test_call_with_no_args_or_kwargs(router):
     )
     callee.start()
 
-    caller = StandAloneClient(
+    caller = Client(
         name="Caller", router=router,
         realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
     )

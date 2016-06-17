@@ -7,6 +7,7 @@ import eventlet
 from . exceptions import ConnectionError
 from . logger import get_logger
 from . messages import Message, MESSAGE_TYPE_MAP
+from . messages.call import Call
 from . messages.hello import Hello
 from . messages.register import Register
 from . messages.yield_ import Yield
@@ -20,7 +21,7 @@ eventlet.monkey_patch()
 
 
 class Peer(object):
-    """ Models every actor in a WAMP protocol exchange.
+    """ An actor in a WAMP protocol exchange.
 
     """
 
@@ -33,6 +34,7 @@ class Peer(object):
         Required for Session management and logging.
 
         """
+
     @abstractproperty
     def realm(self):
         """ Return the name of the routing namespaces for the Peer to
@@ -281,18 +283,10 @@ class RouterBase(Peer):
 
 class Client(ClientBase):
     """ Represents the "client" side of a WAMP Session.
-
-    The client might be a Caller or a Callee, or both, and will
-    establish a WAMP Session with a Realm provided by a Router.
-
     """
 
-    def __init__(self, name, realm, roles, router=None, logger=None):
+    def __init__(self, name, realm, roles, router):
         """ Base class for any WAMP Client.
-
-        The Client must be initialised with a representation of the Router it
-        intends to connect to, and with all the knowledge required to begin a
-        Session with this Router, i.e. the ``realm`` and intended ``roles``.
 
         :Paramaters:
             name : string
@@ -314,8 +308,7 @@ class Client(ClientBase):
                     }
 
             router : instance
-                An subclass instance of :class:`~RouterBase`. Optional, because
-                the Client may be ran as a service.
+                An subclass instance of :class:`~RouterBase`.
 
         :Raises:
             ConnectionError
@@ -345,7 +338,7 @@ class Client(ClientBase):
         self._realm = realm
         self._roles = roles
 
-        self.logger = logger or get_logger(
+        self.logger = get_logger(
             'wampy.peers.client.{}'.format(name.replace(' ', '-')))
         self.logger.info('New client: "%s"', name)
 
@@ -378,20 +371,25 @@ class Client(ClientBase):
 
         wait_for_session()
         self._register_entrypoints()
+        self.logger.info('%s has started', self.name)
 
     def stop(self):
-        """
-        end then session and kill the message handling green thread
-        """
         self.managed_thread.kill()
-        assert self.managed_thread.dead is True
+        # TODO: say goodbye
         self._session = None
         self.logger.info('%s has stopped', self.name)
+
+    def make_rpc(self, procedure):
+        message = Call(procedure=procedure)
+        message.construct()
+        self._send(message)
+        response = self._recv()
+        result = response[3]
+        return result[0]
 
 
 class Router(RouterBase):
     """ Represents the "router" side of a WAMP Session.
-
     """
 
     def __init__(self, host, port):
