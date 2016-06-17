@@ -4,7 +4,7 @@ import os
 import signal
 import subprocess
 
-from ... peers import Router
+from ... peers.routers import Router
 from ... registry import Registry
 
 

@@ -28,6 +28,8 @@ For example, using the built-in Crossbar router to act as an RPC Dealer.
 
 A client (either a Caller or a Callee) can then begin a Session with the Router.
 
+	In [3]: from wampy.peers.clients import ClientBase
+
 	In [4]: class DateService(ClientBase):
 	   ...: 	""" A service that tells you todays date """
 	   ...: 	

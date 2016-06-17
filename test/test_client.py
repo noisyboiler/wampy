@@ -1,6 +1,6 @@
 from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
-from wampy.entrypoints import rpc
-from wampy.peers import Client
+from wampy.rpc import rpc
+from wampy.peers.clients import Client
 from wampy.registry import get_client_registry, get_registered_entrypoints
 
 

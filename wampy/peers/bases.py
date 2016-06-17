@@ -1,93 +1,23 @@
 import socket
-from abc import ABCMeta, abstractproperty, abstractmethod
 from time import time as now
 
 import eventlet
-
-from . exceptions import ConnectionError
-from . logger import get_logger
-from . messages import Message, MESSAGE_TYPE_MAP
-from . messages.call import Call
-from . messages.hello import Hello
-from . messages.register import Register
-from . messages.yield_ import Yield
-from . networking.connections.tcp import TCPConnection
-from . networking.connections.wamp import WampConnection
-from . registry import Registry
-from . session import Session
-
-
 eventlet.monkey_patch()
 
+from .. exceptions import ConnectionError
+from .. networking.connections.tcp import TCPConnection
+from .. networking.connections.wamp import WampConnection
+from .. messages.register import Register
+from .. registry import Registry
+from .. messages import Message, MESSAGE_TYPE_MAP
+from .. messages.yield_ import Yield
+from .. session import Session
+from .. messages.hello import Hello
 
-class Peer(object):
-    """ An actor in a WAMP protocol exchange.
-
-    """
-
-    __metaclass__ = ABCMeta
-
-    @abstractproperty
-    def name(self):
-        """ Return a string identifier for the Peer.
-
-        Required for Session management and logging.
-
-        """
-
-    @abstractproperty
-    def realm(self):
-        """ Return the name of the routing namespaces for the Peer to
-        attach to.
-
-        Required by the WAMP Session.
-
-        """
-
-    @abstractproperty
-    def roles(self):
-        """ Return the names of the Roles that the Peer implements
-        as a list of strings.
-
-        As a Router, this must be one or both of the Broker and Dealer
-        roles, and as a Client it must be one or both of Caller and
-        Callee.
-
-        Required for message handling.
-
-        """
-
-    @abstractmethod
-    def session(self):
-        """ Returns a WAMP Session object.
-
-        See :class:`~session.Session` for implementation details.
-
-        Required for message exchange.
-
-        """
-
-    @abstractmethod
-    def start(self):
-        """ Execute the start-up procedures for the Peer """
-
-    @abstractmethod
-    def stop(self):
-        """ Execute the shut-down procedures for the Peer """
+from . interface import PeerInterface
 
 
-class ClientBase(Peer):
-
-    def __init__(self):
-        # a WAMP connection will be made with the Router.
-        self._connection = None
-        # we spawn a green thread to listen for incoming messages
-        self._managed_thread = None
-        # incoming messages will be consumed from a Queue
-        self._message_queue = eventlet.Queue(maxsize=1)
-        # once we receieve a WELCOME message from the Router we'll have a
-        # session
-        self._session = None
+class ClientBase(PeerInterface):
 
     def _connect_to_router(self):
         connection = WampConnection(
@@ -245,10 +175,7 @@ class ClientBase(Peer):
             )
 
 
-class RouterBase(Peer):
-
-    def __init__(self):
-        pass
+class RouterBase(PeerInterface):
 
     def _wait_until_ready(self, timeout=7, raise_if_not_ready=True):
         self.logger.info('create TCPConnection')
@@ -279,124 +206,3 @@ class RouterBase(Peer):
                 ready = True
 
         return ready
-
-
-class Client(ClientBase):
-    """ Represents the "client" side of a WAMP Session.
-    """
-
-    def __init__(self, name, realm, roles, router):
-        """ Base class for any WAMP Client.
-
-        :Paramaters:
-            name : string
-                An identifier for the Client.
-
-            realm : string
-                The Realm on the Router that the Client should connect to.
-                Defaults to "realm1".
-
-            roles : dictionary
-                A description of the Roles implemented by the Client,
-                e.g. ::
-
-                    {
-                        'roles': {
-                            'subscriber': {},
-                            'publisher': {},
-                        },
-                    }
-
-            router : instance
-                An subclass instance of :class:`~RouterBase`.
-
-        :Raises:
-            ConnectionError
-                When the WAMP connection to the ``router`` failed.
-            SessionError
-                When the WAMP connection succeeded, but then the WAMP Session
-                failed to establish.
-
-        :Returns:
-            None
-
-        Once initialised, ``start`` must be called on the Client, which will
-        do three things:
-
-            1.  Establish a WAMP connection with the Router, otherwise raise
-                a ``ConnectionError``.
-            2.  Proceeded to establishe a WAMP Session with the Router,
-                otherwise raise a SessionError.
-            3.  Register any RPC entrypoints on the client with the Router.
-
-        """
-        super(Client, self).__init__()
-
-        self.router = router
-
-        self._name = name
-        self._realm = realm
-        self._roles = roles
-
-        self.logger = get_logger(
-            'wampy.peers.client.{}'.format(name.replace(' ', '-')))
-        self.logger.info('New client: "%s"', name)
-
-    @property
-    def name(self):
-        return self._name
-
-    @property
-    def realm(self):
-        return self._realm
-
-    @property
-    def roles(self):
-        return self._roles
-
-    @property
-    def session(self):
-        return self._session
-
-    def start(self):
-        # kick off the connection and the listener of it
-        self._connect_to_router()
-        # then then the session over the connection
-        self._say_hello_to_router()
-
-        def wait_for_session():
-            with eventlet.Timeout(5):
-                while self.session is None:
-                    eventlet.sleep(0)
-
-        wait_for_session()
-        self._register_entrypoints()
-        self.logger.info('%s has started', self.name)
-
-    def stop(self):
-        self.managed_thread.kill()
-        # TODO: say goodbye
-        self._session = None
-        self.logger.info('%s has stopped', self.name)
-
-    def make_rpc(self, procedure):
-        message = Call(procedure=procedure)
-        message.construct()
-        self._send(message)
-        response = self._recv()
-        result = response[3]
-        return result[0]
-
-
-class Router(RouterBase):
-    """ Represents the "router" side of a WAMP Session.
-    """
-
-    def __init__(self, host, port):
-        self.host = host
-        self.port = port
-
-        self.logger = get_logger(
-            'wampy.peers.router.{}'.format(self.name.replace(' ', '-'))
-        )
-        self.logger.info('New router: "%s"', self.name)

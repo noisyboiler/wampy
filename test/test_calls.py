@@ -2,8 +2,8 @@ import datetime
 from datetime import date
 
 from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
-from wampy.entrypoints import rpc
-from wampy.peers import Client
+from wampy.rpc import rpc
+from wampy.peers.clients import Client
 
 
 class DateService(Client):
@@ -31,7 +31,7 @@ def test_call_with_no_args_or_kwargs(router):
     )
     caller.start()
 
-    response = caller.make_rpc(procedure="get_todays_date")
+    response = caller.rpc.get_todays_date()
     today = date.today()
 
     assert response == today.isoformat()
