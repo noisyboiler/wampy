@@ -202,13 +202,21 @@ class ClientBase(PeerInterface):
 
         elif wamp_code == Message.INVOCATION:  # 68
             self.logger.info('%s handling invocation', self.name)
-            _, request_id, registration_id, details = message
+
+            args = []
+
+            try:
+                # no args, no kwargs
+                _, request_id, registration_id, details = message
+            except ValueError:
+                # args, no kwargs
+                _, request_id, registration_id, details, args = message
 
             _, procedure_name = Registry.registration_map[
                 registration_id]
 
             entrypoint = getattr(self, procedure_name)
-            resp = entrypoint()
+            resp = entrypoint(*args)
             result_args = [resp]
 
             message = Yield(request_id, result_args=result_args)
@@ -240,7 +248,7 @@ class ClientBase(PeerInterface):
 
         else:
             self.logger.warning(
-                '%s has an unhandled message: "%s"', self.name, wamp_code
+                '%s has an unhandled message: "%s"', self.name, message
             )
 
 

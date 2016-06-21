@@ -26,5 +26,5 @@ class WebsocktProtocolError(Exception):
     pass
 
 
-class ProcedureNotFoundError(Exception):
+class ProcedureNotFoundError(AttributeError):
     pass

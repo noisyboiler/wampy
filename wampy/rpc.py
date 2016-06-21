@@ -4,15 +4,6 @@ from . exceptions import ProcedureNotFoundError
 from . messages.call import Call
 
 
-class ResultProxy:
-
-    def __init__(self, result):
-        self.result = result
-
-    def __call__(self):
-        return self.result
-
-
 class RpcProxy:
 
     def __init__(self, client):
@@ -22,14 +13,25 @@ class RpcProxy:
         from . registry import Registry
         procedures = [v[1] for v in Registry.registration_map.values()]
         if name in procedures:
-            message = Call(procedure=name)
-            message.construct()
-            self.client._send(message)
-            response = self.client._recv()
-            results = response[3]
 
-            result_proxy = ResultProxy(result=results[0])
-            return result_proxy
+            def wrapper(*args):
+                self.client.logger.info(
+                    '%s.%s called with %r and %r',
+                    self.client.name,
+                    name,
+                    args,
+                )
+
+                message = Call(procedure=name, args=args)
+                message.construct()
+                self.client.logger.info(message)
+                self.client._send(message)
+                response = self.client._recv()
+                results = response[3]
+                result = results[0]
+                return result
+
+            return wrapper
 
         raise ProcedureNotFoundError(name)
 
