@@ -20,6 +20,12 @@ class HelloService(WampClient):
         message = "Hello {}".format(name)
         return message
 
+    @rpc
+    def say_greeting(self, name, greeting="hola"):
+        message = "{greeting} to {name}".format(
+            greeting=greeting, name=name)
+        return message
+
 
 def test_call_with_no_args_or_kwargs(router):
     callee = DateService(
@@ -59,6 +65,48 @@ def test_call_with_args_but_no_kwargs(router):
     response = caller.rpc.say_hello("Simon")
 
     assert response == "Hello Simon"
+
+    callee.stop()
+    caller.stop()
+
+
+def test_call_with_no_args_but_a_default_kwarg(router):
+    callee = HelloService(
+        name="Hello Service", router=router,
+        realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
+    )
+    callee.start()
+
+    caller = RpcClient(
+        name="Caller", router=router,
+        realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
+    )
+    caller.start()
+
+    response = caller.rpc.say_greeting("Simon")
+
+    assert response == "hola to Simon"
+
+    callee.stop()
+    caller.stop()
+
+
+def test_call_with_no_args_but_a_kwarg(router):
+    callee = HelloService(
+        name="Hello Service", router=router,
+        realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
+    )
+    callee.start()
+
+    caller = RpcClient(
+        name="Caller", router=router,
+        realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
+    )
+    caller.start()
+
+    response = caller.rpc.say_greeting("Simon", greeting="goodbye")
+
+    assert response == "goodbye to Simon"
 
     callee.stop()
     caller.stop()

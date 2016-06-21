@@ -14,7 +14,7 @@ class RpcProxy:
         procedures = [v[1] for v in Registry.registration_map.values()]
         if name in procedures:
 
-            def wrapper(*args):
+            def wrapper(*args, **kwargs):
                 self.client.logger.info(
                     '%s.%s called with %r and %r',
                     self.client.name,
@@ -22,7 +22,7 @@ class RpcProxy:
                     args,
                 )
 
-                message = Call(procedure=name, args=args)
+                message = Call(procedure=name, args=args, kwargs=kwargs)
                 message.construct()
                 self.client.logger.info(message)
                 self.client._send(message)

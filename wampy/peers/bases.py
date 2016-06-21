@@ -204,19 +204,25 @@ class ClientBase(PeerInterface):
             self.logger.info('%s handling invocation', self.name)
 
             args = []
+            kwargs = {}
 
             try:
                 # no args, no kwargs
                 _, request_id, registration_id, details = message
             except ValueError:
                 # args, no kwargs
-                _, request_id, registration_id, details, args = message
+                try:
+                    _, request_id, registration_id, details, args = message
+                except ValueError:
+                    # args and kwargs
+                    _, request_id, registration_id, details, args, kwargs = (
+                        message)
 
             _, procedure_name = Registry.registration_map[
                 registration_id]
 
             entrypoint = getattr(self, procedure_name)
-            resp = entrypoint(*args)
+            resp = entrypoint(*args, **kwargs)
             result_args = [resp]
 
             message = Yield(request_id, result_args=result_args)
