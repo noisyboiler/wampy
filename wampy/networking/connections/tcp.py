@@ -34,6 +34,8 @@ class TCPConnection(object):
                     'unable to connect to %s:%s', self.host, self.port)
             logger.error(exc)
             raise
+        else:
+            logger.info('connected to %s:%s', self.host, self.port)
 
         self.socket = _socket
 

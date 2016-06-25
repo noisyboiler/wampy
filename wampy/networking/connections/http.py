@@ -13,20 +13,14 @@ class HttpConnection(TCPConnection):
 
     def _upgrade(self):
         headers = self._get_handshake_headers()
-        handshake = '\n\r'.join(headers) + "\r\n\r\n"
-        self.socket.send(handshake)
+        handshake = '\r\n'.join(headers) + "\r\n\r\n"
+        self.send(handshake)
         self.status, self.headers = self._read_handshake_response()
-
         logger.info('HTTP Connection status: "%s"', self.status)
 
     def _get_handshake_headers(self):
-        """ Do an HTTP handshake with the server.
-        """
         headers = []
         headers.append("GET / HTTP/1.1")
-        headers.append("Host: {}:{}".format(self.host, self.port))
-        headers.append("Origin: http://{}:{}".format(self.host, self.port))
-
         return headers
 
     def _read_handshake_response(self):
@@ -44,7 +38,7 @@ class HttpConnection(TCPConnection):
                 break
 
             line = line.strip()
-
+            print line
             if line == '':
                 continue
 
@@ -53,8 +47,6 @@ class HttpConnection(TCPConnection):
                 try:
                     status = int(status_info[1])
                 except IndexError:
-                    import pdb
-                    pdb.set_trace()
                     logger.warning('unexpected handshake resposne')
                     logger.error('%s', status_info)
                     raise
@@ -72,13 +64,15 @@ class HttpConnection(TCPConnection):
             key, value = kv
             headers[key.lower()] = value.strip().lower()
 
+        logger.info(status)
+        logger.info(headers)
         return status, headers
 
-    def _recv_handshake_response_by_line(self, bufsize=1):
+    def _recv_handshake_response_by_line(self):
         received_bytes = bytearray()
 
         while True:
-            bytes = self._recv(bufsize)
+            bytes = self._recv(1)
 
             if not bytes:
                 break

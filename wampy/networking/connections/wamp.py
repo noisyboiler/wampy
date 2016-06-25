@@ -9,8 +9,8 @@ logger = get_logger('wampy.networking.connections.wamp')
 class WampConnection(WebsocketConnection):
     type_ = 'wamp'
 
-    def __init__(self, host, port):
-        super(WampConnection, self).__init__(host, port)
+    def __init__(self, host, port, websocket_location="ws"):
+        super(WampConnection, self).__init__(host, port, websocket_location)
 
     def _get_handshake_headers(self):
         """ Do an HTTP upgrade handshake with the server.
@@ -27,9 +27,10 @@ class WampConnection(WebsocketConnection):
 
     def _upgrade(self):
         headers = self._get_handshake_headers()
-        handshake = '\n\r'.join(headers) + "\r\n\r\n"
+        handshake = '\r\n'.join(headers) + "\r\n\r\n"
+        logger.info(handshake)
         self.socket.send(handshake)
         self.status, self.headers = self._read_handshake_response()
 
-        logger.info('Wamp Connection status: "%s"', self.status)
         logger.info(self.headers)
+        logger.info('Wamp Connection status: "%s"', self.status)

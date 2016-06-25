@@ -1,10 +1,22 @@
 # wampy
 
-## An experimental (and incomplete) WAMP Implementation.
+## A Python WAMP Implementation.
 
-The WAMP protocol connects Clients over RPC or pub/sub via a Router. A Client is some kind of application, maybe a *Caller*, maybe a *Callee*, else a *Publisher* or a *Subscriber*. A *Router* is another type of application - a message broker - and highly likely to be Crossbar.
+The WAMP protocol connects Clients via RPC or Pub/Sub over a Router.
+
+A Client is some kind of application that __calls__ or __subscribes__ to another Client, else provides something for others to call or subscribe to. These are "Roles" that are performed by a Client, and they are referred to as *Caller*, *Callee*, *Publisher* and *Subscriber*. 
+
+A Router is another type of application - a message broker - that is either a *Broker* or a *Dealer* &
+
+and highly likely to be Crossbar.
 
 Whatever application you're dealing with, WAMP refers to these as a __Peer__.
+
+As a Client you don't need 
+
+
+
+
 
 With __wampy__ you can create Peers to implement WAMP roles: Callee, Caller, Publisher, Subscriber, Broker and Dealer.
 
