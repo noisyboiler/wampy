@@ -1,11 +1,8 @@
-import socket
-from time import time as now
+import logging
 
 import eventlet
 
-from .. logger import get_logger
-from .. exceptions import ConnectionError
-from .. networking.connections.tcp import TCPConnection
+from .. exceptions import ConnectionError, WampError
 from .. networking.connections.wamp import WampConnection
 from .. messages.register import Register
 from .. registry import Registry
@@ -16,7 +13,10 @@ from .. messages.hello import Hello
 
 from . interface import PeerInterface
 
+logger = logging.getLogger('wampy.core')
+
 eventlet.monkey_patch()
+logger.warning('eventlet has monkey patched your environment')
 
 
 class ClientBase(PeerInterface):
@@ -84,13 +84,17 @@ class ClientBase(PeerInterface):
         self._realm = realm
         self._roles = roles
 
-        self.logger = get_logger(
+        self.logger = logging.getLogger(
             'wampy.peers.client.{}'.format(name.replace(' ', '-')))
         self.logger.info('New client: "%s"', name)
 
     def _connect_to_router(self):
         connection = WampConnection(
             host=self.router.host, port=self.router.port
+        )
+
+        self.logger.info(
+            '%s connecting to %s', self.name, self.router.name
         )
 
         try:
@@ -252,6 +256,11 @@ class ClientBase(PeerInterface):
                 '%s has the session: "%s"', self.name, self.session.id
             )
 
+        elif wamp_code == Message.ERROR:
+            _, _, _, _, _, errors = message
+            logger.warning(errors)
+            raise WampError(', '.join(errors))
+
         else:
             self.logger.warning(
                 '%s has an unhandled message: "%s"', self.name, message
@@ -266,37 +275,7 @@ class RouterBase(PeerInterface):
         self.host = host
         self.port = port
 
-        self.logger = get_logger(
+        self.logger = logging.getLogger(
             'wampy.peers.router.{}'.format(self.name.replace(' ', '-'))
         )
         self.logger.info('New router: "%s"', self.name)
-
-    def _wait_until_ready(self, timeout=7, raise_if_not_ready=True):
-        self.logger.info('create TCPConnection')
-        # we're only ready when it's possible to connect to the router
-        # over TCP - so let's just try it.
-        connection = TCPConnection(host=self.host, port=self.port)
-        end = now() + timeout
-
-        ready = False
-        self.logger.info('wait until ready')
-
-        while not ready:
-            timeout = end - now()
-            if timeout < 0:
-                if raise_if_not_ready:
-                    self.logger.exception('%s unable to connect', self.name)
-                    raise ConnectionError(
-                        'Failed to connect to router'
-                    )
-                else:
-                    return ready
-
-            try:
-                connection.connect()
-            except socket.error:
-                self.logger.warning('failed to connect')
-            else:
-                ready = True
-
-        return ready

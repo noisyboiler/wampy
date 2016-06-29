@@ -1,11 +1,11 @@
+import logging
 import socket
 from socket import error as socket_error
 
 from ... exceptions import ConnectionError
-from ... logger import get_logger
 
 
-logger = get_logger('wampy.networking.connections.tcp')
+logger = logging.getLogger(__name__)
 
 
 class TCPConnection(object):
@@ -24,7 +24,8 @@ class TCPConnection(object):
 
     def _connect(self):
         _socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        logger.info('attempting connection to %s:%s', self.host, self.port)
+        logger.debug(
+            'establishing connection to %s:%s', self.host, self.port)
 
         try:
             _socket.connect((self.host, self.port))
@@ -35,7 +36,7 @@ class TCPConnection(object):
             logger.error(exc)
             raise
         else:
-            logger.info('connected to %s:%s', self.host, self.port)
+            logger.debug('connected to %s:%s', self.host, self.port)
 
         self.socket = _socket
 

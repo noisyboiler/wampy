@@ -1,8 +1,9 @@
-from ... logger import get_logger
+import logging
+
 from . tcp import TCPConnection
 
 
-logger = get_logger('wampy.networking.connections.http')
+logger = logging.getLogger(__name__)
 
 
 class HttpConnection(TCPConnection):
@@ -38,7 +39,6 @@ class HttpConnection(TCPConnection):
                 break
 
             line = line.strip()
-            print line
             if line == '':
                 continue
 
@@ -64,8 +64,6 @@ class HttpConnection(TCPConnection):
             key, value = kv
             headers[key.lower()] = value.strip().lower()
 
-        logger.info(status)
-        logger.info(headers)
         return status, headers
 
     def _recv_handshake_response_by_line(self):

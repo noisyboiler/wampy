@@ -1,13 +1,13 @@
 import array
+import logging
 import json
 import os
 from struct import pack, unpack_from
 
 from .. exceptions import WebsocktProtocolError, IncompleteFrameError
-from .. logger import get_logger
 
 
-logger = get_logger('wampy.networking.frames')
+logger = logging.getLogger('wampy.networking.frames')
 
 
 class Frame(object):

@@ -28,3 +28,7 @@ class WebsocktProtocolError(Exception):
 
 class ProcedureNotFoundError(AttributeError):
     pass
+
+
+class WampError(Exception):
+    pass

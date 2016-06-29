@@ -15,13 +15,6 @@ class RpcProxy:
         if name in procedures:
 
             def wrapper(*args, **kwargs):
-                self.client.logger.info(
-                    '%s.%s called with %r and %r',
-                    self.client.name,
-                    name,
-                    args,
-                )
-
                 message = Call(procedure=name, args=args, kwargs=kwargs)
                 message.construct()
                 self.client.logger.info(message)

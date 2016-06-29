@@ -1,9 +1,10 @@
+import logging
+
 from ... constants import WEBSOCKET_SUBPROTOCOLS
-from ... logger import get_logger
 from . websocket import WebsocketConnection
 
 
-logger = get_logger('wampy.networking.connections.wamp')
+logger = logging.getLogger(__name__)
 
 
 class WampConnection(WebsocketConnection):
@@ -26,11 +27,13 @@ class WampConnection(WebsocketConnection):
         return headers
 
     def _upgrade(self):
-        headers = self._get_handshake_headers()
-        handshake = '\r\n'.join(headers) + "\r\n\r\n"
-        logger.info(handshake)
+        handshake_headers = self._get_handshake_headers()
+        handshake = '\r\n'.join(handshake_headers) + "\r\n\r\n"
+
+        logger.debug("WAMP Connection handshake: %s", ', '.join(
+            handshake_headers))
+
         self.socket.send(handshake)
         self.status, self.headers = self._read_handshake_response()
 
-        logger.info(self.headers)
-        logger.info('Wamp Connection status: "%s"', self.status)
+        logger.debug("WAMP Connection reply: %s", self.headers)

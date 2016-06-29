@@ -1,14 +1,14 @@
+import logging
 import uuid
 from base64 import encodestring
 
 from ... constants import WEBSOCKET_VERSION
 from ... exceptions import IncompleteFrameError
-from ... logger import get_logger
 from .. frames import ClientFrame, ServerFrame
 from . http import HttpConnection
 
 
-logger = get_logger('wampy.networking.connections.websocket')
+logger = logging.getLogger(__name__)
 
 
 class WebsocketConnection(HttpConnection):
@@ -28,9 +28,8 @@ class WebsocketConnection(HttpConnection):
         a browser. Maybe a reasonable assumption once upon a time...
 
         """
-        # https://tools.ietf.org/html/rfc6455
         headers = []
-
+        # https://tools.ietf.org/html/rfc6455
         headers.append("GET /{} HTTP/1.1".format(self.websocket_location))
         headers.append("Host: {}".format(self.host))
         headers.append("Upgrade: websocket")
@@ -47,14 +46,15 @@ class WebsocketConnection(HttpConnection):
         return headers
 
     def _upgrade(self):
-        headers = self._get_handshake_headers()
-        handshake = '\r\n'.join(headers) + "\r\n\r\n"
+        handshake_headers = self._get_handshake_headers()
+        handshake = '\r\n'.join(handshake_headers) + "\r\n\r\n"
 
+        logger.debug("WebSocket Connection handshake: %s", ', '.join(
+            handshake_headers))
         self.socket.send(handshake)
         self.status, self.headers = self._read_handshake_response()
 
-        logger.info(self.headers)
-        logger.info('Websocket Connection status: "%s"', self.status)
+        logger.debug("WebSocket Connection reply: %s", self.headers)
 
     def recv(self):
         received_bytes = bytearray()

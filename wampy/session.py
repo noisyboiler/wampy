@@ -1,7 +1,7 @@
-from . logger import get_logger
+import logging
 
 
-logger = get_logger('wampy.wamp.session')
+logger = logging.getLogger('wampy.wamp.session')
 
 
 class Session(object):
