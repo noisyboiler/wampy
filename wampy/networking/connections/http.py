@@ -29,7 +29,7 @@ class HttpConnection(TCPConnection):
         headers = {}
 
         while True:
-            line = self._recv_handshake_response_by_line()
+            line = self.receive_message_handshake_response_by_line()
 
             try:
                 line = line.decode('utf-8')
@@ -66,11 +66,11 @@ class HttpConnection(TCPConnection):
 
         return status, headers
 
-    def _recv_handshake_response_by_line(self):
+    def receive_message_handshake_response_by_line(self):
         received_bytes = bytearray()
 
         while True:
-            bytes = self._recv(1)
+            bytes = self.receive_message(1)
 
             if not bytes:
                 break

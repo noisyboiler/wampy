@@ -1,5 +1,6 @@
 import eventlet
 
+from .. messages import Message
 from .. rpc import RpcProxy
 from . bases import ClientBase
 
@@ -38,8 +39,10 @@ class WampClient(ClientBase):
         self.logger.info('%s has started', self.name)
 
     def stop(self):
+        self._say_goodbye_to_router()
+        message = self._wait_for_message()
+        assert message[0] == Message.GOODBYE
         self.managed_thread.kill()
-        # TODO: say goodbye
         self._session = None
         self.logger.info('%s has stopped', self.name)
 

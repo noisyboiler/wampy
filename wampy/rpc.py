@@ -18,8 +18,8 @@ class RpcProxy:
                 message = Call(procedure=name, args=args, kwargs=kwargs)
                 message.construct()
                 self.client.logger.info(message)
-                self.client._send(message)
-                response = self.client._recv()
+                self.client.send_message(message)
+                response = self.client.receive_message()
                 results = response[3]
                 result = results[0]
                 return result

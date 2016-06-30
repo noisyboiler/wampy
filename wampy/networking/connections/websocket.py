@@ -60,7 +60,7 @@ class WebsocketConnection(HttpConnection):
         received_bytes = bytearray()
 
         while True:
-            bytes = self._recv()
+            bytes = self.receive_message()
             received_bytes.extend(bytes)
 
             try:

@@ -7,6 +7,7 @@ from .. networking.connections.wamp import WampConnection
 from .. messages.register import Register
 from .. registry import Registry
 from .. messages import Message, MESSAGE_TYPE_MAP
+from .. messages.goodbye import Goodbye
 from .. messages.yield_ import Yield
 from .. session import Session
 from .. messages.hello import Hello
@@ -108,8 +109,12 @@ class ClientBase(PeerInterface):
     def _say_hello_to_router(self):
         message = Hello(self.realm, self.roles)
         message.construct()
-        self._send(message)
-        self.logger.info('sent HELLO')
+        self.send_message(message)
+
+    def _say_goodbye_to_router(self):
+        message = Goodbye()
+        message.construct()
+        self.send_message(message)
 
     def _listen_on_connection(self, connection, message_queue):
         def connection_handler():
@@ -125,7 +130,7 @@ class ClientBase(PeerInterface):
         gthread = eventlet.spawn(connection_handler)
         self.managed_thread = gthread
 
-    def _send(self, message):
+    def send_message(self, message):
         self.logger.info(
             '%s sending "%s" message',
             self.name, MESSAGE_TYPE_MAP[message.WAMP_CODE]
@@ -134,7 +139,7 @@ class ClientBase(PeerInterface):
         message = message.serialize()
         self._connection.send(str(message))
 
-    def _recv(self):
+    def receive_message(self):
         self.logger.info(
             '%s waiting to receive a message', self.name,
         )
@@ -176,7 +181,7 @@ class ClientBase(PeerInterface):
                 Registry.request_map[request_id] = (
                     self.__class__, entrypoint_name)
 
-                self._send(message)
+                self.send_message(message)
 
                 # wait for INVOCATION from Dealer
                 with eventlet.Timeout(5):
@@ -231,12 +236,13 @@ class ClientBase(PeerInterface):
 
             message = Yield(request_id, result_args=result_args)
             message.construct()
-            self._send(message)
+            self.send_message(message)
 
         elif wamp_code == Message.GOODBYE:  # 6
             self.logger.info('%s handling goodbye', self.name)
             _, _, response_message = message
             assert response_message == 'wamp.close.normal'
+            self._message_queue.put(message)
 
         elif wamp_code == Message.RESULT:  # 50
             self.logger.info('%s handling a RESULT', self.name)

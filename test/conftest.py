@@ -14,7 +14,6 @@ import pytest
 
 from wampy.constants import DEFAULT_HOST, DEFAULT_PORT
 from wampy.networking.connections.wamp import WampConnection
-from wampy.testing.servers.http import start_pong_server
 
 from wampy.exceptions import ConnectionError
 from wampy.peers.routers import Router
@@ -238,18 +237,3 @@ def connection(router):
     assert connection.headers['upgrade'] == 'websocket'
 
     return connection
-
-
-@pytest.yield_fixture
-def http_pong_server():
-    thread = eventlet.spawn(start_pong_server)
-
-    # give the server a second to start up
-    eventlet.sleep()
-    yield
-
-    while not thread.dead:
-        eventlet.sleep()
-        thread.kill()
-
-    assert thread.dead

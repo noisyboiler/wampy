@@ -43,7 +43,7 @@ class TCPConnection(object):
     def _upgrade(self):
         pass
 
-    def _recv(self, bufsize=1024):
+    def receive_message(self, bufsize=1024):
         try:
             bytes = self.socket.recv(bufsize)
         except socket.timeout as e:
@@ -56,7 +56,7 @@ class TCPConnection(object):
         received_bytes = bytearray()
 
         while True:
-            bytes = self._recv()
+            bytes = self.receive_message()
             if not bytes:
                 break
 

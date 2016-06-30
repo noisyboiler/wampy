@@ -2,35 +2,7 @@ from mock import ANY
 
 from wampy.networking.connections.tcp import TCPConnection
 from wampy.networking.connections.http import HttpConnection
-from wampy.networking.connections.websocket import (
-    WebsocketConnection)
 from wampy.networking.connections.wamp import WampConnection
-
-
-def test_http_connection(http_pong_server):
-    connection = HttpConnection(host='localhost', port=8080)
-    connection.connect()
-
-    assert connection.status == 200
-    assert connection.headers == {
-        'status': 200,
-        'date': ANY,
-        'status_info': ['HTTP/1.1', '200', 'OK'],
-        'content-type': 'text/plain', 'content-length': '7',
-    }
-
-
-def test_websocket_connection(http_pong_server):
-    connection = WebsocketConnection(host='localhost', port=8080)
-    connection.connect()
-
-    assert connection.status == 200
-    assert connection.headers == {
-        'status': 200,
-        'date': ANY,
-        'status_info': ['HTTP/1.1', '200', 'OK'],
-        'content-type': 'text/plain', 'content-length': '7',
-    }
 
 
 def test_wamp_connection(router):
