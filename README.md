@@ -31,7 +31,6 @@ Then open a Python console.
 	   ...: 	
 	   ...: 	@rpc
 	   ...: 	def get_todays_date(self):
-	   ...: 	    logger.info('getting todays date')
 	   ...: 	    return datetime.date.today().isoformat()
 
 	In [3]: from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES

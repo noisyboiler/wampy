@@ -131,12 +131,14 @@ class ClientBase(PeerInterface):
         self.managed_thread = gthread
 
     def send_message(self, message):
+        message_type = MESSAGE_TYPE_MAP[message.WAMP_CODE]
+        message = message.serialize()
+
         self.logger.info(
-            '%s sending "%s" message',
-            self.name, MESSAGE_TYPE_MAP[message.WAMP_CODE]
+            '%s sending "%s" message: %s',
+            self.name, message_type, message
         )
 
-        message = message.serialize()
         self._connection.send(str(message))
 
     def receive_message(self):
