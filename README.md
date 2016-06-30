@@ -6,43 +6,23 @@ The WAMP protocol connects Clients via RPC or Pub/Sub over a Router.
 
 A Client is some kind of application that __calls__ or __subscribes__ to another Client, else provides something for others to call or subscribe to. These are "Roles" that are performed by a Client, and they are referred to as *Caller*, *Callee*, *Publisher* and *Subscriber*. 
 
-A Router is another type of application - a message broker - that is either a *Broker* or a *Dealer* &
-
-and highly likely to be Crossbar.
+A Router is another type of application - a message broker - that is either a *Broker* or a *Dealer* & and highly likely to be Crossbar.
 
 Whatever application you're dealing with, WAMP refers to these as a __Peer__.
-
-As a Client you don't need 
-
-
-
-
 
 With __wampy__ you can create Peers to implement WAMP roles: Callee, Caller, Publisher, Subscriber, Broker and Dealer.
 
 ### Quickstart: wampy from a Python console.
 
-Before any messaging can happen you need a Peer to implement the Dealer or Broler roles, or both.
+Before any messaging can happen you need a Router. This is a Peer that implements the Dealer or Broker roles, or both. Messages are then routed between Clients over an administritive domain called a "realm".
 
-For example, using the built-in Crossbar router to act as an RPC Dealer.
+I suggest that you use Crossbar.io and start it up on the default host and port with the defauly realm. See the Crossbar.io docs for the instructions for this. Then open a Python console in 
 
-	In [1]: from wampy.testing.routers import Crossbar
+You can then 
 
-	In [2]: crossbar = Crossbar(
-	   ...: 	host='localhost',
-       ...: 	config_path='./wampy/testing/routers/config.json',
-       ...: 	crossbar_directory='./'
-       ...: )
+	In [1]: from wampy.peers.clients import WampClient
 
-    In [3]: crossbar.start()
-
-    ... watch plenty of Crossbar.io logging ouput fly by....
-
-A client (either a Caller or a Callee) can then begin a Session with the Router.
-
-	In [4]: from wampy.peers.clients import WampClient
-
-	In [5]: class DateService(WampClient):
+	In [2]: class DateService(WampClient):
 	   ...: 	""" A service that tells you todays date """
 	   ...: 	
 	   ...: 	@property
@@ -54,42 +34,37 @@ A client (either a Caller or a Callee) can then begin a Session with the Router.
 	   ...: 	    logger.info('getting todays date')
 	   ...: 	    return datetime.date.today().isoformat()
 
-	In [6]: from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
+	In [3]: from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
 
-	In [7]: service = DateService(
+	In [4]: service = DateService(
 	   ...:		name="Date Service", router=crossbar,
 	   ...: 	realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
 	   ...: )
 
-	In [8]: service.start()
+	In [5]: service.start()
 
-	In [9]: service.session.id
-	Out[9]: 3941615218422338
+	In [6]: service.session.id
+	Out[6]: 3941615218422338
 
 If a Peer implements the "Callee" Role, then by starting the Peer you instruct the Peer to register its RPC entrypoints with the Router.
 
-	In [10]: service.role
-	Out[10]: 'CALLEE' 
-
-	In [11]: from wampy.registry import get_registered_entrypoints
-	Out[11]: {347361574427174: (wampy.testing.clients.callees.DateService, 'get_todays_date')}
+	In [7]: from wampy.registry import get_registered_entrypoints
+	Out[7]: {347361574427174: (wampy.testing.clients.callees.DateService, 'get_todays_date')}
 
 Any method of the Peer decorated with @rpc will have been registered as publically availabile over the Router.
 
-	In [12]: from wampy.peers.clients import RpcClient
+	In [8]: from wampy.peers.clients import RpcClient
 
-	In [13]: client = RpcClient(
-	    ...: 	name="Caller", router=crossbar,
-	    ...: 	realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
-	    ...: )
+	In [8]: client = RpcClient(
+	   ...: 	name="Caller", router=crossbar,
+	   ...: 	realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
+	   ...: )
 
 The built in stand alone client knows about the entrypoints made available by the ``DateService`` and using it you can call them directly.
 
-	In [14]: client.rpc.get_todays_date()
-	Out [14]: u'2016-05-14'
+	In [9]: client.rpc.get_todays_date()
+	Out [9]: u'2016-05-14'
 
-When you're done playing, stop the Router, as it is running in a subprocess and needs to be managed carefully.
+That's about it so far.
 
-	In [15]: crossbar.stop()
-
-	In [16]: exit()
+	In [10]: exit()
