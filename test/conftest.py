@@ -5,6 +5,7 @@ import signal
 import socket
 import subprocess
 import sys
+from contextlib import closing
 from time import time as now
 
 import colorlog
@@ -27,6 +28,10 @@ logging_level_map = {
     'DEBUG': logging.DEBUG,
     'INFO': logging.INFO,
 }
+
+
+class ConfigurationError(Exception):
+    pass
 
 
 class PytestConfigurationError(Exception):
@@ -196,8 +201,20 @@ class Crossbar(Router):
         self.logger.info('registry cleared')
 
 
+def check_socket(host, port):
+    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+        if sock.connect_ex((host, port)) is None:
+            raise ConfigurationError(
+                '{}:{} not available - is crossbar already running?'.format(
+                    host, port
+                )
+            )
+
+
 @pytest.yield_fixture
 def router():
+    check_socket(DEFAULT_HOST, DEFAULT_PORT)
+
     crossbar = Crossbar(
         host=DEFAULT_HOST,
         port=DEFAULT_PORT,
