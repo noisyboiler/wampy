@@ -201,7 +201,7 @@ def router():
     crossbar = Crossbar(
         host=DEFAULT_HOST,
         port=DEFAULT_PORT,
-        config_path='./wampy/testing/routers/config.json',
+        config_path='./test/crossbar.config.json',
         crossbar_directory='./',
     )
 
