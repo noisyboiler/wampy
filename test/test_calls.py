@@ -4,6 +4,7 @@ from datetime import date
 from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
 from wampy.rpc import rpc
 from wampy.peers.clients import WampClient, RpcClient
+from wampy.peers.routers import WampRouter
 
 
 class DateService(WampClient):
@@ -109,4 +110,28 @@ def test_call_with_no_args_but_a_kwarg(router):
     assert response == "goodbye to Simon"
 
     callee.stop()
+    caller.stop()
+
+
+def test_remote_call():
+    router = WampRouter(
+        name="Crossbar", host="wampy.online", port=8082)
+
+    service = HelloService(
+        name="Hello Service", router=router,
+        realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
+    )
+    service.start()
+
+    caller = RpcClient(
+        name="Caller", router=router,
+        realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
+    )
+    caller.start()
+
+    response = caller.rpc.say_hello("Simon")
+
+    assert response == "Hello Simon"
+
+    service.stop()
     caller.stop()

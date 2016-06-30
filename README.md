@@ -22,7 +22,12 @@ Then open a Python console.
 
 	In [1]: from wampy.peers.clients import WampClient
 
-	In [2]: class DateService(WampClient):
+	In [2]: from wampy.peers.routers import WampRouter
+
+	In [3]: crossbar = WampRouter(
+	   ...: 	name="Crossbar", host="localhost", port="8080", realm="realm1")
+
+	In [4]: class DateService(WampClient):
 	   ...: 	""" A service that tells you todays date """
 	   ...: 	
 	   ...: 	@property
@@ -33,37 +38,37 @@ Then open a Python console.
 	   ...: 	def get_todays_date(self):
 	   ...: 	    return datetime.date.today().isoformat()
 
-	In [3]: from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
+	In [5]: from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
 
-	In [4]: service = DateService(
+	In [6]: service = DateService(
 	   ...:		name="Date Service", router=crossbar,
 	   ...: 	realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
 	   ...: )
 
-	In [5]: service.start()
+	In [7]: service.start()
 
-	In [6]: service.session.id
-	Out[6]: 3941615218422338
+	In [8]: service.session.id
+	Out[8]: 3941615218422338
 
 If a Peer implements the "Callee" Role, then by starting the Peer you instruct the Peer to register its RPC entrypoints with the Router.
 
-	In [7]: from wampy.registry import get_registered_entrypoints
-	Out[7]: {347361574427174: (wampy.testing.clients.callees.DateService, 'get_todays_date')}
+	In [9]: from wampy.registry import get_registered_entrypoints
+	Out[9]: {347361574427174: (wampy.testing.clients.callees.DateService, 'get_todays_date')}
 
 Any method of the Peer decorated with @rpc will have been registered as publically availabile over the Router.
 
-	In [8]: from wampy.peers.clients import RpcClient
+	In [10]: from wampy.peers.clients import RpcClient
 
-	In [8]: client = RpcClient(
+	In [11]: client = RpcClient(
 	   ...: 	name="Caller", router=crossbar,
 	   ...: 	realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
 	   ...: )
 
 The built in stand alone client knows about the entrypoints made available by the ``DateService`` and using it you can call them directly.
 
-	In [9]: client.rpc.get_todays_date()
-	Out [9]: u'2016-05-14'
+	In [12]: client.rpc.get_todays_date()
+	Out [12]: u'2016-05-14'
 
 That's about it so far.
 
-	In [10]: exit()
+	In [13]: exit()

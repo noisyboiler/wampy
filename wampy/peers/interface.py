@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractproperty, abstractmethod
 
 
-class PeerInterface(object):
+class ClientInterface(object):
     """ An actor in a WAMP protocol exchange.
 
     """

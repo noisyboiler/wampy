@@ -16,7 +16,7 @@ from wampy.constants import DEFAULT_HOST, DEFAULT_PORT
 from wampy.networking.connections.wamp import WampConnection
 
 from wampy.exceptions import ConnectionError
-from wampy.peers.routers import Router
+from wampy.peers.routers import WampRouter as Router
 from wampy.networking.connections.tcp import TCPConnection
 from wampy.registry import Registry
 
@@ -90,39 +90,21 @@ class Crossbar(Router):
     def __init__(
             self, host, port, config_path, crossbar_directory):
 
-        super(Crossbar, self).__init__(host, port)
-
         with open(config_path) as data_file:
             config_data = json.load(data_file)
 
         self.config = config_data
         self.config_path = config_path
         self.crossbar_directory = crossbar_directory
-        self.proc = None
 
-    @property
-    def name(self):
-        return 'Crossbar.io'
-
-    @property
-    def realm(self):
         realms = self.config['workers'][0]['realms']
-        # ensure our simpilfied world holds true
-        assert len(realms) == 1
-        # then return it
-        return realms[0]['name']
+        roles = realms[0]['roles']
 
-    @property
-    def roles(self):
-        roles = self.realms[0]['roles']
-        # ensure our simpilfied world holds true
-        assert len(roles) == 1
-        # then return it
-        return roles[0]
+        super(Crossbar, self).__init__(
+            "Crossbar.io", host, port, realms, roles
+        )
 
-    @property
-    def session(self):
-        return self._session
+        self.proc = None
 
     def _wait_until_ready(self, timeout=7, raise_if_not_ready=True):
         # we're only ready when it's possible to connect to the router

@@ -2,6 +2,7 @@ import logging
 
 import eventlet
 
+from .. constants import DEFAULT_REALM, DEFAULT_ROLES
 from .. exceptions import ConnectionError, WampError
 from .. networking.connections.wamp import WampConnection
 from .. messages.register import Register
@@ -12,15 +13,12 @@ from .. messages.yield_ import Yield
 from .. session import Session
 from .. messages.hello import Hello
 
-from . interface import PeerInterface
+from . interface import ClientInterface
 
 logger = logging.getLogger('wampy.core')
 
-eventlet.monkey_patch()
-logger.warning('eventlet has monkey patched your environment')
 
-
-class ClientBase(PeerInterface):
+class ClientBase(ClientInterface):
     """ Represents the "client" side of a WAMP Session.
     """
 
@@ -275,13 +273,19 @@ class ClientBase(PeerInterface):
             )
 
 
-class RouterBase(PeerInterface):
+class RouterBase(object):
     """ Represents the "router" side of a WAMP Session.
     """
 
-    def __init__(self, host, port):
+    def __init__(
+            self, name, host, port, realms=DEFAULT_REALM, roles=DEFAULT_ROLES
+    ):
+
+        self.name = name
         self.host = host
         self.port = port
+        self.realm = realms
+        self.roles = roles
 
         self.logger = logging.getLogger(
             'wampy.peers.router.{}'.format(self.name.replace(' ', '-'))
