@@ -16,9 +16,7 @@ With __wampy__ you can create Peers to implement WAMP roles: Callee, Caller, Pub
 
 Before any messaging can happen you need a Router. This is a Peer that implements the Dealer or Broker roles, or both. Messages are then routed between Clients over an administritive domain called a "realm".
 
-I suggest that you use Crossbar.io and start it up on the default host and port with the defauly realm. See the Crossbar.io docs for the instructions for this. Then open a Python console in 
-
-You can then 
+I suggest that you use Crossbar.io and start it up on the default host and port with the defauly realm. See the [Crossbar.io docs](http://crossbar.io/docs/Quick-Start/) for the instructions for this. Then open a Python console.
 
 	In [1]: from wampy.peers.clients import WampClient
 
