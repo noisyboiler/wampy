@@ -1,6 +1,8 @@
 import datetime
 from datetime import date
 
+import pytest
+
 from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
 from wampy.rpc import rpc
 from wampy.peers.clients import WampClient, RpcClient
@@ -28,35 +30,40 @@ class HelloService(WampClient):
         return message
 
 
-def test_call_with_no_args_or_kwargs(router):
-    callee = DateService(
+@pytest.yield_fixture
+def date_service(router):
+    with DateService(
         name="Date Service", router=router,
-        realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
-    )
-    callee.start()
+        realm=DEFAULT_REALM, roles=DEFAULT_ROLES
+    ):
 
-    caller = RpcClient(
+        yield
+
+
+@pytest.yield_fixture
+def hello_service(router):
+    with HelloService(
+        name="Hello Service", router=router,
+        realm=DEFAULT_REALM, roles=DEFAULT_ROLES
+    ):
+
+        yield
+
+
+def test_call_with_no_args_or_kwargs(date_service, router):
+    client = RpcClient(
         name="Caller", router=router,
         realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
     )
-    caller.start()
+    with client:
+        response = client.rpc.get_todays_date()
 
-    response = caller.rpc.get_todays_date()
     today = date.today()
 
     assert response == today.isoformat()
 
-    callee.stop()
-    caller.stop()
 
-
-def test_call_with_args_but_no_kwargs(router):
-    callee = HelloService(
-        name="Hello Service", router=router,
-        realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
-    )
-    callee.start()
-
+def test_call_with_args_but_no_kwargs(hello_service, router):
     caller = RpcClient(
         name="Caller", router=router,
         realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
@@ -67,17 +74,10 @@ def test_call_with_args_but_no_kwargs(router):
 
     assert response == "Hello Simon"
 
-    callee.stop()
     caller.stop()
 
 
-def test_call_with_no_args_but_a_default_kwarg(router):
-    callee = HelloService(
-        name="Hello Service", router=router,
-        realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
-    )
-    callee.start()
-
+def test_call_with_no_args_but_a_default_kwarg(hello_service, router):
     caller = RpcClient(
         name="Caller", router=router,
         realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
@@ -88,17 +88,10 @@ def test_call_with_no_args_but_a_default_kwarg(router):
 
     assert response == "hola to Simon"
 
-    callee.stop()
     caller.stop()
 
 
-def test_call_with_no_args_but_a_kwarg(router):
-    callee = HelloService(
-        name="Hello Service", router=router,
-        realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
-    )
-    callee.start()
-
+def test_call_with_no_args_but_a_kwarg(hello_service, router):
     caller = RpcClient(
         name="Caller", router=router,
         realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
@@ -109,7 +102,6 @@ def test_call_with_no_args_but_a_kwarg(router):
 
     assert response == "goodbye to Simon"
 
-    callee.stop()
     caller.stop()
 
 
@@ -117,21 +109,19 @@ def test_remote_call():
     router = WampRouter(
         name="Crossbar", host="wampy.online", port=8082)
 
-    service = HelloService(
+    with HelloService(
         name="Hello Service", router=router,
         realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
-    )
-    service.start()
+    ):
 
-    caller = RpcClient(
-        name="Caller", router=router,
-        realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
-    )
-    caller.start()
+        caller = RpcClient(
+            name="Caller", router=router,
+            realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
+        )
+        caller.start()
 
-    response = caller.rpc.say_hello("Simon")
+        response = caller.rpc.say_hello("Simon")
 
-    assert response == "Hello Simon"
+        assert response == "Hello Simon"
 
-    service.stop()
-    caller.stop()
+        caller.stop()

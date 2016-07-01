@@ -87,6 +87,13 @@ class ClientBase(ClientInterface):
             'wampy.peers.client.{}'.format(name.replace(' ', '-')))
         self.logger.info('New client: "%s"', name)
 
+    def __enter__(self):
+        self.start()
+        return self
+
+    def __exit__(self, exception_type, exception_value, traceback):
+        self.stop()
+
     def _connect_to_router(self):
         connection = WampConnection(
             host=self.router.host, port=self.router.port
