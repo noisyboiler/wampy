@@ -24,17 +24,17 @@ Then open a Python console.
 
 	In [2]: from wampy.peers.routers import WampRouter
 
-	In [3]: crossbar = WampRouter(
-	   ...: 	name="Crossbar", host="localhost", port="8080", realm="realm1")
+	In [3]: from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
 
-	In [4]: class DateService(WampClient):
+	In [4]: crossbar = WampRouter(
+	   ...: 	name="Crossbar", host="localhost", port="8080", realm=DEFAULT_REALM)
+
+	In [5]: class DateService(WampClient):
 	   ...: 	""" A service that tells you todays date """
 	   ...: 	
 	   ...: 	@rpc
 	   ...: 	def get_todays_date(self):
 	   ...: 	    return datetime.date.today().isoformat()
-
-	In [5]: from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
 
 	In [6]: service = DateService(
 	   ...:		name="Date Service", router=crossbar,
@@ -56,15 +56,19 @@ Any method of the Peer decorated with @rpc will have been registered as publical
 	In [10]: from wampy.peers.clients import RpcClient
 
 	In [11]: client = RpcClient(
-	   ...: 	name="Caller", router=crossbar,
-	   ...: 	realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
-	   ...: )
+	    ...: 	name="Caller", router=crossbar,
+	    ...: 	realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
+	    ...: )
 
 The built in stand alone client knows about the entrypoints made available by the ``DateService`` and using it you can call them directly.
 
 	In [12]: client.rpc.get_todays_date()
 	Out [12]: u'2016-05-14'
 
+If you don't context-manage your client, then you do have to explicitly call ``stop`` in order to gracefully disassociate yourself from the router but also to tidy up the threads and connections.
+
+	In [13]: client.stop()
+
 That's about it so far.
 
-	In [13]: exit()
+	In [14]: exit()
