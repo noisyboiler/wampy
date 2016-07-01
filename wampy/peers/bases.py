@@ -285,13 +285,13 @@ class RouterBase(object):
     """
 
     def __init__(
-            self, name, host, port, realms=DEFAULT_REALM, roles=DEFAULT_ROLES
+            self, name, host, port, realm=DEFAULT_REALM, roles=DEFAULT_ROLES
     ):
 
         self.name = name
         self.host = host
         self.port = port
-        self.realm = realms
+        self.realm = realm
         self.roles = roles
 
         self.logger = logging.getLogger(

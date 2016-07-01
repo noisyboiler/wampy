@@ -6,5 +6,3 @@ class WampRouter(RouterBase):
     for a Client to connect to.
 
     """
-
-    # TODO: auth can also be represented here.

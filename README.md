@@ -31,46 +31,50 @@ Then open a Python console.
 	   ...: 	name="Crossbar", host=DEFAULT_HOST, port=DEFAULT_PORT,
 	   ...: 	realm=DEFAULT_REALM)
 
-	In [5]: class DateService(WampClient):
+	In [5]: from wampy.rpc import rpc
+
+	In [6]: class DateService(WampClient):
 	   ...: 	""" A service that tells you todays date """
 	   ...: 	
 	   ...: 	@rpc
 	   ...: 	def get_todays_date(self):
 	   ...: 	    return datetime.date.today().isoformat()
 
-	In [6]: service = DateService(
+	In [7]: service = DateService(
 	   ...:		name="Date Service", router=crossbar,
 	   ...: 	realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
 	   ...: )
 
-	In [7]: service.start()
+	In [8]: service.start()
 
-	In [8]: service.session.id
-	Out[8]: 3941615218422338
+	In [9]: service.session.id
+	Out[9]: 3941615218422338
 
 If a Peer implements the "Callee" Role, then by starting the Peer you instruct the Peer to register its RPC entrypoints with the Router.
 
-	In [9]: from wampy.registry import get_registered_entrypoints
-	Out[9]: {347361574427174: (wampy.testing.clients.callees.DateService, 'get_todays_date')}
+	In [10]: from wampy.registry import get_registered_entrypoints
+
+	In [11]: get_registered_entrypoints()
+	Out[11]: {2010994119734585: (__main__.DateService, 'get_todays_date')}
 
 Any method of the Peer decorated with @rpc will have been registered as publically availabile over the Router.
 
-	In [10]: from wampy.peers.clients import RpcClient
+	In [12]: from wampy.peers.clients import RpcClient
 
-	In [11]: client = RpcClient(
+	In [13]: client = RpcClient(
 	    ...: 	name="Caller", router=crossbar,
 	    ...: 	realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
 	    ...: )
 
 The built in stand alone client knows about the entrypoints made available by the ``DateService`` and using it you can call them directly.
 
-	In [12]: client.rpc.get_todays_date()
-	Out [12]: u'2016-05-14'
+	In [14]: client.rpc.get_todays_date()
+	Out [14]: u'2016-05-14'
 
 If you don't context-manage your client, then you do have to explicitly call ``stop`` in order to gracefully disassociate yourself from the router but also to tidy up the threads and connections.
 
-	In [13]: client.stop()
+	In [15]: client.stop()
 
 That's about it so far.
 
-	In [14]: exit()
+	In [16]: exit()
