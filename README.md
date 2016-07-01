@@ -30,10 +30,6 @@ Then open a Python console.
 	In [4]: class DateService(WampClient):
 	   ...: 	""" A service that tells you todays date """
 	   ...: 	
-	   ...: 	@property
-	   ...: 	def name(self):
-	   ...: 	    return 'Date Service'
-	   ...: 	
 	   ...: 	@rpc
 	   ...: 	def get_todays_date(self):
 	   ...: 	    return datetime.date.today().isoformat()
