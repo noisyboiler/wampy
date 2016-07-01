@@ -24,14 +24,14 @@ Then open a Python console.
 
 	In [2]: from wampy.peers.routers import WampRouter
 
-	In [3]: from wampy.constants import (
+	In [3]: from wampy.rpc import rpc
+
+	In [4]: from wampy.constants import (
 	   ...: 	DEFAULT_REALM, DEFAULT_ROLES, DEFAULT_HOST, DEFAULT_PORT)
 
-	In [4]: crossbar = WampRouter(
+	In [5]: crossbar = WampRouter(
 	   ...: 	name="Crossbar", host=DEFAULT_HOST, port=DEFAULT_PORT,
 	   ...: 	realm=DEFAULT_REALM)
-
-	In [5]: from wampy.rpc import rpc
 
 	In [6]: import datetime
 
@@ -75,7 +75,7 @@ The built in stand alone client knows about the entrypoints made available by th
 	In [16]: client.rpc.get_todays_date()
 	Out [16]: u'2016-05-14'
 
-If you don't context-manage your client, then you do have to explicitly call ``stop`` in order to gracefully disassociate yourself from the router but also to tidy up the threads and connections.
+If you don't context-manage your client, then you do have to explicitly call ``stop`` in order to gracefully disassociate yourself from the router, but also to tidy up the threads and connections.
 
 	In [17]: client.stop()
 
