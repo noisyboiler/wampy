@@ -20,65 +20,63 @@ For a quickstart I suggest that you use Crossbar.io and start it up on the defau
 
 Then open a Python console.
 
-	In [1]: from wampy.peers.clients import WampClient
+	In [1]: from wampy.peers import WampRouter, WampClient
 
-	In [2]: from wampy.peers.routers import WampRouter
+	In [2]: from wampy.rpc import rpc
 
-	In [3]: from wampy.rpc import rpc
-
-	In [4]: from wampy.constants import (
+	In [3]: from wampy.constants import (
 	   ...: 	DEFAULT_REALM, DEFAULT_ROLES, DEFAULT_HOST, DEFAULT_PORT)
 
-	In [5]: crossbar = WampRouter(
+	In [4]: crossbar = WampRouter(
 	   ...: 	name="Crossbar", host=DEFAULT_HOST, port=DEFAULT_PORT,
 	   ...: 	realm=DEFAULT_REALM)
 
-	In [6]: import datetime
+	In [5]: import datetime
 
-	In [7]: class DateService(WampClient):
+	In [6]: class DateService(WampClient):
 	   ...: 	""" A service that tells you todays date """
 	   ...: 	
 	   ...: 	@rpc
 	   ...: 	def get_todays_date(self):
 	   ...: 	    return datetime.date.today().isoformat()
 
-	In [8]: service = DateService(
+	In [7]: service = DateService(
 	   ...:		name="Date Service", router=crossbar,
 	   ...: 	realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
 	   ...: )
 
-	In [9]: service.start()
+	In [8]: service.start()
 
-	In [10]: service.session.id
-	Out[10]: 3941615218422338
+	In [9]: service.session.id
+	Out[9]: 3941615218422338
 
 If a Peer implements the "Callee" Role, then by starting the Peer you instruct the Peer to register its RPC entrypoints with the Router.
 
-	In [11]: from wampy.registry import get_registered_entrypoints
+	In [10]: from wampy.registry import get_registered_entrypoints
 
-	In [12]: get_registered_entrypoints()
-	Out[12]: {2010994119734585: (__main__.DateService, 'get_todays_date')}
+	In [11]: get_registered_entrypoints()
+	Out[11]: {2010994119734585: (__main__.DateService, 'get_todays_date')}
 
 Any method of the Peer decorated with @rpc will have been registered as publically availabile over the Router.
 
-	In [13]: from wampy.peers.clients import RpcClient
+	In [12]: from wampy.peers.clients import RpcClient
 
-	In [14]: client = RpcClient(
+	In [13]: client = RpcClient(
 	    ...: 	name="Caller", router=crossbar,
 	    ...: 	realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
 	    ...: )
 
 The built in stand alone client knows about the entrypoints made available by the ``DateService`` and using it you can call them directly.
 
-	In [15]: client.start()  # note that you can context-manage clients and avoid this step!
+	In [14]: client.start()  # note that you can context-manage clients and avoid this step!
 
-	In [16]: client.rpc.get_todays_date()
-	Out [16]: u'2016-05-14'
+	In [15]: client.rpc.get_todays_date()
+	Out [15]: u'2016-05-14'
 
-If you don't context-manage your client, then you do have to explicitly call ``stop`` in order to gracefully disassociate yourself from the router, but also to tidy up the threads and connections.
+If you don't context-manage your client, then you do have to explicitly call ``stop`` in order to gracefully disassociate yourself from the router, but also to tidy up the green threads and connections.
 
-	In [17]: client.stop()
+	In [16]: client.stop()
 
 That's about it so far.
 
-	In [18]: exit()
+	In [17]: exit()
