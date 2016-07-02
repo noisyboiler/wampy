@@ -12,7 +12,7 @@ with open(path.join(here, 'README.md')) as f:
 
 setup(
     name='wampy',
-    version='0.0.1',
+    version='0.9.0',
     description='A simple WAMP implementation',
     long_description=long_description,
     url='https://github.com/noisyboiler/wampy',
@@ -24,7 +24,7 @@ setup(
     classifiers=[
         'Development Status :: 3 - Alpha',
         # see http://choosealicense.com/licenses/gpl-3.0/
-        'License :: GNU GENERAL PUBLIC LICENSE Version 3',
+        'License :: GNU Lesser General Public License v3 (LGPLv3)',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
