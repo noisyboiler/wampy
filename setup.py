@@ -13,13 +13,12 @@ with open(path.join(here, 'README.md')) as f:
 setup(
     name='wampy',
     version='0.1.0',
-    description='A simple WAMP implementation',
+    description='A simple WAMP RPC client',
     long_description=long_description,
     url='https://github.com/noisyboiler/wampy',
     author='Simon Harrison',
     author_email='noisyboiler@googlemail.com',
     license='GNU GPLv3',
-    # see https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: GNU General Public License (GPL)',
@@ -27,7 +26,7 @@ setup(
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
     ],
-    keywords='python WAMP',
+    keywords='WAMP RPC',
     packages=find_packages(),
     install_requires=[
         "crossbar==0.13.0",
