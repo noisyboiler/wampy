@@ -12,7 +12,7 @@ with open(path.join(here, 'README.md')) as f:
 
 setup(
     name='wampy',
-    version='0.1.0',
+    version='0.1.1',
     description='A simple WAMP RPC client',
     long_description=long_description,
     url='https://github.com/noisyboiler/wampy',
