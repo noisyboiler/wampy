@@ -6,13 +6,13 @@ here = path.abspath(path.dirname(__file__))
 
 
 # Get the long description from the README file
-with open(path.join(here, 'README.md')) as f:
+with open(path.join(here, 'README.rst')) as f:
     long_description = f.read()
 
 
 setup(
     name='wampy',
-    version='0.1.1',
+    version='0.1.2',
     description='A simple WAMP RPC client',
     long_description=long_description,
     url='https://github.com/noisyboiler/wampy',
