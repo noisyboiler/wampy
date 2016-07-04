@@ -1,8 +1,8 @@
 wampy
 =====
 
-A Python WAMP Implementation.
------------------------------
+An ongoing Python WAMP Implementation
+-------------------------------------
 
 The WAMP protocol connects Clients via RPC or Pub/Sub over a Router.
 
