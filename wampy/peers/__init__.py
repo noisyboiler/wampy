@@ -1,2 +1,2 @@
-from . clients import WampClient
-from . routers import WampRouter
+from . clients import WampClient  # NOQA
+from . routers import WampRouter  # NOQA
