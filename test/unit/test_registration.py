@@ -25,7 +25,7 @@ def test_registration_and_goodbye(router):
     )
     message.construct()
     client.send_message(message)
-    response = client.receive_message()
+    response = client.recv()
 
     # e.g. [
     #     50, 3892220001, {},
@@ -45,7 +45,7 @@ def test_registration_and_goodbye(router):
     service.start()
 
     client.send_message(message)
-    response = client.receive_message()
+    response = client.recv()
 
     wamp_code, _, _, registrations = response
     assert wamp_code == 50  # result
@@ -63,7 +63,7 @@ def test_registration_and_goodbye(router):
     )
     metadata_call_message.construct()
     client.send_message(metadata_call_message)
-    response = client.receive_message()
+    response = client.recv()
 
     wamp_code, registered_id, _, data_list = response
     assert wamp_code == 50  # result
@@ -78,7 +78,7 @@ def test_registration_and_goodbye(router):
     service.stop()
 
     client.send_message(message)
-    response = client.receive_message()
+    response = client.recv()
     wamp_code, _, _, registrations = response
     assert wamp_code == 50  # result
 

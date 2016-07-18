@@ -25,16 +25,19 @@ class HttpConnection(TCPConnection):
         return headers
 
     def _read_handshake_response(self):
+        logger.info('reading handshake')
         status = None
         headers = {}
 
         while True:
-            line = self.receive_message_handshake_response_by_line()
+            line = self.recv_handshake_response_by_line()
 
             try:
                 line = line.decode('utf-8')
             except:
                 line = u'{}'.format(line)
+
+            logger.warning(line)
             if line == "\r\n" or line == "\n":
                 break
 
@@ -66,19 +69,21 @@ class HttpConnection(TCPConnection):
 
         return status, headers
 
-    def receive_message_handshake_response_by_line(self):
+    def recv_handshake_response_by_line(self):
+        logger.info('reading handshake by line')
         received_bytes = bytearray()
 
         while True:
-            bytes = self.receive_message(1)
+            bytes = self.socket.recv(bufsize=1)
 
             if not bytes:
                 break
 
             received_bytes.append(bytes)
 
-            if bytes == "\n":
+            if bytes == "\n" or bytes == "\r\n":
                 # a complete line has been received
+                logger.info('complete line read')
                 break
 
         return received_bytes

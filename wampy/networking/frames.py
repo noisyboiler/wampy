@@ -242,10 +242,15 @@ class ServerFrame(Frame):
         # hence whether this is a complete frame or not.
         if len(buffered_bytes) < 2:
             # there are more bytes to receive.
-            raise IncompleteFrameError()
+            raise IncompleteFrameError("bytes not enough for a frame")
 
         payload_length_indicator = buffered_bytes[1] & 0b1111111
         available_bytes_for_body = buffered_bytes[2:]
+
+        try:
+            available_bytes_for_body[1]
+        except IndexError:
+            raise IncompleteFrameError("not enough bytes for a body section")
 
         # unpack the buffered bytes into an integer
         body_length = unpack_from(">h", available_bytes_for_body)[0]
@@ -270,8 +275,11 @@ class ServerFrame(Frame):
             # so check we have at least as much as we need, else exit.
             body_candidate = available_bytes_for_body[6:]  # require >= 8 bytes
 
-        if len(body_candidate) != body_length:
-            raise IncompleteFrameError()
+        if len(body_candidate) < body_length:
+            raise IncompleteFrameError(
+                'incorrect length for "%s": %s != %s',
+                body_candidate, len(body_candidate), body_length
+            )
 
         self.body = body_candidate
         self.payload_length_indicator = payload_length_indicator

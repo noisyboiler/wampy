@@ -105,10 +105,10 @@ class ClientBase(ClientInterface):
 
         try:
             connection.connect()
-            self._listen_on_connection(connection, self._message_queue)
         except Exception as exc:
             raise ConnectionError(exc)
 
+        self._listen_on_connection(connection, self._message_queue)
         self._connection = connection
 
     def _say_hello_to_router(self):
@@ -146,7 +146,7 @@ class ClientBase(ClientInterface):
 
         self._connection.send(str(message))
 
-    def receive_message(self):
+    def recv(self):
         self.logger.info(
             '%s waiting to receive a message', self.name,
         )
@@ -205,7 +205,6 @@ class ClientBase(ClientInterface):
         self.logger.info('%s handling a message: "%s"', self.name, message)
 
         wamp_code = message[0]
-
         if wamp_code == Message.REGISTERED:  # 64
             _, request_id, registration_id = message
             app, func_name = Registry.request_map[request_id]
@@ -258,6 +257,8 @@ class ClientBase(ClientInterface):
             self.logger.info(
                 '%s has result: "%s"', self.name, response
             )
+
+            # the message must be made available to the client
             self._message_queue.put(message)
 
         elif wamp_code == Message.WELCOME:  # 2

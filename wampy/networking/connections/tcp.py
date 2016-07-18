@@ -43,26 +43,28 @@ class TCPConnection(object):
     def _upgrade(self):
         pass
 
-    def receive_message(self, bufsize=1024):
-        try:
-            bytes = self.socket.recv(bufsize)
-        except socket.timeout as e:
-            message = str(e)
-            raise ConnectionError('timeout: "{}"'.format(message))
-
-        return bytes
-
-    def recv(self):
+    def _recv(self, bufsize=1):
         received_bytes = bytearray()
 
         while True:
-            bytes = self.receive_message()
+            logger.info('receiving from socket %s bytes', bufsize)
+            try:
+                bytes = self.socket.recv(bufsize)
+            except socket.timeout as e:
+                message = str(e)
+                raise ConnectionError('timeout: "{}"'.format(message))
+
             if not bytes:
+                logger.warning('no more bytes received')
                 break
 
             received_bytes.extend(bytes)
+            logger.info('got: "%s"', received_bytes)
+
+        logger.info("received all")
 
         return received_bytes
 
     def send(self, message):
         self.socket.sendall(message)
+        logger.info('sent message: "%s"', message)

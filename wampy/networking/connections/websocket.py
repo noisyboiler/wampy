@@ -1,9 +1,10 @@
 import logging
+import socket
 import uuid
 from base64 import encodestring
 
 from ... constants import WEBSOCKET_VERSION
-from ... exceptions import IncompleteFrameError
+from ... exceptions import IncompleteFrameError, ConnectionError
 from .. frames import ClientFrame, ServerFrame
 from . http import HttpConnection
 
@@ -56,16 +57,26 @@ class WebsocketConnection(HttpConnection):
 
         logger.debug("WebSocket Connection reply: %s", self.headers)
 
-    def recv(self):
+    def recv(self, bufsize=1):
         received_bytes = bytearray()
 
         while True:
-            bytes = self.receive_message()
+            try:
+                bytes = self.socket.recv(bufsize)
+            except socket.timeout as e:
+                message = str(e)
+                raise ConnectionError('timeout: "{}"'.format(message))
+            except Exception as exc:
+                raise ConnectionError('error: "{}"'.format(exc))
+
+            if not bytes:
+                break
+
             received_bytes.extend(bytes)
 
             try:
                 frame = ServerFrame(received_bytes)
-            except IncompleteFrameError:
+            except IncompleteFrameError as exc:
                 pass
             else:
                 break
