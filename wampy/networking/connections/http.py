@@ -30,7 +30,7 @@ class HttpConnection(TCPConnection):
         headers = {}
 
         while True:
-            line = self.recv_handshake_response_by_line()
+            line = self._recv_handshake_response_by_line()
 
             try:
                 line = line.decode('utf-8')
@@ -69,7 +69,7 @@ class HttpConnection(TCPConnection):
 
         return status, headers
 
-    def recv_handshake_response_by_line(self):
+    def _recv_handshake_response_by_line(self):
         logger.info('reading handshake by line')
         received_bytes = bytearray()
 

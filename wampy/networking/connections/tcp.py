@@ -2,8 +2,6 @@ import logging
 import socket
 from socket import error as socket_error
 
-from ... exceptions import ConnectionError
-
 
 logger = logging.getLogger(__name__)
 
@@ -42,28 +40,6 @@ class TCPConnection(object):
 
     def _upgrade(self):
         pass
-
-    def _recv(self, bufsize=1):
-        received_bytes = bytearray()
-
-        while True:
-            logger.info('receiving from socket %s bytes', bufsize)
-            try:
-                bytes = self.socket.recv(bufsize)
-            except socket.timeout as e:
-                message = str(e)
-                raise ConnectionError('timeout: "{}"'.format(message))
-
-            if not bytes:
-                logger.warning('no more bytes received')
-                break
-
-            received_bytes.extend(bytes)
-            logger.info('got: "%s"', received_bytes)
-
-        logger.info("received all")
-
-        return received_bytes
 
     def send(self, message):
         self.socket.sendall(message)
