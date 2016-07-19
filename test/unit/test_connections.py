@@ -1,6 +1,6 @@
 from mock import ANY
 
-from wampy.networking.connections.wamp import WampConnection
+from wampy.networking.connection import WampConnection
 
 
 def test_local_wamp_connection(router):

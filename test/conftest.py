@@ -6,6 +6,7 @@ import socket
 import subprocess
 import sys
 from contextlib import closing
+from socket import error as socket_error
 from time import time as now
 
 import colorlog
@@ -13,11 +14,10 @@ import eventlet
 import pytest
 
 from wampy.constants import DEFAULT_HOST, DEFAULT_PORT
-from wampy.networking.connections.wamp import WampConnection
+from wampy.networking.connection import WampConnection
 
 from wampy.exceptions import ConnectionError
 from wampy.peers.routers import WampRouter as Router
-from wampy.networking.connections.tcp import TCPConnection
 from wampy.registry import Registry
 
 
@@ -35,6 +35,31 @@ class ConfigurationError(Exception):
 
 class PytestConfigurationError(Exception):
     pass
+
+
+class TCPConnection(object):
+    def __init__(self, host, port):
+        self.host = host
+        self.port = port
+        self.socket = None
+
+    def connect(self):
+        _socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        logger.debug(
+            'establishing connection to %s:%s', self.host, self.port)
+
+        try:
+            _socket.connect((self.host, self.port))
+        except socket_error as exc:
+            if exc.errno == 61:
+                logger.warning(
+                    'unable to connect to %s:%s', self.host, self.port)
+            logger.error(exc)
+            raise
+        else:
+            logger.debug('connected to %s:%s', self.host, self.port)
+
+        self.socket = _socket
 
 
 def pytest_configure(config):
