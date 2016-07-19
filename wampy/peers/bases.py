@@ -13,12 +13,11 @@ from .. messages.yield_ import Yield
 from .. session import Session
 from .. messages.hello import Hello
 
-from . interface import ClientInterface
 
 logger = logging.getLogger('wampy.core')
 
 
-class ClientBase(ClientInterface):
+class ClientBase(object):
     """ Represents the "client" side of a WAMP Session.
     """
 
