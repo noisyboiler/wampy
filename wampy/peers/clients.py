@@ -142,7 +142,7 @@ class ClientBase(object):
 
         self._connection.send_websocket_frame(str(message))
 
-    def recv(self):
+    def recv_message(self):
         self.logger.info(
             '%s waiting to receive a message', self.name,
         )

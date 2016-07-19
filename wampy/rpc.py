@@ -24,7 +24,7 @@ class RpcProxy:
                 logger.info(
                     '%s sending message: "%s"', self.client.name, message)
                 self.client.send_message(message)
-                response = self.client.recv()
+                response = self.client.recv_message()
                 wamp_code = response[0]
                 if wamp_code != Message.RESULT:
                     raise WampProtocolError(
