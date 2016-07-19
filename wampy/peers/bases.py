@@ -4,7 +4,7 @@ import eventlet
 
 from .. constants import DEFAULT_REALM, DEFAULT_ROLES
 from .. exceptions import ConnectionError, WampError
-from .. networking.connections.wamp import WampConnection
+from .. networking.connection import WampConnection
 from .. messages.register import Register
 from .. registry import Registry
 from .. messages import Message, MESSAGE_TYPE_MAP
@@ -125,7 +125,7 @@ class ClientBase(ClientInterface):
         def connection_handler():
             while True:
                 try:
-                    frame = connection.recv()
+                    frame = connection.read_websocket_frame()
                     if frame:
                         message = frame.payload
                         self._handle_message(message)
@@ -144,7 +144,7 @@ class ClientBase(ClientInterface):
             self.name, message_type, message
         )
 
-        self._connection.send(str(message))
+        self._connection.send_websocket_frame(str(message))
 
     def recv(self):
         self.logger.info(
