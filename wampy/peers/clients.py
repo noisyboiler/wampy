@@ -65,6 +65,12 @@ class ClientBase(object):
             3.  Register any RPC entrypoints on the client with the Router.
 
         """
+        # an identifier of the Client for introspection and logging
+        self.name = name
+
+        self.realm = realm
+        self.roles = roles
+        # the Peer to connect to
         self.router = router
 
         # a WAMP connection will be made with the Router.
@@ -75,11 +81,7 @@ class ClientBase(object):
         self._message_queue = eventlet.Queue(maxsize=1)
         # once we receieve a WELCOME message from the Router we'll have a
         # session
-        self._session = None
-        # an identifier of the Client for introspection and logging
-        self._name = name
-        self._realm = realm
-        self._roles = roles
+        self.session = None
 
         self.logger = logging.getLogger(
             'wampy.peers.client.{}'.format(name.replace(' ', '-')))
@@ -285,7 +287,7 @@ class ClientBase(object):
         elif wamp_code == Message.WELCOME:  # 2
             self.logger.info('handling WELCOME for %s', self.name)
             _, session_id, _ = message
-            self._session = Session(
+            self.session = Session(
                 client=self, router=self.router, session_id=session_id)
             self.logger.info(
                 '%s has the session: "%s"', self.name, self.session.id
@@ -346,22 +348,6 @@ class WampClient(ClientBase):
         self.rpc = RpcProxy(client=self)
         self.publish = PublishProxy(client=self)
 
-    @property
-    def name(self):
-        return self._name
-
-    @property
-    def realm(self):
-        return self._realm
-
-    @property
-    def roles(self):
-        return self._roles
-
-    @property
-    def session(self):
-        return self._session
-
     def start(self):
         # kick off the connection and the listener of it
         self._connect_to_router()
@@ -382,5 +368,5 @@ class WampClient(ClientBase):
         message = self._wait_for_message()
         assert message[0] == Message.GOODBYE
         self.managed_thread.kill()
-        self._session = None
+        self.session = None
         self.logger.info('%s has stopped', self.name)
