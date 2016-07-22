@@ -1,5 +1,4 @@
 import logging
-import types
 
 from . exceptions import ProcedureNotFoundError, WampProtocolError
 from . messages import Message
@@ -42,15 +41,12 @@ class RpcProxy:
         raise ProcedureNotFoundError(name)
 
 
-def register_rpc(*args, **kwargs):
-    assert isinstance(args[0], types.FunctionType)
-    wrapped = args[0]
-
+def register_rpc(wrapped, *args, **kwargs):
     def decorator(fn, *args, **kwargs):
         fn.rpc = True
         return fn
 
-    return decorator(wrapped, args=(), kwargs={})
+    return decorator(wrapped, args, kwargs)
 
 
 rpc = register_rpc

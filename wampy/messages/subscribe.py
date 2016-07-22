@@ -1,0 +1,32 @@
+import random
+
+from . import Message
+
+
+class Subscribe(Message):
+    """ Send a SUBSCRIBE message to the Router.
+
+    Message is of the format ``[SUBSCRIBE, Request|id, Options|dict,
+    Topic|uri]``, e.g. ::
+
+        [
+            32, 713845233, {}, "com.myapp.mytopic1"
+        ]
+
+    """
+    WAMP_CODE = 32
+
+    def __init__(self, topic):
+        super(Subscribe, self).__init__()
+
+        self.topic = topic
+        self.options = {}
+        self.request_id = random.getrandbits(32)
+
+    def construct(self):
+        self.message = [
+            self.WAMP_CODE, self.request_id, self.options, self.topic
+        ]
+
+    def deconstruct(self, payload):
+        pass
