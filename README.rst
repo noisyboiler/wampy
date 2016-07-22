@@ -17,8 +17,9 @@ either a *Broker* or a *Dealer*, and highly likely to be Crossbar.io.
 Whatever application you’re dealing with, WAMP refers to these as a
 **Peer**.
 
-With **wampy**, you can (so far) create Peers to implement the WAMP
-roles: Callee, Caller and Dealer.
+With **wampy** you can quickly and easily create Peers to implement these
+WAMP roles and peers.
+
 
 Quickstart: wampy from a Python console.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
