@@ -41,12 +41,12 @@ class RpcProxy:
         raise ProcedureNotFoundError(name)
 
 
-def register_rpc(wrapped, *args, **kwargs):
-    def decorator(fn, *args, **kwargs):
+def register_rpc(wrapped):
+    def decorator(fn):
         fn.rpc = True
         return fn
 
-    return decorator(wrapped, args, kwargs)
+    return decorator(wrapped)
 
 
 rpc = register_rpc
