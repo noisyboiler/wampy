@@ -3,12 +3,14 @@ class Registry:
     client_registry = {}
     registration_map = {}
     request_map = {}
+    subscription_map = {}
 
     @classmethod
     def clear(cls):
         cls.client_registry = {}
         cls.registration_map = {}
         cls.request_map = {}
+        cls.subscription_map = {}
 
 
 def get_client_registry():

@@ -7,10 +7,12 @@ from .. networking.connection import WampConnection
 from .. messages.register import Register
 from .. registry import Registry
 from .. messages import Message, MESSAGE_TYPE_MAP
+from .. messages.subscribe import Subscribe
 from .. messages.goodbye import Goodbye
 from .. messages.yield_ import Yield
 from .. session import Session
 from .. messages.hello import Hello
+from .. publishing import PublishProxy
 from .. rpc import RpcProxy
 
 
@@ -169,9 +171,9 @@ class ClientBase(object):
     def _register_entrypoints(self):
         self.logger.info('registering entrypoints')
 
-        for maybe_rpc_entrypoint in self.__class__.__dict__.values():
-            if hasattr(maybe_rpc_entrypoint, 'rpc'):
-                entrypoint_name = maybe_rpc_entrypoint.func_name
+        for maybe_entrypoint in self.__class__.__dict__.values():
+            if hasattr(maybe_entrypoint, 'rpc'):
+                entrypoint_name = maybe_entrypoint.func_name
 
                 message = Register(procedure=entrypoint_name)
                 message.construct()
@@ -190,6 +192,29 @@ class ClientBase(object):
                 with eventlet.Timeout(5):
                     while (self.__class__, entrypoint_name) not in \
                             Registry.registration_map.values():
+                        eventlet.sleep(0)
+
+            if hasattr(maybe_entrypoint, 'subscriber'):
+                topic = maybe_entrypoint.topic
+                handler = maybe_entrypoint.handler
+                entrypoint_name = handler.func_name
+                message = Subscribe(topic=topic)
+                message.construct()
+
+                request_id = message.request_id
+                Registry.request_map[request_id] = (
+                    self.__class__, entrypoint_name)
+
+                self.logger.info(
+                    'registering topic entrypoint "%s"', topic
+                )
+
+                self.send_message(message)
+
+                # wait for INVOCATION from Dealer
+                with eventlet.Timeout(5):
+                    while (self.__class__, entrypoint_name) not in \
+                            Registry.subscription_map.values():
                         eventlet.sleep(0)
 
         Registry.client_registry[self.name] = self
@@ -271,13 +296,55 @@ class ClientBase(object):
             self.logger.warning(errors)
             raise WampError(', '.join(errors))
 
+        elif wamp_code == Message.SUBSCRIBED:
+            self.logger.info(
+                '%s has subscribed to a topic: "%s"', self.name, message
+            )
+            # [SUBSCRIBED, SUBSCRIBE.Request|id, Subscription|id]
+            _, request_id, subscription_id = message
+            app, func_name = Registry.request_map[request_id]
+            Registry.subscription_map[subscription_id] = app, func_name
+
+        elif wamp_code == Message.EVENT:
+            self.logger.info(
+                '%s has recieved an event: "%s"', self.name, message
+            )
+
+            try:
+                # [EVENT, SUBSCRIBED.Subscription|id, PUBLISHED.Publication|id,
+                # Details|dict, PUBLISH.Arguments|list, PUBLISH.ArgumentKw|dict]
+                _, subscription_id, _, details, payload_list, payload_dict = message
+            except ValueError:
+                # [EVENT, SUBSCRIBED.Subscription|id, PUBLISHED.Publication|id,
+                # Details|dict]
+                _, subscription_id, _, details = message
+                payload_list = []
+                payload_dict = {}
+
+            app, func_name = Registry.subscription_map[subscription_id]
+            entrypoint = getattr(self, func_name)
+            payload = {
+                'args': payload_list,
+                'kwargs': payload_dict,
+            }
+            entrypoint(payload)
+
         else:
             self.logger.warning(
                 '%s has an unhandled message: "%s"', self.name, message
             )
 
+        self.logger.info('%s handled message: "%s"', self.name, message)
+        eventlet.sleep()
+
 
 class WampClient(ClientBase):
+
+    def __init__(self, *args, **kwargs):
+        super(WampClient, self).__init__(*args, **kwargs)
+
+        self.rpc = RpcProxy(client=self)
+        self.publish = PublishProxy(client=self)
 
     @property
     def name(self):
@@ -317,9 +384,3 @@ class WampClient(ClientBase):
         self.managed_thread.kill()
         self._session = None
         self.logger.info('%s has stopped', self.name)
-
-
-class RpcClient(WampClient):
-    def __init__(self, *args, **kwargs):
-        super(RpcClient, self).__init__(*args, **kwargs)
-        self.rpc = RpcProxy(client=self)

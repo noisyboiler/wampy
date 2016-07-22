@@ -5,7 +5,8 @@ from base64 import encodestring
 from socket import error as socket_error
 
 from .. constants import WEBSOCKET_SUBPROTOCOLS, WEBSOCKET_VERSION
-from .. exceptions import IncompleteFrameError, ConnectionError
+from .. exceptions import (
+    IncompleteFrameError, ConnectionError, WampProtocolError)
 from . frames import ClientFrame, ServerFrame
 
 
@@ -81,7 +82,6 @@ class WampConnection(object):
         return headers
 
     def _read_handshake_response(self):
-        logger.info('reading handshake')
         status = None
         headers = {}
 
@@ -126,7 +126,6 @@ class WampConnection(object):
         return status, headers
 
     def _recv_handshake_response_by_line(self):
-        logger.info('reading handshake by line')
         received_bytes = bytearray()
 
         while True:
@@ -153,6 +152,7 @@ class WampConnection(object):
         logger.info('sent message: "%s"', message)
 
     def read_websocket_frame(self, bufsize=1):
+        frame = None
         received_bytes = bytearray()
 
         while True:
@@ -175,6 +175,9 @@ class WampConnection(object):
                 pass
             else:
                 break
+
+        if frame is None:
+            raise WampProtocolError("No frame returned")
 
         return frame
 

@@ -13,6 +13,10 @@ MESSAGE_TYPE_MAP = {
     3: 'ABORT',
     6: 'GOODBYE',
     8: 'ERROR',
+    16: 'PUBLISH',
+    32: 'SUBSCRIBE',
+    33: 'SUBSCRIBED',
+    36: 'EVENT',
     48: 'CALL',
     50: 'RESULT',
     64: 'REGISTER',
@@ -34,13 +38,18 @@ class Message(object):
 
     ERROR = 8
 
-    RESULT = 50
+    PUBLISH = 16
+    SUBSCRIBE = 32
+    SUBSCRIBED = 33
+    EVENT = 36
 
     REGISTER = 64
     REGISTERED = 65
     UNREGISTER = 66
     UNREGISTERED = 67
     INVOCATION = 68
+
+    RESULT = 50
 
     CALL = 48
     YIELD = 70
