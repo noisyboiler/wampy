@@ -42,7 +42,62 @@ def foo_subscriber(router):
     peer.stop()
 
 
-def test_publish_to_topic(foo_subscriber, router):
+def test_publish_nothing_to_topic(foo_subscriber, router):
+    assert foo_subscriber.call_count == 0
+
+    client = PublishingClient(
+        name="publisher", router=router,
+        realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
+    )
+
+    client.start()
+    client.publish(topic="foo")
+
+    def check_call_count():
+        assert foo_subscriber.call_count == 1
+
+    assert_stops_raising(check_call_count)
+
+
+def test_publish_arg_to_topic(foo_subscriber, router):
+    assert foo_subscriber.call_count == 0
+
+    client = PublishingClient(
+        name="publisher", router=router,
+        realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
+    )
+
+    client.start()
+    client.publish("foo", "foobar")
+
+    def check_call_count():
+        assert foo_subscriber.call_count == 1
+
+    assert_stops_raising(check_call_count)
+
+    client.stop()
+
+
+def test_publish_args_to_topic(foo_subscriber, router):
+    assert foo_subscriber.call_count == 0
+
+    client = PublishingClient(
+        name="publisher", router=router,
+        realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
+    )
+
+    client.start()
+    client.publish("foo", "foobar", "spam", "ham", "hmmm")
+
+    def check_call_count():
+        assert foo_subscriber.call_count == 1
+
+    assert_stops_raising(check_call_count)
+
+    client.stop()
+
+
+def test_publish_kwargs_to_topic(foo_subscriber, router):
     assert foo_subscriber.call_count == 0
 
     client = PublishingClient(

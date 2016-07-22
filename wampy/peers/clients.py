@@ -309,9 +309,18 @@ class ClientBase(object):
             self.logger.info(
                 '%s has recieved an event: "%s"', self.name, message
             )
-            # [EVENT, SUBSCRIBED.Subscription|id, PUBLISHED.Publication|id,
-            # Details|dict, PUBLISH.Arguments|list, PUBLISH.ArgumentKw|dict]
-            _, subscription_id, _, details, payload_list, payload_dict = message
+
+            try:
+                # [EVENT, SUBSCRIBED.Subscription|id, PUBLISHED.Publication|id,
+                # Details|dict, PUBLISH.Arguments|list, PUBLISH.ArgumentKw|dict]
+                _, subscription_id, _, details, payload_list, payload_dict = message
+            except ValueError:
+                # [EVENT, SUBSCRIBED.Subscription|id, PUBLISHED.Publication|id,
+                # Details|dict]
+                _, subscription_id, _, details = message
+                payload_list = []
+                payload_dict = {}
+
             app, func_name = Registry.subscription_map[subscription_id]
             entrypoint = getattr(self, func_name)
             payload = {
