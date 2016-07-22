@@ -337,7 +337,6 @@ class ClientBase(object):
             )
 
         self.logger.info('%s handled message: "%s"', self.name, message)
-        eventlet.sleep()
 
 
 class WampClient(ClientBase):
