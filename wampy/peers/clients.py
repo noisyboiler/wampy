@@ -340,6 +340,12 @@ class ClientBase(object):
 
 class WampClient(ClientBase):
 
+    def __init__(self, *args, **kwargs):
+        super(WampClient, self).__init__(*args, **kwargs)
+
+        self.rpc = RpcProxy(client=self)
+        self.publish = PublishProxy(client=self)
+
     @property
     def name(self):
         return self._name
@@ -378,15 +384,3 @@ class WampClient(ClientBase):
         self.managed_thread.kill()
         self._session = None
         self.logger.info('%s has stopped', self.name)
-
-
-class RpcClient(WampClient):
-    def __init__(self, *args, **kwargs):
-        super(RpcClient, self).__init__(*args, **kwargs)
-        self.rpc = RpcProxy(client=self)
-
-
-class PublishingClient(WampClient):
-    def __init__(self, *args, **kwargs):
-        super(PublishingClient, self).__init__(*args, **kwargs)
-        self.publish = PublishProxy(client=self)

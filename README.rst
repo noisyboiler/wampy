@@ -80,9 +80,9 @@ publically availabile over the Router.
 
 ::
 
-    In [12]: from wampy.peers.clients import RpcClient
+    In [12]: from wampy.peers.clients import WampClient
 
-    In [13]: client = RpcClient(
+    In [13]: client = WampClient(
                  name="Caller", router=crossbar,
                  realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
              )

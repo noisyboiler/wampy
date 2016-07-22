@@ -3,7 +3,7 @@ import logging
 import pytest
 
 from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
-from wampy.peers.clients import WampClient, RpcClient
+from wampy.peers.clients import WampClient
 from wampy.rpc import rpc
 
 
@@ -14,7 +14,7 @@ def make_service_clients(router, names):
     clients = []
     for name in names:
         clients.append(
-            RpcClient(
+            WampClient(
                 name=name, router=router,
                 realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
             )

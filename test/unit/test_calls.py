@@ -5,7 +5,7 @@ import pytest
 
 from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
 from wampy.rpc import rpc
-from wampy.peers.clients import WampClient, RpcClient
+from wampy.peers.clients import WampClient
 
 
 class DateService(WampClient):
@@ -50,7 +50,7 @@ def hello_service(router):
 
 
 def test_call_with_no_args_or_kwargs(date_service, router):
-    client = RpcClient(
+    client = WampClient(
         name="Caller", router=router,
         realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
     )
@@ -63,7 +63,7 @@ def test_call_with_no_args_or_kwargs(date_service, router):
 
 
 def test_call_with_args_but_no_kwargs(hello_service, router):
-    caller = RpcClient(
+    caller = WampClient(
         name="Caller", router=router,
         realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
     )
@@ -77,7 +77,7 @@ def test_call_with_args_but_no_kwargs(hello_service, router):
 
 
 def test_call_with_no_args_but_a_default_kwarg(hello_service, router):
-    caller = RpcClient(
+    caller = WampClient(
         name="Caller", router=router,
         realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
     )
@@ -91,7 +91,7 @@ def test_call_with_no_args_but_a_default_kwarg(hello_service, router):
 
 
 def test_call_with_no_args_but_a_kwarg(hello_service, router):
-    caller = RpcClient(
+    caller = WampClient(
         name="Caller", router=router,
         realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
     )

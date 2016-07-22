@@ -1,7 +1,6 @@
 import eventlet
 import pytest
 
-from wampy.peers.clients import PublishingClient
 from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
 from wampy.peers.clients import WampClient
 from wampy.publishing import subscriber
@@ -45,7 +44,7 @@ def foo_subscriber(router):
 def test_publish_nothing_to_topic(foo_subscriber, router):
     assert foo_subscriber.call_count == 0
 
-    client = PublishingClient(
+    client = WampClient(
         name="publisher", router=router,
         realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
     )
@@ -62,7 +61,7 @@ def test_publish_nothing_to_topic(foo_subscriber, router):
 def test_publish_arg_to_topic(foo_subscriber, router):
     assert foo_subscriber.call_count == 0
 
-    client = PublishingClient(
+    client = WampClient(
         name="publisher", router=router,
         realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
     )
@@ -81,7 +80,7 @@ def test_publish_arg_to_topic(foo_subscriber, router):
 def test_publish_args_to_topic(foo_subscriber, router):
     assert foo_subscriber.call_count == 0
 
-    client = PublishingClient(
+    client = WampClient(
         name="publisher", router=router,
         realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
     )
@@ -100,7 +99,7 @@ def test_publish_args_to_topic(foo_subscriber, router):
 def test_publish_kwargs_to_topic(foo_subscriber, router):
     assert foo_subscriber.call_count == 0
 
-    client = PublishingClient(
+    client = WampClient(
         name="publisher", router=router,
         realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
     )

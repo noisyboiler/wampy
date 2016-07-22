@@ -1,5 +1,5 @@
 from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
-from wampy.peers.clients import WampClient, RpcClient
+from wampy.peers.clients import WampClient
 from wampy.peers.routers import WampRouter
 from wampy.rpc import rpc
 
@@ -27,7 +27,7 @@ def test_remote_call():
         realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
     ):
 
-        caller = RpcClient(
+        caller = WampClient(
             name="Caller", router=router,
             realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
         )
