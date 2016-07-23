@@ -25,12 +25,7 @@ class Publish(Message):
         self.request_id = random.getrandbits(32)
         self.args = args
         self.kwargs = kwargs
-
-    def construct(self):
         self.message = [
             Message.PUBLISH, self.request_id, self.options, self.topic,
             self.args, self.kwargs
         ]
-
-    def deconstruct(self, payload):
-        pass

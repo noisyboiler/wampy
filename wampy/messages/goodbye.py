@@ -19,8 +19,6 @@ class Goodbye(Message):
 
         self.reason = reason
         self.message = message
-
-    def construct(self):
         details = {}
         if self.message:
             details['message'] = self.message
@@ -28,6 +26,3 @@ class Goodbye(Message):
         self.message = [
             Message.GOODBYE, details, self.reason
         ]
-
-    def deconstruct(self, payload):
-        return payload

@@ -19,7 +19,6 @@ class RpcProxy:
 
             def wrapper(*args, **kwargs):
                 message = Call(procedure=name, args=args, kwargs=kwargs)
-                message.construct()
                 logger.info(
                     '%s sending message: "%s"', self.client.name, message)
                 self.client.send_message(message)

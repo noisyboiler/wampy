@@ -32,12 +32,7 @@ class Call(Message):
         self.args = args or []
         self.kwargs = kwargs or {}
         self.request_id = random.getrandbits(32)
-
-    def construct(self):
         self.message = [
             Message.CALL, self.request_id, self.options, self.procedure,
             self.args, self.kwargs
         ]
-
-    def deconstruct(self, payload):
-        return payload

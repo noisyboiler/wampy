@@ -1,3 +1,5 @@
+import random
+
 from . import Message
 
 
@@ -26,18 +28,8 @@ class Register(Message):
 
         self.procedure = procedure
         self.options = options or {}
-        self.request_id = None
-
-    @staticmethod
-    def _generate_request_id():
-        return 10000
-
-    def construct(self):
-        self.request_id = self._generate_request_id()
+        self.request_id = random.getrandbits(32)
         self.message = [
             Message.REGISTER, self.request_id, self.options,
             self.procedure
         ]
-
-    def deconstruct(self, payload):
-        return payload

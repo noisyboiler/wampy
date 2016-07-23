@@ -113,12 +113,10 @@ class ClientBase(object):
 
     def _say_hello_to_router(self):
         message = Hello(self.realm, self.roles)
-        message.construct()
         self.send_message(message)
 
     def _say_goodbye_to_router(self):
         message = Goodbye()
-        message.construct()
         self.send_message(message)
 
     def _listen_on_connection(self, connection, message_queue):
@@ -178,7 +176,6 @@ class ClientBase(object):
                 entrypoint_name = maybe_entrypoint.func_name
 
                 message = Register(procedure=entrypoint_name)
-                message.construct()
                 request_id = message.request_id
 
                 self.logger.info(
@@ -201,8 +198,6 @@ class ClientBase(object):
                 handler = maybe_entrypoint.handler
                 entrypoint_name = handler.func_name
                 message = Subscribe(topic=topic)
-                message.construct()
-
                 request_id = message.request_id
                 Registry.request_map[request_id] = (
                     self.__class__, entrypoint_name)
@@ -264,7 +259,6 @@ class ClientBase(object):
             result_args = [resp]
 
             message = Yield(request_id, result_args=result_args)
-            message.construct()
             self.send_message(message)
 
         elif wamp_code == Message.GOODBYE:  # 6

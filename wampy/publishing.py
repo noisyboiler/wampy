@@ -13,7 +13,6 @@ class PublishProxy:
 
     def __call__(self, topic, *args, **kwargs):
         message = Publish(topic=topic, options={}, **kwargs)
-        message.construct()
         logger.info(
             '%s publishing message: "%s"', self.client.name, message
         )

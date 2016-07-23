@@ -23,7 +23,7 @@ def test_registration_and_goodbye(router):
     message = Call(
         procedure="wamp.registration.list",
     )
-    message.construct()
+
     client.send_message(message)
     response = client.recv_message()
 
@@ -61,7 +61,7 @@ def test_registration_and_goodbye(router):
         procedure="wamp.registration.get",
         args=[date_service_id],
     )
-    metadata_call_message.construct()
+
     client.send_message(metadata_call_message)
     response = client.recv_message()
 

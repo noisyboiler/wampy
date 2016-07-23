@@ -1,6 +1,4 @@
 import json
-from abc import ABCMeta
-from abc import abstractmethod
 
 
 class MessageError(Exception):
@@ -29,8 +27,6 @@ MESSAGE_TYPE_MAP = {
 
 
 class Message(object):
-    __metaclass__ = ABCMeta
-
     HELLO = 1
     WELCOME = 2
     ABORT = 3
@@ -57,14 +53,6 @@ class Message(object):
     def __init__(self):
         self.message = None
         self.serialized = False
-
-    @abstractmethod
-    def construct(self, *args, **kwargs):
-        """ construct the WAMP message """
-
-    @abstractmethod
-    def deconstruct(self):
-        """ deconstruct the WAMP message """
 
     def serialize(self):
         if self.message is None:

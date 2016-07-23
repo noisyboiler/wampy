@@ -22,11 +22,6 @@ class Subscribe(Message):
         self.topic = topic
         self.options = {}
         self.request_id = random.getrandbits(32)
-
-    def construct(self):
         self.message = [
             self.WAMP_CODE, self.request_id, self.options, self.topic
         ]
-
-    def deconstruct(self, payload):
-        pass

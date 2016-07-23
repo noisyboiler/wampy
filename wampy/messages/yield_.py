@@ -38,12 +38,7 @@ class Yield(Message):
         self.options = options or {}
         self.result_args = result_args or []
         self.result_kwargs = result_kwargs or {}
-
-    def construct(self):
         self.message = [
             Message.YIELD, self.invocation_request_id, self.options,
             self.result_args, self.result_kwargs
         ]
-
-    def deconstruct(self, payload):
-        return payload
