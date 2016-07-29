@@ -124,6 +124,7 @@ You can also publish to and subscribe to topics. This is most fun when you open 
 Because we're in a terminal, you now need something to poll for messages.
 
 ::
+
     In [7]: import eventlet
             def listen_for_news(reader):
                 while True:
