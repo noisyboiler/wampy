@@ -9,7 +9,7 @@ The WAMP protocol connects Clients via RPC or Pub/Sub over a Router.
 A Client is some kind of application that **calls** or **subscribes** to
 another Client, else provides something for others to call or subscribe
 to. These are “Roles” that are performed by a Client, and they are
-referred to as *Caller*, *Callee*, *Publisher* and *Subscriber*.
+referred to as *Caller*, *Callee*, *Publisher* and *subscribe*.
 
 A Router is another type of application - a message broker - that is
 either a *Broker* or a *Dealer*, and highly likely to be Crossbar.io.
@@ -30,62 +30,50 @@ between Clients over an administritive domain called a “realm”.
 
 For a quickstart I suggest that you use Crossbar.io and start it up on
 the default **host** and **port** with the default **realm** and
-**roles**. See the `Crossbar.io docs`_ for the instructions of this.
+**roles**. See the `Crossbar.io docs`_ for the instructions of this or
+alternatively run with wampy's testing setup ``pip install -r test_requirements.txt && crossbar start --config ./test/crossbar.config.json``.
 
 Then open a Python console.
 
 ::
 
-    In [1]: from wampy.peers import WampRouter, WampClient
+    In [1]: from wampy import Peer
 
-    In [2]: from wampy.rpc import rpc
+    In [2]: from wampy.routers import CrossBar
 
-    In [3]: from wampy.constants import (
-                 DEFAULT_REALM, DEFAULT_ROLES, DEFAULT_HOST, DEFAULT_PORT
-            )
+    In [3]: from wampy.entrypoints import rpc
 
-    In [4]: crossbar = WampRouter(
-                name="Crossbar", host=DEFAULT_HOST, port=DEFAULT_PORT,
-                realm=DEFAULT_REALM)
-
-    In [5]: import datetime
-
-    In [6]: class DateService(WampClient):
-                """ A service that tells you todays date """
+    In [4]: class BinaryNumberService(Peer):
                 @rpc
-                def get_todays_date(self):
-                    return datetime.date.today().isoformat()
+                def get_binary_number(self, number):
+                    return bin(number)
 
-    In [7]: service = DateService(
-                name="Date Service", router=crossbar,
-                realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
+    In [5]: service = BinaryNumberService(
+                name="Binary Number Service", router=CrossBar,
             )
 
-    In [8]: service.start()
+    In [6]: service.start()
 
-    In [9]: service.session.id
-    Out[9]: 3941615218422338
+    In [7]: service.session.id
+    Out[7]: 3941615218422338
 
 If a Peer implements the “Callee” Role, then by starting the Peer you
 instruct the Peer to register its RPC entrypoints with the Router.
 
 ::
 
-    In [10]: from wampy.registry import get_registered_entrypoints
+    In [8]]: from wampy.registry import get_registered_entrypoints
 
-    In [11]: get_registered_entrypoints()
-    Out[11]: {2010994119734585: (__main__.DateService, 'get_todays_date')}
+    In [9]: get_registered_entrypoints()
+    Out[9]: {2010994119734585: (__main__.DateService, 'get_todays_date')}
 
 Any method of the Peer decorated with @rpc will have been registered as
 publically availabile over the Router.
 
 ::
 
-    In [12]: from wampy.peers.clients import WampClient
-
-    In [13]: client = WampClient(
-                 name="Caller", router=crossbar,
-                 realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
+    In [10]: client = Peer(
+                 name="Caller", router=CrossBar
              )
 
 The built in stand alone client knows about the entrypoints made
@@ -94,10 +82,10 @@ directly.
 
 ::
 
-    In [14]: client.start()  # note that you can context-manage clients and avoid this step!
+    In [11]: client.start()  # note that you can context-manage clients and avoid this step!
 
-    In [15]: client.rpc.get_todays_date()
-    Out [15]: u'2016-05-14'
+    In [12]: client.rpc.get_binary_number(100)
+    Out [12]: u'0b1100100'
 
 If you don’t context-manage your client, then you do have to explicitly
 call ``stop`` in order to gracefully disassociate yourself from the
@@ -105,12 +93,64 @@ router, but also to tidy up the green threads and connections.
 
 ::
 
-    In [16]: client.stop()
+    In [13]: client.stop()
+
+You can also publish to and subscribe to topics. This is most fun when you open a second terminal!
+
+::
+
+    In [1]: from wampy import Peer
+
+    In [2]: from wampy.entrypoints import subscribe
+
+    In [3]: from wampy.routers import CrossBar
+
+    In [4]: class NewsReader(Peer):
+
+                def __init__(self, *args, **kwargs):
+                    super(NewsReader, self).__init__(*args, **kwargs)
+                    self.messages = []
+
+                @subscribe(topic="news")
+                def handle_news(self, *args, **kwargs):
+                    headlines = kwargs['headlines']
+                    for headline in headlines:
+                        self.messages.append(headline)
+
+    In [5]: reader = NewsReader(name="Caller", router=CrossBar)
+
+    In [6]: reader.start()
+
+Because we're in a terminal, you now need something to poll for messages.
+
+::
+    In [7]: import eventlet
+            def listen_for_news(reader):
+                while True:
+                    try:
+                        message = reader.messages.pop()
+                    except IndexError:
+                        eventlet.sleep()
+                    else:
+                        print(message)
+
+    In [8]: listen_for_news(reader)
+
+Jump back to the other terminal.
+
+::
+
+    In [14]: client.start()
+
+And now publish some news!
+
+    In [15]: client.publish(topic="news", headlines=[
+                "wampy isgreat!", "probably best to use wampy in your next project"])
 
 That’s about it so far.
 
 ::
 
-    In [17]: exit()
+    In [16]: exit()
 
 .. _Crossbar.io docs: http://crossbar.io/docs/Quick-Start/

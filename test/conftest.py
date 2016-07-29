@@ -6,7 +6,6 @@ import socket
 import subprocess
 import sys
 from contextlib import closing
-from socket import error as socket_error
 from time import time as now
 
 import colorlog
@@ -17,7 +16,6 @@ from wampy.constants import DEFAULT_HOST, DEFAULT_PORT
 from wampy.networking.connection import WampConnection
 
 from wampy.exceptions import ConnectionError
-from wampy.peers.routers import WampRouter as Router
 from wampy.registry import Registry
 
 
@@ -41,25 +39,10 @@ class TCPConnection(object):
     def __init__(self, host, port):
         self.host = host
         self.port = port
-        self.socket = None
 
     def connect(self):
         _socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        logger.debug(
-            'establishing connection to %s:%s', self.host, self.port)
-
-        try:
-            _socket.connect((self.host, self.port))
-        except socket_error as exc:
-            if exc.errno == 61:
-                logger.warning(
-                    'unable to connect to %s:%s', self.host, self.port)
-            logger.error(exc)
-            raise
-        else:
-            logger.debug('connected to %s:%s', self.host, self.port)
-
-        self.socket = _socket
+        _socket.connect((self.host, self.port))
 
 
 def pytest_configure(config):
@@ -106,8 +89,8 @@ def pytest_addoption(parser):
     )
 
 
-class Crossbar(Router):
-    """ Wrapper around a Crossbar.io router instance described by
+class Crossbar(object):
+    """ Wrapper around a Crossbar.io CrossBar instance described by
     ``Crossbar.config``.
 
     """
@@ -122,17 +105,16 @@ class Crossbar(Router):
         self.config_path = config_path
         self.crossbar_directory = crossbar_directory
 
-        realms = self.config['workers'][0]['realms']
-        roles = realms[0]['roles']
-
-        super(Crossbar, self).__init__(
-            "Crossbar.io", host, port, realms, roles
-        )
+        self.name = "Test Runner Crossbar"
+        self.host = host
+        self.port = port
+        self.realms = self.config['workers'][0]['realms']
+        self.roles = self.realms[0]['roles']
 
         self.proc = None
 
     def _wait_until_ready(self, timeout=7, raise_if_not_ready=True):
-        # we're only ready when it's possible to connect to the router
+        # we're only ready when it's possible to connect to the CrossBar
         # over TCP - so let's just try it.
         connection = TCPConnection(host=self.host, port=self.port)
         end = now() + timeout
@@ -143,9 +125,9 @@ class Crossbar(Router):
             timeout = end - now()
             if timeout < 0:
                 if raise_if_not_ready:
-                    self.logger.exception('%s unable to connect', self.name)
+                    logger.exception('%s unable to connect', self.name)
                     raise ConnectionError(
-                        'Failed to connect to router'
+                        'Failed to connect to CrossBar'
                     )
                 else:
                     return ready
@@ -153,7 +135,7 @@ class Crossbar(Router):
             try:
                 connection.connect()
             except socket.error:
-                self.logger.warning('failed to connect')
+                pass
             else:
                 ready = True
 
@@ -162,7 +144,7 @@ class Crossbar(Router):
     def start(self):
         """ Start Crossbar.io in a subprocess.
         """
-        # will attempt to connect or start up the router
+        # will attempt to connect or start up the CrossBar
         crossbar_config_path = self.config_path
         cbdir = self.crossbar_directory
 
@@ -177,34 +159,29 @@ class Crossbar(Router):
 
         self._wait_until_ready()
 
-        self.logger.info(
-            '%s router is up and running with PID "%s"',
-            self.name, self.proc.pid
-        )
-
     def stop(self):
-        self.logger.info('sending SIGTERM to %s', self.proc.pid)
+        logger.info('sending SIGTERM to %s', self.proc.pid)
 
         try:
             os.killpg(os.getpgid(self.proc.pid), signal.SIGTERM)
         except Exception as exc:
-            self.logger.exception(exc)
-            self.logger.warning('could not kill process group')
+            logger.exception(exc)
+            logger.warning('could not kill process group')
 
             try:
                 self.proc.kill()
             except:
-                self.logger.execption('Failed to kill parent')
+                logger.execption('Failed to kill parent')
                 sys.exit()
             else:
-                self.logger.info('killed parent process instead')
+                logger.info('killed parent process instead')
 
         # let the shutdown happen
         eventlet.sleep(1)
-        self.logger.info('crossbar shut down')
+        logger.info('crossbar shut down')
 
         Registry.clear()
-        self.logger.info('registry cleared')
+        logger.info('registry cleared')
 
 
 def check_socket(host, port):
@@ -236,7 +213,7 @@ def router():
 
 
 @pytest.fixture
-def connection(router):
+def connection(CrossBar):
     connection = WampConnection(host=DEFAULT_HOST, port=DEFAULT_PORT)
     connection.connect()
 

@@ -1,12 +1,12 @@
 
 from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
 from wampy.messages.call import Call
-from wampy.peers.clients import WampClient
+from wampy import Peer
 from wampy.registry import Registry
-from wampy.rpc import rpc
+from wampy.entrypoints import rpc
 
 
-class DateService(WampClient):
+class DateService(Peer):
 
     @rpc
     def get_date(self):
@@ -14,7 +14,7 @@ class DateService(WampClient):
 
 
 def test_registration_and_goodbye(router):
-    client = WampClient(
+    client = Peer(
         name="Caller", router=router,
         realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
     )

@@ -3,8 +3,8 @@ import logging
 import pytest
 
 from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
-from wampy.peers.clients import WampClient
-from wampy.rpc import rpc
+from wampy import Peer
+from wampy.entrypoints import rpc
 
 
 logger = logging.getLogger('test_rpc')
@@ -14,7 +14,7 @@ def make_service_clients(router, names):
     clients = []
     for name in names:
         clients.append(
-            WampClient(
+            Peer(
                 name=name, router=router,
                 realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
             )
@@ -23,7 +23,7 @@ def make_service_clients(router, names):
     return clients
 
 
-class BinaryNumberService(WampClient):
+class BinaryNumberService(Peer):
 
     @rpc
     def get_binary(self, integer):
