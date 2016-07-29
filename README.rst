@@ -148,7 +148,9 @@ And now publish some news!
 ::
 
     In [15]: client.publish(topic="news", headlines=[
-                "wampy isgreat!", "probably best to use wampy in your next project"])
+                "wampy is great!",
+                "probably best to use wampy in your next project"
+            ])
 
 
 News will print out in your second terminal!
@@ -157,6 +159,6 @@ That’s about it so far.
 
 ::
 
-    In [16]: exit()
+    exit()
 
 .. _Crossbar.io docs: http://crossbar.io/docs/Quick-Start/
