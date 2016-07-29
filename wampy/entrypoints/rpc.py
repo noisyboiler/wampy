@@ -1,8 +1,8 @@
 import logging
 
-from . exceptions import ProcedureNotFoundError, WampProtocolError
-from . messages import Message
-from . messages.call import Call
+from .. exceptions import ProcedureNotFoundError, WampProtocolError
+from .. messages import Message
+from .. messages.call import Call
 
 logger = logging.getLogger('wampy.rpc')
 
@@ -13,7 +13,7 @@ class RpcProxy:
         self.client = client
 
     def __getattr__(self, name):
-        from . registry import Registry
+        from .. registry import Registry
         procedures = [v[1] for v in Registry.registration_map.values()]
         if name in procedures:
 

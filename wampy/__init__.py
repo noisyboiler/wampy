@@ -3,6 +3,8 @@ import logging
 
 import eventlet
 
+from wampy.peer import Peer  # NOQA
+
 
 try:  # Python 2.7+
     from logging import NullHandler

@@ -2,25 +2,25 @@ import logging
 
 import eventlet
 
-from .. exceptions import ConnectionError, WampError
-from .. networking.connection import WampConnection
-from .. messages.register import Register
-from .. registry import Registry
-from .. messages import Message, MESSAGE_TYPE_MAP
-from .. messages.subscribe import Subscribe
-from .. messages.goodbye import Goodbye
-from .. messages.yield_ import Yield
-from .. session import Session
-from .. messages.hello import Hello
-from .. publishing import PublishProxy
-from .. rpc import RpcProxy
+from . constants import DEFAULT_REALM, DEFAULT_ROLES
+from . exceptions import ConnectionError, WampError
+from . networking.connection import WampConnection
+from . messages.register import Register
+from . registry import Registry
+from . messages import Message, MESSAGE_TYPE_MAP
+from . messages.subscribe import Subscribe
+from . messages.goodbye import Goodbye
+from . messages.yield_ import Yield
+from . session import Session
+from . messages.hello import Hello
+from . entrypoints.publishing import PublishProxy
+from . entrypoints.rpc import RpcProxy
 
 
-class ClientBase(object):
-    """ Represents the "client" side of a WAMP Session.
-    """
+class Peer(object):
 
-    def __init__(self, name, realm, roles, router):
+    def __init__(
+            self, name, router, realm=DEFAULT_REALM, roles=DEFAULT_ROLES):
         """ Base class for any WAMP Client.
 
         :Paramaters:
@@ -86,6 +86,14 @@ class ClientBase(object):
         self.logger = logging.getLogger(
             'wampy.peers.client.{}'.format(name.replace(' ', '-')))
         self.logger.info('New client: "%s"', name)
+
+    @property
+    def rpc(self):
+        return RpcProxy(client=self)
+
+    @property
+    def publish(self):
+        return PublishProxy(client=self)
 
     def __enter__(self):
         self.start()
@@ -307,9 +315,13 @@ class ClientBase(object):
             )
 
             try:
-                # [EVENT, SUBSCRIBED.Subscription|id, PUBLISHED.Publication|id,
-                # Details|dict, PUBLISH.Arguments|list, PUBLISH.ArgumentKw|dict]
-                _, subscription_id, _, details, payload_list, payload_dict = message
+                # [
+                #   EVENT, SUBSCRIBED.Subscription|id,
+                #   PUBLISHED.Publication|id, Details|dict,
+                #   PUBLISH.Arguments|list, PUBLISH.ArgumentKw|dict]
+                # ]
+                _, subscription_id, _, details, payload_list, payload_dict = (
+                    message)
             except ValueError:
                 # [EVENT, SUBSCRIBED.Subscription|id, PUBLISHED.Publication|id,
                 # Details|dict]
@@ -319,11 +331,7 @@ class ClientBase(object):
 
             app, func_name = Registry.subscription_map[subscription_id]
             entrypoint = getattr(self, func_name)
-            payload = {
-                'args': payload_list,
-                'kwargs': payload_dict,
-            }
-            entrypoint(payload)
+            entrypoint(*payload_list, **payload_dict)
 
         else:
             self.logger.warning(
@@ -331,15 +339,6 @@ class ClientBase(object):
             )
 
         self.logger.info('%s handled message: "%s"', self.name, message)
-
-
-class WampClient(ClientBase):
-
-    def __init__(self, *args, **kwargs):
-        super(WampClient, self).__init__(*args, **kwargs)
-
-        self.rpc = RpcProxy(client=self)
-        self.publish = PublishProxy(client=self)
 
     def start(self):
         # kick off the connection and the listener of it

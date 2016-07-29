@@ -208,7 +208,6 @@ class ServerFrame(Frame):
         try:
             self.payload_length_indicator = bytes[1] & 0b1111111
         except Exception:
-            logger.error('unable to parse payload length indicator')
             raise IncompleteFrameError(bytes)
 
         # if this doesn't raise, all the above will receive a value

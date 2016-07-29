@@ -32,10 +32,8 @@ class WampConnection(object):
                 logger.warning(
                     'unable to connect to %s:%s', self.host, self.port
                 )
-            logger.error(exc)
-            raise
 
-        logger.debug('connected to %s:%s', self.host, self.port)
+            raise
 
         self.socket = _socket
 
@@ -93,7 +91,6 @@ class WampConnection(object):
             except:
                 line = u'{}'.format(line)
 
-            logger.warning(line)
             if line == "\r\n" or line == "\n":
                 break
 
@@ -138,7 +135,6 @@ class WampConnection(object):
 
             if bytes == "\n" or bytes == "\r\n":
                 # a complete line has been received
-                logger.info('complete line read')
                 break
 
         return received_bytes

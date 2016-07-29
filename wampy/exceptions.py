@@ -32,3 +32,7 @@ class ProcedureNotFoundError(AttributeError):
 
 class WampError(Exception):
     pass
+
+
+class WampyError(Exception):
+    pass
