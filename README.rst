@@ -54,7 +54,7 @@ Then open a Python console.
     In [6]: service.session.id
     Out[6]: 3941615218422338
 
-If a ``Peer`` implements the *Callee* "Role", then just by starting the ``Peer`` you
+If a ``Peer`` implements the *Callee* **role**, then just by starting the ``Peer`` you
 instruct it to register its RPC entrypoints with the Router.
 
 ::
