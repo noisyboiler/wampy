@@ -64,8 +64,10 @@ instruct the Peer to register its RPC entrypoints with the Router.
     In [8]: get_registered_entrypoints()
     Out[8]: {2010994119734585: (__main__.DateService, 'get_todays_date')}
 
-Any method of the Peer decorated with @rpc will have been registered as
+Any method of the Peer decorated with *rpc* will have been registered as
 publically availabile over the Router.
+
+You can launch a client to call this entrypoint in this shell or a new one - it doesn't matter.
 
 ::
 
