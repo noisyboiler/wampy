@@ -69,9 +69,7 @@ publically availabile over the Router.
 
 ::
 
-    In [9]: client = Peer(
-                 name="Caller", router=CrossBar
-            )
+    In [9]: client = Peer(name="Caller")
 
 The built in stand alone client knows about the entrypoints made
 available by the ``DateService`` and using it you can call them
