@@ -62,7 +62,7 @@ instruct the Peer to register its RPC entrypoints with the Router.
     In [7]]: from wampy.registry import get_registered_entrypoints
 
     In [8]: get_registered_entrypoints()
-    Out[8]: {2010994119734585: (__main__.DateService, 'get_todays_date')}
+    Out[8]: {2010994119734585: (__main__.BinaryNumberService, 'get_binary_number')}
 
 Any method of the Peer decorated with *rpc* will have been registered as
 publically availabile over the Router.
