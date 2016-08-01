@@ -69,7 +69,7 @@ publically availabile over the Router.
 
 ::
 
-    In [9]: client = Peer(name="Caller")
+    In [9]: client = Peer(name="Binary Number Caller")
 
 The built in stand alone client knows about the entrypoints made
 available by the ``DateService`` and using it you can call them
@@ -114,11 +114,12 @@ You can also publish to and subscribe to topics. This is most fun when you open 
 
     In [6]: reader.start()
 
-Because we're in a terminal you now need something to poll async for messages, such as...
+Because we're in a terminal you also need something to poll async for messages, such as...
 
 ::
 
     In [7]: def listen_for_news(reader):
+                import eventlet()
                 while True:
                     try:
                         message = reader.messages.pop()
@@ -129,21 +130,15 @@ Because we're in a terminal you now need something to poll async for messages, s
 
     In [8]: listen_for_news(reader)
 
-Jump back to the other terminal and start up the client again.
+Jump back to the other terminal and publish some news!
 
 ::
 
-    In [13]: client.start()
-
-And now publish some news!
-
-::
-
-    In [14]: client.publish(topic="news", headlines=[
-                "wampy is great!",
-                "probably best to use wampy in your next project"
-            ])
-
+    In [13]: with cliient:
+                client.publish(topic="news", headlines=[
+                    "wampy is great!",
+                    "probably best to use wampy in your next project"
+                ])
 
 News will print out in your second terminal!
 
