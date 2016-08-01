@@ -47,7 +47,7 @@ Then open a Python console.
                 def get_binary_number(self, number):
                     return bin(number)
 
-    In [4]: service = BinaryNumberService(name="Binary Number Service")
+    In [4]: service = BinaryNumberService()
 
     In [5]: service.start()
 
@@ -67,7 +67,7 @@ instruct the Peer to register its RPC entrypoints with the Router.
 Any method of the Peer decorated with *rpc* will have been registered as
 publically availabile over the Router.
 
-You can launch a client to call this entrypoint in this shell or a new one - it doesn't matter.
+You can launch a client to call this entrypoint in this shell or a new one - it doesn't matter. You can also optionally give your Peer a name, which may help in your shell or your ELK stack.
 
 ::
 
@@ -112,7 +112,7 @@ You can also publish to and subscribe to topics. This is most fun when you open 
                     for headline in headlines:
                         self.messages.append(headline)
 
-    In [5]: reader = NewsReader(name="Caller")
+    In [5]: reader = NewsReader()
 
     In [6]: reader.start()
 

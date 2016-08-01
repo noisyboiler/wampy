@@ -21,7 +21,7 @@ from . entrypoints.rpc import RpcProxy
 class Peer(object):
 
     def __init__(
-            self, name,
+            self, name=None,
             host=DEFAULT_HOST, port=DEFAULT_PORT,
             realm=DEFAULT_REALM, roles=DEFAULT_ROLES
     ):
@@ -29,7 +29,7 @@ class Peer(object):
 
         :Paramaters:
             name : string
-                An identifier for the Client.
+                An identifier for the Client. optional.
 
             host : string
                 The hostnmae or IP of the Router to connect to. Defaults
@@ -71,7 +71,7 @@ class Peer(object):
 
         """
         # an identifier of the Client for introspection and logging
-        self.name = name
+        self.name = name or self.__class__.__name__
 
         self.host = host
         self.port = port
@@ -89,8 +89,8 @@ class Peer(object):
         self.session = None
 
         self.logger = logging.getLogger(
-            'wampy.peers.client.{}'.format(name.replace(' ', '-')))
-        self.logger.info('New client: "%s"', name)
+            'wampy.peers.client.{}'.format(self.name.replace(' ', '-')))
+        self.logger.info('New client: "%s"', self.name)
 
     @property
     def rpc(self):

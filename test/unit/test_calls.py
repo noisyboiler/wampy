@@ -30,18 +30,18 @@ class HelloService(Peer):
 
 @pytest.yield_fixture
 def date_service(router):
-    with DateService(name="Date Service"):
+    with DateService():
         yield
 
 
 @pytest.yield_fixture
 def hello_service(router):
-    with HelloService(name="Hello Service"):
+    with HelloService():
         yield
 
 
 def test_call_with_no_args_or_kwargs(date_service, router):
-    client = Peer(name="Caller")
+    client = Peer()
     with client:
         response = client.rpc.get_todays_date()
 
@@ -51,7 +51,7 @@ def test_call_with_no_args_or_kwargs(date_service, router):
 
 
 def test_call_with_args_but_no_kwargs(hello_service, router):
-    caller = Peer(name="Caller")
+    caller = Peer()
     with caller:
         response = caller.rpc.say_hello("Simon")
 
