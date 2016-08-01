@@ -67,7 +67,7 @@ instruct it to register its RPC entrypoints with the Router.
 Any method of the ``Peer`` decorated with *rpc* will have been registered as
 publically availabile over the Router.
 
-You can launch a client to call this entrypoint in this shell or a new one 
+You can launch a client to call this entrypoint in this shell or in a new one 
 – it really doesn't matter. You can also optionally give your ``Peer`` a name, which may help in your shell or your ELK stack.
 
 ::
