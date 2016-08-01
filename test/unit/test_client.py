@@ -1,4 +1,3 @@
-from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
 from wampy.entrypoints import rpc
 from wampy import Peer
 from wampy.registry import get_client_registry, get_registered_entrypoints
@@ -9,10 +8,7 @@ def test_client_connects_to_router(router):
     class MyClient(Peer):
         pass
 
-    client = MyClient(
-        name="my test client", router=router,
-        realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
-    )
+    client = MyClient(name="my test client")
 
     assert client.session is None
 
@@ -21,7 +17,7 @@ def test_client_connects_to_router(router):
     session = client.session
     assert session.id is not None
     assert session.client is client
-    assert session.router is router
+    assert session.router is client.host
 
     client.stop()
 
@@ -51,10 +47,7 @@ def test_client_registers_entrypoints_with_router(router):
         def get_bar(self):
             pass
 
-    app = MyClient(
-        name="Foo Bar Service", router=router,
-        realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
-    )
+    app = MyClient(name="Foo Bar Service")
     app.start()
 
     assert app.name in registered_peers
@@ -69,17 +62,11 @@ def test_can_start_two_clients(router):
     class MyClient(Peer):
         pass
 
-    app_one = MyClient(
-        name="my test client", router=router,
-        realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
-    )
+    app_one = MyClient(name="my test client")
     app_one.start()
     assert app_one.session.id
 
-    app_two = MyClient(
-        name="Client Two", router=router,
-        realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
-    )
+    app_two = MyClient(name="Client Two")
     app_two.start()
     assert app_two.session.id
 

@@ -3,7 +3,6 @@ from datetime import date
 
 import pytest
 
-from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
 from wampy.entrypoints import rpc
 from wampy import Peer
 
@@ -31,29 +30,18 @@ class HelloService(Peer):
 
 @pytest.yield_fixture
 def date_service(router):
-    with DateService(
-        name="Date Service", router=router,
-        realm=DEFAULT_REALM, roles=DEFAULT_ROLES
-    ):
-
+    with DateService(name="Date Service"):
         yield
 
 
 @pytest.yield_fixture
 def hello_service(router):
-    with HelloService(
-        name="Hello Service", router=router,
-        realm=DEFAULT_REALM, roles=DEFAULT_ROLES
-    ):
-
+    with HelloService(name="Hello Service"):
         yield
 
 
 def test_call_with_no_args_or_kwargs(date_service, router):
-    client = Peer(
-        name="Caller", router=router,
-        realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
-    )
+    client = Peer(name="Caller")
     with client:
         response = client.rpc.get_todays_date()
 
@@ -63,42 +51,24 @@ def test_call_with_no_args_or_kwargs(date_service, router):
 
 
 def test_call_with_args_but_no_kwargs(hello_service, router):
-    caller = Peer(
-        name="Caller", router=router,
-        realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
-    )
-    caller.start()
-
-    response = caller.rpc.say_hello("Simon")
+    caller = Peer(name="Caller")
+    with caller:
+        response = caller.rpc.say_hello("Simon")
 
     assert response == "Hello Simon"
 
-    caller.stop()
-
 
 def test_call_with_no_args_but_a_default_kwarg(hello_service, router):
-    caller = Peer(
-        name="Caller", router=router,
-        realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
-    )
-    caller.start()
-
-    response = caller.rpc.say_greeting("Simon")
+    caller = Peer(name="Caller")
+    with caller:
+        response = caller.rpc.say_greeting("Simon")
 
     assert response == "hola to Simon"
 
-    caller.stop()
-
 
 def test_call_with_no_args_but_a_kwarg(hello_service, router):
-    caller = Peer(
-        name="Caller", router=router,
-        realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
-    )
-    caller.start()
-
-    response = caller.rpc.say_greeting("Simon", greeting="goodbye")
+    caller = Peer(name="Caller")
+    with caller:
+        response = caller.rpc.say_greeting("Simon", greeting="goodbye")
 
     assert response == "goodbye to Simon"
-
-    caller.stop()

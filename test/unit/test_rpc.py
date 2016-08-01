@@ -2,7 +2,6 @@ import eventlet
 import logging
 import pytest
 
-from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
 from wampy import Peer
 from wampy.entrypoints import rpc
 
@@ -13,12 +12,7 @@ logger = logging.getLogger('test_rpc')
 def make_service_clients(router, names):
     clients = []
     for name in names:
-        clients.append(
-            Peer(
-                name=name, router=router,
-                realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
-            )
-        )
+        clients.append(Peer(name=name))
 
     return clients
 
@@ -37,11 +31,7 @@ class BinaryNumberService(Peer):
 
 @pytest.yield_fixture
 def binary_number_service(router):
-    with BinaryNumberService(
-        name="Binary Number Service", router=router,
-        realm=DEFAULT_REALM, roles=DEFAULT_ROLES
-    ):
-
+    with BinaryNumberService(name="Binary Number Service"):
         yield
 
 

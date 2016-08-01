@@ -1,7 +1,6 @@
 import eventlet
 import pytest
 
-from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
 from wampy.exceptions import WampyError
 from wampy import Peer
 from wampy.entrypoints import subscribe
@@ -32,10 +31,7 @@ class SubscribingClient(Peer):
 
 @pytest.yield_fixture
 def foo_subscriber(router):
-    peer = SubscribingClient(
-        name="subscribe", router=router,
-        realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
-    )
+    peer = SubscribingClient(name="subscribe")
 
     peer.start()
     yield peer
@@ -45,53 +41,44 @@ def foo_subscriber(router):
 def test_cannot_publish_nothing_to_topic(foo_subscriber, router):
     assert foo_subscriber.call_count == 0
 
-    client = Peer(
-        name="publisher", router=router,
-        realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
-    )
+    client = Peer(name="publisher")
 
-    client.start()
-    with pytest.raises(WampyError):
-        client.publish(topic="foo")
+    with client:
+        with pytest.raises(WampyError):
+            client.publish(topic="foo")
 
-    assert foo_subscriber.call_count == 0
+        assert foo_subscriber.call_count == 0
 
 
 def test_cannot_publish_args_to_topic(foo_subscriber, router):
     assert foo_subscriber.call_count == 0
 
-    client = Peer(
-        name="publisher", router=router,
-        realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
-    )
+    client = Peer(name="publisher")
 
-    client.start()
+    with client:
 
-    with pytest.raises(WampyError):
-        client.publish("foo",)
+        with pytest.raises(WampyError):
+            client.publish("foo",)
 
-    assert foo_subscriber.call_count == 0
+        assert foo_subscriber.call_count == 0
 
-    with pytest.raises(WampyError):
-        client.publish("foo", "foobar")
+        with pytest.raises(WampyError):
+            client.publish("foo", "foobar")
 
-    assert foo_subscriber.call_count == 0
+        assert foo_subscriber.call_count == 0
 
-    even_more_args = range(100)
+        even_more_args = range(100)
 
-    with pytest.raises(WampyError):
-        client.publish(even_more_args)
+        with pytest.raises(WampyError):
+            client.publish(even_more_args)
 
-    assert foo_subscriber.call_count == 0
+        assert foo_subscriber.call_count == 0
 
 
 def test_publish_kwargs_to_topic(foo_subscriber, router):
     assert foo_subscriber.call_count == 0
 
-    client = Peer(
-        name="publisher", router=router,
-        realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
-    )
+    client = Peer(name="publisher")
 
     client.start()
     client.publish(topic="foo", message="foobar")
@@ -122,20 +109,14 @@ def test_kwargs_are_received(router):
         def foo_topic_handler(self, **kwargs):
             SubscribingClient.received_kwargs = kwargs
 
-    reader = SubscribingClient(
-        name="reader", router=router,
-        realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
-    )
+    reader = SubscribingClient(name="reader")
 
     assert SubscribingClient.received_kwargs is None
 
     with reader:
         assert SubscribingClient.received_kwargs is None
 
-        publisher = Peer(
-            name="publisher", router=router,
-            realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
-        )
+        publisher = Peer(name="publisher")
 
         assert SubscribingClient.received_kwargs is None
 

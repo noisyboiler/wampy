@@ -1,5 +1,3 @@
-
-from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
 from wampy.messages.call import Call
 from wampy import Peer
 from wampy.registry import Registry
@@ -14,10 +12,7 @@ class DateService(Peer):
 
 
 def test_registration_and_goodbye(router):
-    client = Peer(
-        name="Caller", router=router,
-        realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
-    )
+    client = Peer(name="Caller")
     client.start()
 
     message = Call(
@@ -38,10 +33,7 @@ def test_registration_and_goodbye(router):
     assert len(registered) == 0
 
     # Now fire up a service
-    service = DateService(
-        name="Date Service", router=router,
-        realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
-    )
+    service = DateService(name="Date Service")
     service.start()
 
     client.send_message(message)

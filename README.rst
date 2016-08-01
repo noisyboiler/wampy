@@ -31,7 +31,8 @@ between Clients over an administritive domain called a “realm”.
 For a quickstart I suggest that you use Crossbar.io and start it up on
 the default **host** and **port** with the default **realm** and
 **roles**. See the `Crossbar.io docs`_ for the instructions of this or
-alternatively run with wampy's testing setup ``pip install -r test_requirements.txt && crossbar start --config ./test/crossbar.config.json``.
+alternatively run with wampy's testing setup ``pip install -r test_requirements.txt && crossbar start --config ./test/crossbar.config.json``. By default, a ``Peer`` connects to this
+endpoint, but this is configurable on initialisation.
 
 Then open a Python console.
 
@@ -39,42 +40,38 @@ Then open a Python console.
 
     In [1]: from wampy import Peer
 
-    In [2]: from wampy.routers import CrossBar
+    In [2]: from wampy.entrypoints import rpc
 
-    In [3]: from wampy.entrypoints import rpc
-
-    In [4]: class BinaryNumberService(Peer):
+    In [3]: class BinaryNumberService(Peer):
                 @rpc
                 def get_binary_number(self, number):
                     return bin(number)
 
-    In [5]: service = BinaryNumberService(
-                name="Binary Number Service", router=CrossBar,
-            )
+    In [4]: service = BinaryNumberService(name="Binary Number Service")
 
-    In [6]: service.start()
+    In [5]: service.start()
 
-    In [7]: service.session.id
-    Out[7]: 3941615218422338
+    In [6]: service.session.id
+    Out[6]: 3941615218422338
 
 If a Peer implements the “Callee” Role, then by starting the Peer you
 instruct the Peer to register its RPC entrypoints with the Router.
 
 ::
 
-    In [8]]: from wampy.registry import get_registered_entrypoints
+    In [7]]: from wampy.registry import get_registered_entrypoints
 
-    In [9]: get_registered_entrypoints()
-    Out[9]: {2010994119734585: (__main__.DateService, 'get_todays_date')}
+    In [8]: get_registered_entrypoints()
+    Out[8]: {2010994119734585: (__main__.DateService, 'get_todays_date')}
 
 Any method of the Peer decorated with @rpc will have been registered as
 publically availabile over the Router.
 
 ::
 
-    In [10]: client = Peer(
+    In [9]: client = Peer(
                  name="Caller", router=CrossBar
-             )
+            )
 
 The built in stand alone client knows about the entrypoints made
 available by the ``DateService`` and using it you can call them
@@ -82,10 +79,10 @@ directly.
 
 ::
 
-    In [11]: client.start()  # note that you can context-manage clients and avoid this step!
+    In [10]: client.start()  # note that you can context-manage clients and avoid this step!
 
-    In [12]: client.rpc.get_binary_number(100)
-    Out [12]: u'0b1100100'
+    In [11]: client.rpc.get_binary_number(100)
+    Out [11]: u'0b1100100'
 
 If you don’t context-manage your client, then you do have to explicitly
 call ``stop`` in order to gracefully disassociate yourself from the
@@ -93,7 +90,7 @@ router, but also to tidy up the green threads and connections.
 
 ::
 
-    In [13]: client.stop()
+    In [12]: client.stop()
 
 You can also publish to and subscribe to topics. This is most fun when you open a second terminal!
 

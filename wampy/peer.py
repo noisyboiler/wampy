@@ -2,6 +2,7 @@ import logging
 
 import eventlet
 
+from . constants import DEFAULT_HOST, DEFAULT_PORT
 from . constants import DEFAULT_REALM, DEFAULT_ROLES
 from . exceptions import ConnectionError, WampError
 from . networking.connection import WampConnection
@@ -20,12 +21,22 @@ from . entrypoints.rpc import RpcProxy
 class Peer(object):
 
     def __init__(
-            self, name, router, realm=DEFAULT_REALM, roles=DEFAULT_ROLES):
+            self, name,
+            host=DEFAULT_HOST, port=DEFAULT_PORT,
+            realm=DEFAULT_REALM, roles=DEFAULT_ROLES
+    ):
         """ Base class for any WAMP Client.
 
         :Paramaters:
             name : string
                 An identifier for the Client.
+
+            host : string
+                The hostnmae or IP of the Router to connect to. Defaults
+                to "localhost".
+
+            port : int
+                The port on the Router to connect to. Defaults to 8080.
 
             realm : string
                 The Realm on the Router that the Client should connect to.
@@ -42,18 +53,12 @@ class Peer(object):
                         },
                     }
 
-            router : instance
-                An subclass instance of :class:`~RouterBase`.
-
         :Raises:
             ConnectionError
                 When the WAMP connection to the ``router`` failed.
             SessionError
                 When the WAMP connection succeeded, but then the WAMP Session
                 failed to establish.
-
-        :Returns:
-            None
 
         Once initialised, ``start`` must be called on the Client, which will
         do three things:
@@ -68,10 +73,10 @@ class Peer(object):
         # an identifier of the Client for introspection and logging
         self.name = name
 
+        self.host = host
+        self.port = port
         self.realm = realm
         self.roles = roles
-        # the Peer to connect to
-        self.router = router
 
         # a WAMP connection will be made with the Router.
         self._connection = None
@@ -104,11 +109,11 @@ class Peer(object):
 
     def _connect_to_router(self):
         connection = WampConnection(
-            host=self.router.host, port=self.router.port
+            host=self.host, port=self.port
         )
 
         self.logger.info(
-            '%s connecting to %s', self.name, self.router.name
+            '%s connecting to %s', self.host, self.port
         )
 
         try:
@@ -290,7 +295,7 @@ class Peer(object):
             self.logger.info('handling WELCOME for %s', self.name)
             _, session_id, _ = message
             self.session = Session(
-                client=self, router=self.router, session_id=session_id)
+                client=self, router=self.host, session_id=session_id)
             self.logger.info(
                 '%s has the session: "%s"', self.name, self.session.id
             )
