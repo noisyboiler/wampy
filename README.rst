@@ -64,11 +64,11 @@ instruct it to register its RPC entrypoints with the Router.
     In [8]: get_registered_entrypoints()
     Out[8]: {2010994119734585: (__main__.BinaryNumberService, 'get_binary_number')}
 
-Any method of the Peer decorated with *rpc* will have been registered as
+Any method of the ``Peer`` decorated with *rpc* will have been registered as
 publically availabile over the Router.
 
 You can launch a client to call this entrypoint in this shell or a new one 
-– it really doesn't matter. You can also optionally give your Peer a name, which may help in your shell or your ELK stack.
+– it really doesn't matter. You can also optionally give your ``Peer`` a name, which may help in your shell or your ELK stack.
 
 ::
 
