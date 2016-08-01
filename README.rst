@@ -98,9 +98,7 @@ You can also publish to and subscribe to topics. This is most fun when you open 
 
     In [2]: from wampy.entrypoints import subscribe
 
-    In [3]: from wampy.routers import CrossBar
-
-    In [4]: class NewsReader(Peer):
+    In [3]: class NewsReader(Peer):
 
                 def __init__(self, *args, **kwargs):
                     super(NewsReader, self).__init__(*args, **kwargs)
@@ -112,16 +110,15 @@ You can also publish to and subscribe to topics. This is most fun when you open 
                     for headline in headlines:
                         self.messages.append(headline)
 
-    In [5]: reader = NewsReader(name="Caller", router=CrossBar)
+    In [5]: reader = NewsReader(name="Caller")
 
     In [6]: reader.start()
 
-Because we're in a terminal, you now need something to poll for messages.
+Because we're in a terminal you now need something to poll async for messages, such as...
 
 ::
 
-    In [7]: import eventlet
-            def listen_for_news(reader):
+    In [7]: def listen_for_news(reader):
                 while True:
                     try:
                         message = reader.messages.pop()
@@ -132,17 +129,17 @@ Because we're in a terminal, you now need something to poll for messages.
 
     In [8]: listen_for_news(reader)
 
-Jump back to the other terminal.
+Jump back to the other terminal and start up the client again.
 
 ::
 
-    In [14]: client.start()
+    In [13]: client.start()
 
 And now publish some news!
 
 ::
 
-    In [15]: client.publish(topic="news", headlines=[
+    In [14]: client.publish(topic="news", headlines=[
                 "wampy is great!",
                 "probably best to use wampy in your next project"
             ])
