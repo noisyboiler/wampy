@@ -68,11 +68,11 @@ Any method of the ``Peer`` decorated with *rpc* will have been registered as
 publically availabile over the Router.
 
 You can launch a client to call this entrypoint in this shell or in a new one 
-– it really doesn't matter. You can also optionally give your ``Peer`` a name, which may help in your shell or your ELK stack.
+– it really doesn't matter. You would need to explicitly pass ``host`` and ``port`` if not relying on the default values, and you can also optionally give your ``Peer`` a name, which may help in your shell or your ELK stack.
 
 ::
 
-    In [9]: client = Peer(name="Binary Number Caller")
+    In [9]: client = Peer(name="Binary Number Caller", host="localhost", port="8080")
 
 The built in stand alone client knows about the entrypoints made
 available by the ``DateService`` and using it you can call them
