@@ -18,7 +18,7 @@ Whatever application you’re dealing with, WAMP refers to these as a
 **Peer**.
 
 With **wampy** you can quickly and easily create Peers to implement these
-WAMP roles and peers.
+WAMP roles!
 
 
 Quickstart: wampy from a Python console.
@@ -68,17 +68,17 @@ Any method of the ``Peer`` decorated with *rpc* will have been registered as
 publically availabile over the Router.
 
 You can launch a client to call this entrypoint in this shell or in a new one 
-– it really doesn't matter. You would need to explicitly pass ``host`` and ``port`` if not relying on the default values, and you can also optionally give your ``Peer`` a name, which may help in your shell or your ELK stack.
+– it really doesn't matter. You would need to explicitly pass ``host`` and ``port`` when not relying on the default values and you can also optionally give your ``Peer`` a name, which may help in your shell, app or your ELK stack.
 
 ::
 
     In [9]: client = Peer(name="Binary Number Caller", host="localhost", port="8080")
 
+    In [10]: client.start()  # note that you can context-manage clients and avoid this step!
+
 All clients know about the entrypoints made available by the ``DateService`` and with one you can call these over a RPC.
 
 ::
-
-    In [10]: client.start()  # note that you can context-manage clients and avoid this step!
 
     In [11]: client.rpc.get_binary_number(100)
     Out [11]: u'0b1100100'
@@ -138,7 +138,7 @@ Jump back to the other terminal and publish some news!
     In [13]: with cliient:
                 client.publish(topic="news", headlines=[
                     "wampy is great!",
-                    "probably best to use wampy in your next project"
+                    "probably best to use wampy in your next project!",
                 ])
 
 News will print out in your second terminal!
