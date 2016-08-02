@@ -74,9 +74,7 @@ You can launch a client to call this entrypoint in this shell or in a new one
 
     In [9]: client = Peer(name="Binary Number Caller", host="localhost", port="8080")
 
-The built in stand alone client knows about the entrypoints made
-available by the ``DateService`` and using it you can call them
-directly.
+All clients know about the entrypoints made available by the ``DateService`` and with one you can call these over a RPC.
 
 ::
 
