@@ -28,6 +28,9 @@ modules
 
 	wampy.constants
 	wampy.errors
+	wampy.peer
+	wampy.registry
+	wampy.routers
 
 
 Module contents
@@ -37,6 +40,15 @@ Module contents
     :noindex:
 
 .. automodule:: errors
+    :noindex:
+
+.. automodule:: peer
+    :noindex:
+
+.. automodule:: registry
+    :noindex:
+
+.. automodule:: routers
     :noindex:
 
 
