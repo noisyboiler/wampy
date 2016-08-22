@@ -1,2 +1,2 @@
-from . publishing import subscribe  # NOQA
-from . rpc import rpc  # NOQA
+from wampy.entrypoints.publishing import subscribe  # NOQA
+from wampy.entrypoints.rpc import rpc  # NOQA

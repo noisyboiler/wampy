@@ -15,7 +15,7 @@ import pytest
 from wampy.constants import DEFAULT_HOST, DEFAULT_PORT
 from wampy.networking.connection import WampConnection
 
-from wampy.exceptions import ConnectionError
+from wampy.errors import ConnectionError
 from wampy.registry import Registry
 
 

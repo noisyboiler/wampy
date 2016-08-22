@@ -2,20 +2,20 @@ import logging
 
 import eventlet
 
-from . constants import DEFAULT_HOST, DEFAULT_PORT
-from . constants import DEFAULT_REALM, DEFAULT_ROLES
-from . exceptions import ConnectionError, WampError
-from . networking.connection import WampConnection
-from . messages.register import Register
-from . registry import Registry
-from . messages import Message, MESSAGE_TYPE_MAP
-from . messages.subscribe import Subscribe
-from . messages.goodbye import Goodbye
-from . messages.yield_ import Yield
-from . session import Session
-from . messages.hello import Hello
-from . entrypoints.publishing import PublishProxy
-from . entrypoints.rpc import RpcProxy
+from wampy.constants import DEFAULT_HOST, DEFAULT_PORT
+from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
+from wampy.errors import ConnectionError, WampError
+from wampy.networking.connection import WampConnection
+from wampy.messages.register import Register
+from wampy.registry import Registry
+from wampy.messages import Message, MESSAGE_TYPE_MAP
+from wampy.messages.subscribe import Subscribe
+from wampy.messages.goodbye import Goodbye
+from wampy.messages.yield_ import Yield
+from wampy.session import Session
+from wampy.messages.hello import Hello
+from wampy.entrypoints.publishing import PublishProxy
+from wampy.entrypoints.rpc import RpcProxy
 
 
 class Peer(object):

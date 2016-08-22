@@ -1,5 +1,5 @@
-from wampy.messages.call import Call
 from wampy import Peer
+from wampy.messages.call import Call
 from wampy.registry import Registry
 from wampy.entrypoints import rpc
 

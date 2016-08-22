@@ -5,7 +5,7 @@ from base64 import encodestring
 from socket import error as socket_error
 
 from .. constants import WEBSOCKET_SUBPROTOCOLS, WEBSOCKET_VERSION
-from .. exceptions import (
+from .. errors import (
     IncompleteFrameError, ConnectionError, WampProtocolError)
 from . frames import ClientFrame, ServerFrame
 

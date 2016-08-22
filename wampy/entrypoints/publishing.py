@@ -1,6 +1,6 @@
 import logging
 
-from .. exceptions import WampyError
+from .. errors import WampyError
 from .. messages.publish import Publish
 
 

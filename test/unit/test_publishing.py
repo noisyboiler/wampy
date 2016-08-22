@@ -1,7 +1,7 @@
 import eventlet
 import pytest
 
-from wampy.exceptions import WampyError
+from wampy.errors import WampyError
 from wampy import Peer
 from wampy.entrypoints import subscribe
 

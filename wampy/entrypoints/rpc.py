@@ -1,6 +1,6 @@
 import logging
 
-from .. exceptions import ProcedureNotFoundError, WampProtocolError
+from .. errors import ProcedureNotFoundError, WampProtocolError
 from .. messages import Message
 from .. messages.call import Call
 
