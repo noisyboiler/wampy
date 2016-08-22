@@ -149,4 +149,12 @@ That’s about it so far.
 
     exit()
 
+Build the docs
+~~~~~~~~~~~~~~
+
+::
+
+    $ pip install -r docs_requirements.txt
+    $ sphinx-build -E -b html ./docs/ ./docs/_build/
+
 .. _Crossbar.io docs: http://crossbar.io/docs/Quick-Start/
