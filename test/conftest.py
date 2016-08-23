@@ -125,9 +125,9 @@ class Crossbar(object):
             timeout = end - now()
             if timeout < 0:
                 if raise_if_not_ready:
-                    logger.exception('%s unable to connect', self.name)
                     raise ConnectionError(
-                        'Failed to connect to CrossBar'
+                        'Failed to connect to CrossBar: {}:{}'.format(
+                            self.host, self.port)
                     )
                 else:
                     return ready
