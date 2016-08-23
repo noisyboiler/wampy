@@ -13,9 +13,8 @@ def test_local_wamp_connection(router):
         'connection': 'upgrade',
         'sec-websocket-accept': ANY,
         'sec-websocket-protocol': 'wamp.2.json',
-        'server': 'crossbar/0.13.0',
+        'server': 'crossbar',
         'status': 101,
         'status_info': ['HTTP/1.1', '101', 'Switching Protocols'],
         'upgrade': 'websocket',
-        'x-powered-by': ANY,
     }
