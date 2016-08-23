@@ -1,8 +1,8 @@
 import logging
 
-from .. errors import ProcedureNotFoundError, WampProtocolError
-from .. messages import Message
-from .. messages.call import Call
+from wampy.errors import ProcedureNotFoundError, WampProtocolError
+from wampy.messages import Message
+from wampy.messages.call import Call
 
 logger = logging.getLogger('wampy.rpc')
 

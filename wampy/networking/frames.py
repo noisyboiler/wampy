@@ -4,7 +4,7 @@ import json
 import os
 from struct import pack, unpack_from
 
-from .. errors import WebsocktProtocolError, IncompleteFrameError
+from wampy.errors import WebsocktProtocolError, IncompleteFrameError
 
 
 logger = logging.getLogger('wampy.networking.frames')

@@ -31,10 +31,30 @@ modules
 	wampy.peer
 	wampy.registry
 	wampy.routers
+	wampy.publishing
+	wampy.rpc
+	wampy.connection
+	wampy.frames
+	wampy.messages.call
+	wampy.messages.hello
+	wampy.messages.goodbye
+	wampy.messages.subscribe
+	wampy.messages.publish
+	wampy.messages.yield
+	wampy.messages.register
 
 
-Module contents
----------------
+.. automodule:: connection
+    :noindex:
+
+.. automodule:: frames
+    :noindex:
+
+.. automodule:: publishing
+    :noindex:
+
+.. automodule:: rpc
+    :noindex:
 
 .. automodule:: constants
     :noindex:
@@ -49,6 +69,24 @@ Module contents
     :noindex:
 
 .. automodule:: routers
+    :noindex:
+
+.. automodule:: call
+    :noindex:
+
+.. automodule:: hello
+    :noindex:
+
+.. automodule:: goodbye
+    :noindex:
+
+.. automodule:: subscribe
+    :noindex:
+
+.. automodule:: publish
+    :noindex:
+
+.. automodule:: yield_
     :noindex:
 
 

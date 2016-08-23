@@ -1,7 +1,7 @@
 import logging
 
-from .. errors import WampyError
-from .. messages.publish import Publish
+from wampy.errors import WampyError
+from wampy.messages.publish import Publish
 
 
 logger = logging.getLogger('wampy.publishing')

@@ -1,6 +1,6 @@
 import random
 
-from . import Message
+from wampy.messages import Message
 
 
 class Call(Message):

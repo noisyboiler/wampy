@@ -4,10 +4,10 @@ import uuid
 from base64 import encodestring
 from socket import error as socket_error
 
-from .. constants import WEBSOCKET_SUBPROTOCOLS, WEBSOCKET_VERSION
-from .. errors import (
+from wampy.constants import WEBSOCKET_SUBPROTOCOLS, WEBSOCKET_VERSION
+from wampy.errors import (
     IncompleteFrameError, ConnectionError, WampProtocolError)
-from . frames import ClientFrame, ServerFrame
+from wampy.networking.frames import ClientFrame, ServerFrame
 
 
 logger = logging.getLogger(__name__)
