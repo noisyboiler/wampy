@@ -1,3 +1,6 @@
+.. image:: https://travis-ci.org/noisyboiler/wampy.svg?branch=master
+    :target: https://travis-ci.org/noisyboiler/wampy
+
 wampy
 =====
 
