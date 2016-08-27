@@ -1,13 +1,16 @@
 wampy
 =====
 
-.. image:: https://travis-ci.org/noisyboiler/wampy.svg?branch=master
-    :target: https://travis-ci.org/noisyboiler/wampy
-
 .. pull-quote ::
 
     WAMP RPC and Pub/Sub for stand alone clients and microservices
 
+|
+
+.. image:: https://travis-ci.org/noisyboiler/wampy.svg?branch=master
+    :target: https://travis-ci.org/noisyboiler/wampy
+
+|
 
 The WAMP protocol connects Clients via RPC or Pub/Sub over a Router.
 
