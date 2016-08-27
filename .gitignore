@@ -68,3 +68,4 @@ node.key
 #wampy
 config.yaml
 docs/_*
+key.*
