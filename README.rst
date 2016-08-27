@@ -23,7 +23,7 @@ WAMP roles!
 Read The Docs
 ~~~~~~~~~~~~~
 
-Check out the full documentation at _ReadTheDocs.
+Check out the full documentation at ReadTheDocs_.
 
 
 Quickstart: wampy from a Python console.
@@ -148,7 +148,7 @@ Jump back to the other terminal and publish some news!
 
 News will print out in your second terminal!
 
-For further documentation see _ReadTheDocs.
+For further documentation see ReadTheDocs_.
 
 ::
 
