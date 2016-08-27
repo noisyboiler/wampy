@@ -20,6 +20,11 @@ Whatever application you’re dealing with, WAMP refers to these as a
 With **wampy** you can quickly and easily create Peers to implement these
 WAMP roles!
 
+Read The Docs
+~~~~~~~~~~~~~
+
+Check out the full documentation at _ReadTheDocs.
+
 
 Quickstart: wampy from a Python console.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -143,7 +148,7 @@ Jump back to the other terminal and publish some news!
 
 News will print out in your second terminal!
 
-That’s about it so far.
+For further documentation see _ReadTheDocs.
 
 ::
 
@@ -158,3 +163,5 @@ Build the docs
     $ sphinx-build -E -b html ./docs/ ./docs/_build/
 
 .. _Crossbar.io docs: http://crossbar.io/docs/Quick-Start/
+.. _ReadTheDocs: http://wampy.readthedocs.io/en/latest/
+
