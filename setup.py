@@ -29,7 +29,6 @@ setup(
     keywords='WAMP RPC',
     packages=find_packages(),
     install_requires=[
-        "crossbar==0.13.0",
         "eventlet==0.18.4",
     ],
 )
