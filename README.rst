@@ -3,7 +3,7 @@ wampy
 
 .. pull-quote ::
 
-    WAMP RPC and Pub/Sub for stand alone clients and microservices
+    WAMP RPC and Pub/Sub for your Python apps and microservices,
 
 .. image:: https://travis-ci.org/noisyboiler/wampy.svg?branch=master
     :target: https://travis-ci.org/noisyboiler/wampy
@@ -14,7 +14,7 @@ The WAMP protocol connects Clients via RPC or Pub/Sub over a Router.
 
 A Client is some kind of application that **calls** or **subscribes** to
 another Client, else provides something for others to call or subscribe
-to. These are “Roles” that are performed by a Client, and they are
+to. These are the “Roles” that are performed by a Client and they are
 referred to as *Caller*, *Callee*, *Publisher* and *subscribe*.
 
 A Router is another type of application - a message broker - that is
@@ -23,8 +23,8 @@ either a *Broker* or a *Dealer*, and highly likely to be Crossbar.io.
 Whatever application you’re dealing with, WAMP refers to these as a
 **Peer**.
 
-With **wampy** you can quickly and easily create Peers to implement these
-WAMP roles!
+With **wampy** you can quickly and easily create your own Peers, whether
+this is in a web app, a service or just in a Python shell.
 
 Read The Docs
 ~~~~~~~~~~~~~
