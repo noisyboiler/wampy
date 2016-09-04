@@ -146,31 +146,6 @@ class Peer(object):
         gthread = eventlet.spawn(connection_handler)
         self.managed_thread = gthread
 
-    def send_message(self, message):
-        message_type = MESSAGE_TYPE_MAP[message.WAMP_CODE]
-        message = message.serialize()
-
-        self.logger.info(
-            '%s sending "%s" message: %s',
-            self.name, message_type, message
-        )
-
-        self._connection.send_websocket_frame(str(message))
-
-    def recv_message(self):
-        self.logger.info(
-            '%s waiting to receive a message', self.name,
-        )
-
-        message = self._wait_for_message()
-
-        self.logger.info(
-            '%s received "%s" message',
-            self.name, MESSAGE_TYPE_MAP[message[0]]
-        )
-
-        return message
-
     def _wait_for_message(self):
         q = self._message_queue
         while q.qsize() == 0:
@@ -367,3 +342,28 @@ class Peer(object):
         self.managed_thread.kill()
         self.session = None
         self.logger.info('%s has stopped', self.name)
+
+    def send_message(self, message):
+        message_type = MESSAGE_TYPE_MAP[message.WAMP_CODE]
+        message = message.serialize()
+
+        self.logger.info(
+            '%s sending "%s" message: %s',
+            self.name, message_type, message
+        )
+
+        self._connection.send_websocket_frame(str(message))
+
+    def recv_message(self):
+        self.logger.info(
+            '%s waiting to receive a message', self.name,
+        )
+
+        message = self._wait_for_message()
+
+        self.logger.info(
+            '%s received "%s" message',
+            self.name, MESSAGE_TYPE_MAP[message[0]]
+        )
+
+        return message
