@@ -10,7 +10,7 @@ wampy
 
 |
 
-The WAMP protocol connects Clients via RPC or Pub/Sub over a Router.
+The `WAMP Protocol`_ connects Clients via RPC or Pub/Sub over a Router.
 
 A Client is some kind of application that **calls** or **subscribes** to
 another Client, else provides something for others to call or subscribe
@@ -170,4 +170,4 @@ Build the docs
 
 .. _Crossbar.io docs: http://crossbar.io/docs/Quick-Start/
 .. _ReadTheDocs: http://wampy.readthedocs.io/en/latest/
-
+.. _WAMP Protocol: http://wamp-proto.org/
