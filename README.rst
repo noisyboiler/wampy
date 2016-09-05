@@ -3,7 +3,7 @@ wampy
 
 .. pull-quote ::
 
-    WAMP RPC and Pub/Sub for your Python apps and microservices,
+    WAMP RPC and Pub/Sub for your Python apps and microservices
 
 .. image:: https://travis-ci.org/noisyboiler/wampy.svg?branch=master
     :target: https://travis-ci.org/noisyboiler/wampy
