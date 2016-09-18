@@ -1,6 +1,6 @@
 import logging
 
-from wampy.errors import ProcedureNotFoundError, WampProtocolError
+from wampy.errors import WampProtocolError
 from wampy.messages import Message
 from wampy.messages.call import Call
 
@@ -13,31 +13,25 @@ class RpcProxy:
         self.client = client
 
     def __getattr__(self, name):
-        from .. registry import Registry
-        procedures = [v[1] for v in Registry.registration_map.values()]
-        if name in procedures:
+        def wrapper(*args, **kwargs):
+            message = Call(procedure=name, args=args, kwargs=kwargs)
+            logger.info(
+                '%s sending message: "%s"', self.client.name, message)
+            self.client.send_message(message)
+            response = self.client.recv_message()
+            wamp_code = response[0]
+            if wamp_code != Message.RESULT:
+                raise WampProtocolError(
+                    'unexpected message code: "%s"', wamp_code
+                )
 
-            def wrapper(*args, **kwargs):
-                message = Call(procedure=name, args=args, kwargs=kwargs)
-                logger.info(
-                    '%s sending message: "%s"', self.client.name, message)
-                self.client.send_message(message)
-                response = self.client.recv_message()
-                wamp_code = response[0]
-                if wamp_code != Message.RESULT:
-                    raise WampProtocolError(
-                        'unexpected message code: "%s"', wamp_code
-                    )
+            logger.info(
+                '%s got response: "%s"', self.client.name, response)
+            results = response[3]
+            result = results[0]
+            return result
 
-                logger.info(
-                    '%s got response: "%s"', self.client.name, response)
-                results = response[3]
-                result = results[0]
-                return result
-
-            return wrapper
-
-        raise ProcedureNotFoundError(name)
+        return wrapper
 
 
 def register_rpc(wrapped):
