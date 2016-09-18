@@ -4,7 +4,9 @@ import json
 import os
 from struct import pack, unpack_from
 
-from wampy.errors import WebsocktProtocolError, IncompleteFrameError
+from wampy.errors import (
+    WampyError, WebsocktProtocolError, IncompleteFrameError
+)
 
 
 logger = logging.getLogger('wampy.networking.frames')
@@ -224,8 +226,8 @@ class ServerFrame(Frame):
         self.fin = bytes[0] >> 7
 
         if self.fin == 0:
-            raise NotImplemented(
-                'Multiple framed responses not yet supported'
+            raise WampyError(
+                'Multiple framed responses not yet supported: {}'.format(bytes)
             )
 
         self.opcode = bytes[0] & 0b1111
