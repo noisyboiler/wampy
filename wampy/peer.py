@@ -181,6 +181,8 @@ class Peer(object):
                             Registry.registration_map.values():
                         eventlet.sleep(0)
 
+            # TODO: think i can pass the handler into the Message and
+            # forget about the Registry here....
             if hasattr(maybe_entrypoint, 'subscriber'):
                 topic = maybe_entrypoint.topic
                 handler = maybe_entrypoint.handler
