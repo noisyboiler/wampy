@@ -8,29 +8,12 @@ wampy
 .. image:: https://travis-ci.org/noisyboiler/wampy.svg?branch=master
     :target: https://travis-ci.org/noisyboiler/wampy
 
-|
-
 The `WAMP Protocol`_ connects Clients via RPC or Pub/Sub over a Router.
 
-A Client is some kind of application that **calls** or **subscribes** to
-another Client, else provides something for others to call or subscribe
-to. These are the “Roles” that are performed by a Client and they are
-referred to as *Caller*, *Callee*, *Publisher* and *subscribe*.
+WAMP is most commonly a WebSocket subprotocol (runs on top of WebSocket) that uses JSON as message serialization format. However, the protocol can also run with MsgPack as serialization, run over raw TCP or in fact any message based, bidirectional, reliable transport - but **wampy** runs over websockets only.
 
-A Router is another type of application - a message broker - that is
-either a *Broker* or a *Dealer*, and highly likely to be Crossbar.io.
-
-Whatever application you’re dealing with, WAMP refers to these as a
-**Peer**.
-
-With **wampy** you can quickly and easily create your own Peers, whether
+With **wampy** you can quickly and easily create your own WAMP clients, whether
 this is in a web app, a service or just in a Python shell.
-
-Read The Docs
-~~~~~~~~~~~~~
-
-Check out the full documentation at ReadTheDocs_.
-
 
 Quickstart: wampy from a Python console.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -159,6 +142,11 @@ For further documentation see ReadTheDocs_.
 ::
 
     exit()
+
+Read The Docs
+~~~~~~~~~~~~~
+
+Check out the full documentation at ReadTheDocs_.
 
 Build the docs
 ~~~~~~~~~~~~~~
