@@ -111,3 +111,15 @@ class TestMetaEvents:
             assert meta_subscriber.on_delete_call_count == 1
 
         assert_stops_raising(check_call_count)
+
+
+class TestMetaProcedures:
+
+    def test_subsciption_list(self, publisher):
+        client = Peer(name="foo")
+        client.start()
+
+        subscription_list = client.rpc.wamp.subscription.list()
+
+        import pdb
+        pdb.set_trace()

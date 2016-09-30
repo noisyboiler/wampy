@@ -21,7 +21,7 @@ from wampy.entrypoints.rpc import RpcProxy
 class Peer(object):
 
     def __init__(
-            self, name=None,
+            self, name,
             host=DEFAULT_HOST, port=DEFAULT_PORT,
             realm=DEFAULT_REALM, roles=DEFAULT_ROLES
     ):
@@ -29,7 +29,7 @@ class Peer(object):
 
         :Paramaters:
             name : string
-                An identifier for the Client. optional.
+                An identifier for the Client.
 
             host : string
                 The hostnmae or IP of the Router to connect to. Defaults
@@ -126,7 +126,18 @@ class Peer(object):
 
     def _say_hello_to_router(self):
         message = Hello(self.realm, self.roles)
-        self.send_message(message)
+        response = self.send_message_and_wait_for_response(message)
+
+        # response message must be either WELCOME or ABORT
+        message_code = response[0]
+        if message_code not in [Message.WELCOME, Message.ABORT]:
+            raise WampError(
+                'unexpected response from HELLO message: {}'.format(
+                    response
+                )
+            )
+
+        return response
 
     def _say_goodbye_to_router(self):
         message = Goodbye()
@@ -210,7 +221,7 @@ class Peer(object):
         )
 
     def _handle_message(self, message):
-        self.logger.info('%s handling a message: "%s"', self.name, message)
+        self.logger.info('%s handling a new message', self.name)
 
         wamp_code = message[0]
         if wamp_code == Message.REGISTERED:  # 64
@@ -276,6 +287,7 @@ class Peer(object):
             self.logger.info(
                 '%s has the session: "%s"', self.name, self.session.id
             )
+            self._message_queue.put(message)
 
         elif wamp_code == Message.ERROR:
             _, _, _, _, _, errors = message
@@ -296,26 +308,46 @@ class Peer(object):
                 '%s has recieved an event: "%s"', self.name, message
             )
 
+            payload_list = []
+            payload_dict = {}
+
             try:
                 # [
-                #   EVENT, SUBSCRIBED.Subscription|id,
-                #   PUBLISHED.Publication|id, Details|dict,
-                #   PUBLISH.Arguments|list, PUBLISH.ArgumentKw|dict]
+                #   EVENT,
+                #   SUBSCRIBED.Subscription|id,
+                #   PUBLISHED.Publication|id,
+                #   Details|dict,
+                #   PUBLISH.Arguments|list,
+                #   PUBLISH.ArgumentKw|dict]
                 # ]
                 _, subscription_id, _, details, payload_list, payload_dict = (
                     message)
             except ValueError:
-                # [EVENT, SUBSCRIBED.Subscription|id, PUBLISHED.Publication|id,
-                # Details|dict]
-                _, subscription_id, _, details = message
-                payload_list = []
-                payload_dict = {}
+
+                try:
+                    # [
+                    #   EVENT,
+                    #   SUBSCRIBED.Subscription|id,
+                    #   PUBLISHED.Publication|id,
+                    #   Details|dict,
+                    #   PUBLISH.Arguments|list,
+                    # ]
+                    _, subscription_id, _, details, payload_list = message
+                except ValueError:
+                    # [
+                    #   EVENT,
+                    #   SUBSCRIBED.Subscription|id,
+                    #   PUBLISHED.Publication|id,
+                    #   Details|dict,
+                    # ]
+                    _, subscription_id, _, details = message
 
             app, func_name = Registry.subscription_map[subscription_id]
             entrypoint = getattr(self, func_name)
             entrypoint(*payload_list, **payload_dict)
 
         else:
+
             self.logger.warning(
                 '%s has an unhandled message: "%s"', self.name, message
             )
@@ -344,6 +376,10 @@ class Peer(object):
         self.managed_thread.kill()
         self.session = None
         self.logger.info('%s has stopped', self.name)
+
+    def send_message_and_wait_for_response(self, message):
+        self.send_message(message)
+        return self.recv_message()
 
     def send_message(self, message):
         message_type = MESSAGE_TYPE_MAP[message.WAMP_CODE]
