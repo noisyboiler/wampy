@@ -1,4 +1,5 @@
 import logging
+from collections import defaultdict
 
 import eventlet
 
@@ -14,8 +15,10 @@ from wampy.messages.goodbye import Goodbye
 from wampy.messages.yield_ import Yield
 from wampy.session import Session
 from wampy.messages.hello import Hello
-from wampy.entrypoints.publishing import PublishProxy
-from wampy.entrypoints.rpc import RpcProxy
+
+from wampy.roles.subscriber import subscribe
+from wampy.roles.publisher import PublishProxy
+from wampy.roles.caller import CallProxy, RpcProxy
 
 
 class Peer(object):
@@ -70,6 +73,9 @@ class Peer(object):
             3.  Register any RPC entrypoints on the client with the Router.
 
         """
+        self.WAMPY_META_ID = None
+        self.subscription_map = defaultdict(lambda: defaultdict(dict))
+
         # an identifier of the Client for introspection and logging
         self.name = name or self.__class__.__name__
 
@@ -77,6 +83,8 @@ class Peer(object):
         self.port = port
         self.realm = realm
         self.roles = roles
+
+
 
         # a WAMP connection will be made with the Router.
         self._connection = None
@@ -91,6 +99,10 @@ class Peer(object):
         self.logger = logging.getLogger(
             'wampy.peers.client.{}'.format(self.name.replace(' ', '-')))
         self.logger.info('New client: "%s"', self.name)
+
+    @property
+    def call(self):
+        return CallProxy(client=self)
 
     @property
     def rpc(self):
@@ -192,28 +204,31 @@ class Peer(object):
                             Registry.registration_map.values():
                         eventlet.sleep(0)
 
-            # TODO: think i can pass the handler into the Message and
-            # forget about the Registry here....
             if hasattr(maybe_entrypoint, 'subscriber'):
                 topic = maybe_entrypoint.topic
                 handler = maybe_entrypoint.handler
                 entrypoint_name = handler.func_name
                 message = Subscribe(topic=topic)
-                request_id = message.request_id
-                Registry.request_map[request_id] = (
-                    self.__class__, entrypoint_name)
+
+                response_msg = self.send_message_and_wait_for_response(message)
+                # [SUBSCRIBED, SUBSCRIBE.Request|id, Subscription|id]
+                _, _, subscription_id = response_msg
+
+                if topic == "wampy":
+                    self.WAMPY_META_ID = subscription_id
+                else:
+                    self.subscription_map[self.name][subscription_id] = (
+                        entrypoint_name, topic)
+
+                    self.publish(
+                        topic="wampy",
+                        subscription_map=self.subscription_map,
+                    )
 
                 self.logger.info(
-                    'registering topic entrypoint "%s"', topic
+                    'registering entrypoint "%s" for topic "%s"',
+                    entrypoint_name, topic
                 )
-
-                self.send_message(message)
-
-                # wait for INVOCATION from Dealer
-                with eventlet.Timeout(5):
-                    while (self.__class__, entrypoint_name) not in \
-                            Registry.subscription_map.values():
-                        eventlet.sleep(0)
 
         Registry.client_registry[self.name] = self
         self.logger.info(
@@ -298,10 +313,7 @@ class Peer(object):
             self.logger.info(
                 '%s has subscribed to a topic: "%s"', self.name, message
             )
-            # [SUBSCRIBED, SUBSCRIBE.Request|id, Subscription|id]
-            _, request_id, subscription_id = message
-            app, func_name = Registry.request_map[request_id]
-            Registry.subscription_map[subscription_id] = app, func_name
+            self._message_queue.put(message)
 
         elif wamp_code == Message.EVENT:
             self.logger.info(
@@ -342,7 +354,11 @@ class Peer(object):
                     # ]
                     _, subscription_id, _, details = message
 
-            app, func_name = Registry.subscription_map[subscription_id]
+            if subscription_id == self.WAMPY_META_ID:
+                func_name = 'wampy_handler'
+            else:
+                func_name, _ = self.subscription_map[self.name][subscription_id]
+
             entrypoint = getattr(self, func_name)
             entrypoint(*payload_list, **payload_dict)
 
@@ -375,6 +391,7 @@ class Peer(object):
         assert message[0] == Message.GOODBYE
         self.managed_thread.kill()
         self.session = None
+        self.subscription_map = {}
         self.logger.info('%s has stopped', self.name)
 
     def send_message_and_wait_for_response(self, message):
@@ -405,3 +422,10 @@ class Peer(object):
         )
 
         return message
+
+    # protected_subscribe ??
+    @subscribe(topic="wampy")
+    def wampy_handler(self, *args, **kwargs):
+        self.subscription_map.update(
+            kwargs.get('subscription_map', {})
+        )
