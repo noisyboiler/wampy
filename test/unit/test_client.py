@@ -1,4 +1,4 @@
-from wampy.entrypoints import rpc
+from wampy.roles.callee import rpc
 from wampy import Peer
 from wampy.registry import get_client_registry, get_registered_entrypoints
 

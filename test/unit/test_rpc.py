@@ -3,7 +3,7 @@ import logging
 import pytest
 
 from wampy import Peer
-from wampy.entrypoints import rpc
+from wampy.roles.callee import rpc
 
 
 logger = logging.getLogger('test_rpc')

@@ -29,7 +29,7 @@ class WampConnection(object):
             _socket.connect((self.host, self.port))
         except socket_error as exc:
             if exc.errno == 61:
-                logger.warning(
+                logger.error(
                     'unable to connect to %s:%s', self.host, self.port
                 )
 

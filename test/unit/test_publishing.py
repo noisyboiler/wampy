@@ -3,7 +3,7 @@ import pytest
 
 from wampy.errors import WampyError
 from wampy import Peer
-from wampy.entrypoints import subscribe
+from wampy.roles.subscriber import subscribe
 
 
 def assert_stops_raising(

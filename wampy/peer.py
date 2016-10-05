@@ -1,5 +1,4 @@
 import logging
-from collections import defaultdict
 
 import eventlet
 
@@ -13,12 +12,10 @@ from wampy.messages import Message, MESSAGE_TYPE_MAP
 from wampy.messages.subscribe import Subscribe
 from wampy.messages.goodbye import Goodbye
 from wampy.messages.yield_ import Yield
-from wampy.session import Session
 from wampy.messages.hello import Hello
-
-from wampy.roles.subscriber import subscribe
 from wampy.roles.publisher import PublishProxy
 from wampy.roles.caller import CallProxy, RpcProxy
+from wampy.session import Session
 
 
 class Peer(object):
@@ -73,8 +70,7 @@ class Peer(object):
             3.  Register any RPC entrypoints on the client with the Router.
 
         """
-        self.WAMPY_META_ID = None
-        self.subscription_map = defaultdict(lambda: defaultdict(dict))
+        self.subscription_map = {}
 
         # an identifier of the Client for introspection and logging
         self.name = name or self.__class__.__name__
@@ -83,8 +79,6 @@ class Peer(object):
         self.port = port
         self.realm = realm
         self.roles = roles
-
-
 
         # a WAMP connection will be made with the Router.
         self._connection = None
@@ -214,16 +208,7 @@ class Peer(object):
                 # [SUBSCRIBED, SUBSCRIBE.Request|id, Subscription|id]
                 _, _, subscription_id = response_msg
 
-                if topic == "wampy":
-                    self.WAMPY_META_ID = subscription_id
-                else:
-                    self.subscription_map[self.name][subscription_id] = (
-                        entrypoint_name, topic)
-
-                    self.publish(
-                        topic="wampy",
-                        subscription_map=self.subscription_map,
-                    )
+                self.subscription_map[entrypoint_name] = subscription_id, topic
 
                 self.logger.info(
                     'registering entrypoint "%s" for topic "%s"',
@@ -354,11 +339,11 @@ class Peer(object):
                     # ]
                     _, subscription_id, _, details = message
 
-            if subscription_id == self.WAMPY_META_ID:
-                func_name = 'wampy_handler'
-            else:
-                func_name, _ = self.subscription_map[self.name][subscription_id]
+            id_to_func_name_map = {
+                v[0]: k for k, v in self.subscription_map.items()
+            }
 
+            func_name = id_to_func_name_map[subscription_id]
             entrypoint = getattr(self, func_name)
             entrypoint(*payload_list, **payload_dict)
 
@@ -423,9 +408,34 @@ class Peer(object):
 
         return message
 
-    # protected_subscribe ??
-    @subscribe(topic="wampy")
-    def wampy_handler(self, *args, **kwargs):
-        self.subscription_map.update(
-            kwargs.get('subscription_map', {})
-        )
+    def get_subscription_info(self, subscription_id):
+        """ Retrieves information on a particular subscription. """
+        return self.call("wamp.subscription.get", subscription_id)
+
+    def get_subscription_list(self):
+        """ Retrieves subscription IDs listed according to match
+        policies."""
+        return self.call("wamp.subscription.list")
+
+    def get_subscription_lookup(self, topic):
+        """ Obtains the subscription (if any) managing a topic,
+        according to some match policy. """
+        return self.call("wamp.subscription.lookup", topic=topic)
+
+    def get_subscription_match(self, topic):
+        """ Retrieves a list of IDs of subscriptions matching a topic
+        URI, irrespective of match policy. """
+        return self.call("wamp.subscription.match", topic=topic)
+
+    def list_subscribers(self, subscription_id):
+        """ Retrieves a list of session IDs for sessions currently
+        attached to the subscription. """
+        return self.call(
+            "wamp.subscription.list_subscribers", subscription_id)
+
+    def count_subscribers(self, subscription_id):
+        """ Obtains the number of sessions currently attached to the
+        subscription. """
+
+        return self.call(
+            "wamp.subscription.count_subscribers", subscription_id)

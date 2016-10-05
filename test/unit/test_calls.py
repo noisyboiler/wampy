@@ -3,7 +3,7 @@ from datetime import date
 
 import pytest
 
-from wampy.entrypoints import rpc
+from wampy.roles.callee import rpc
 from wampy import Peer
 
 
@@ -30,18 +30,18 @@ class HelloService(Peer):
 
 @pytest.yield_fixture
 def date_service(router):
-    with DateService():
+    with DateService(name="date service"):
         yield
 
 
 @pytest.yield_fixture
 def hello_service(router):
-    with HelloService():
+    with HelloService(name="hello service"):
         yield
 
 
 def test_call_with_no_args_or_kwargs(date_service, router):
-    client = Peer()
+    client = Peer(name="just a client")
     with client:
         response = client.rpc.get_todays_date()
 
@@ -51,7 +51,7 @@ def test_call_with_no_args_or_kwargs(date_service, router):
 
 
 def test_call_with_args_but_no_kwargs(hello_service, router):
-    caller = Peer()
+    caller = Peer(name="just a client")
     with caller:
         response = caller.rpc.say_hello("Simon")
 
