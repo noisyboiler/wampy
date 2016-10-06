@@ -7,7 +7,6 @@ from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
 from wampy.errors import ConnectionError, WampError
 from wampy.networking.connection import WampConnection
 from wampy.messages.register import Register
-from wampy.registry import Registry
 from wampy.messages import Message, MESSAGE_TYPE_MAP
 from wampy.messages.subscribe import Subscribe
 from wampy.messages.goodbye import Goodbye
@@ -71,6 +70,7 @@ class Peer(object):
 
         """
         self.subscription_map = {}
+        self.registration_map = {}
 
         # an identifier of the Client for introspection and logging
         self.name = name or self.__class__.__name__
@@ -179,24 +179,17 @@ class Peer(object):
         for maybe_entrypoint in self.__class__.__dict__.values():
             if hasattr(maybe_entrypoint, 'rpc'):
                 entrypoint_name = maybe_entrypoint.func_name
-
                 message = Register(procedure=entrypoint_name)
-                request_id = message.request_id
+
+                response_msg = self.send_message_and_wait_for_response(message)
+                _, _, registration_id = response_msg
+
+                self.registration_map[entrypoint_name] = registration_id
 
                 self.logger.info(
-                    'registering entrypoint "%s"', entrypoint_name
+                    'registering entrypoint "%s" for callee "%s"',
+                    entrypoint_name, self.name
                 )
-
-                Registry.request_map[request_id] = (
-                    self.__class__, entrypoint_name)
-
-                self.send_message(message)
-
-                # wait for INVOCATION from Dealer
-                with eventlet.Timeout(5):
-                    while (self.__class__, entrypoint_name) not in \
-                            Registry.registration_map.values():
-                        eventlet.sleep(0)
 
             if hasattr(maybe_entrypoint, 'subscriber'):
                 topic = maybe_entrypoint.topic
@@ -205,17 +198,15 @@ class Peer(object):
                 message = Subscribe(topic=topic)
 
                 response_msg = self.send_message_and_wait_for_response(message)
-                # [SUBSCRIBED, SUBSCRIBE.Request|id, Subscription|id]
                 _, _, subscription_id = response_msg
 
                 self.subscription_map[entrypoint_name] = subscription_id, topic
 
                 self.logger.info(
-                    'registering entrypoint "%s" for topic "%s"',
-                    entrypoint_name, topic
+                    'registering entrypoint "%s (%s)" for subscriber "%s"',
+                    entrypoint_name, topic, self.name
                 )
 
-        Registry.client_registry[self.name] = self
         self.logger.info(
             'registered entrypoints for client: "%s"', self.name
         )
@@ -225,14 +216,7 @@ class Peer(object):
 
         wamp_code = message[0]
         if wamp_code == Message.REGISTERED:  # 64
-            _, request_id, registration_id = message
-            app, func_name = Registry.request_map[request_id]
-            Registry.registration_map[registration_id] = app, func_name
-
-            self.logger.info(
-                '%s registered entrypoint "%s" for "%s"',
-                self.name, func_name, app.__name__
-            )
+            self._message_queue.put(message)
 
         elif wamp_code == Message.INVOCATION:  # 68
             self.logger.info('%s handling invocation', self.name)
@@ -252,7 +236,11 @@ class Peer(object):
                     _, request_id, registration_id, details, args, kwargs = (
                         message)
 
-            _, procedure_name = Registry.registration_map[
+            registration_id_procedure_name_map = {
+                v: k for k, v in self.registration_map.items()
+            }
+
+            procedure_name = registration_id_procedure_name_map[
                 registration_id]
 
             entrypoint = getattr(self, procedure_name)
@@ -420,12 +408,12 @@ class Peer(object):
     def get_subscription_lookup(self, topic):
         """ Obtains the subscription (if any) managing a topic,
         according to some match policy. """
-        return self.call("wamp.subscription.lookup", topic=topic)
+        return self.call("wamp.subscription.lookup", topic)
 
     def get_subscription_match(self, topic):
         """ Retrieves a list of IDs of subscriptions matching a topic
         URI, irrespective of match policy. """
-        return self.call("wamp.subscription.match", topic=topic)
+        return self.call("wamp.subscription.match", topic)
 
     def list_subscribers(self, subscription_id):
         """ Retrieves a list of session IDs for sessions currently
@@ -439,3 +427,22 @@ class Peer(object):
 
         return self.call(
             "wamp.subscription.count_subscribers", subscription_id)
+
+    def get_registration_list(self):
+        """ Retrieves registration IDs listed according to match
+        policies."""
+        return self.call("wamp.registration.list")
+
+    def get_registration_lookup(self, procedure_name):
+        """ Obtains the registration (if any) managing a procedure,
+        according to some match policy."""
+        return self.call("wamp.registration.lookup", procedure_name)
+
+    def get_registration_info(self, procedure_name):
+        """ Retrieves information on a particular registration."""
+        return self.call("wamp.registration.get", procedure_name)
+
+    def get_registration_match(self, procedure_name):
+        """ Obtains the registration best matching a given procedure
+        URI."""
+        return self.call("wamp.registration.match", procedure_name)

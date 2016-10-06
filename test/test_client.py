@@ -1,6 +1,4 @@
-from wampy.roles.callee import rpc
 from wampy import Peer
-from wampy.registry import get_client_registry, get_registered_entrypoints
 
 
 def test_client_connects_to_router(router):
@@ -22,39 +20,6 @@ def test_client_connects_to_router(router):
     client.stop()
 
     assert client.session is None
-
-
-def test_client_registers_entrypoints_with_router(router):
-    registered_peers = get_client_registry()
-    registered_entrypoints = get_registered_entrypoints()
-
-    def get_entrypoint_names():
-        return [
-            app_name_tuple[1] for app_name_tuple in
-            registered_entrypoints.values()
-        ]
-
-    assert registered_peers == {}
-    assert registered_entrypoints == {}
-    assert get_entrypoint_names() == []
-
-    class MyClient(Peer):
-        @rpc
-        def get_foo(self):
-            pass
-
-        @rpc
-        def get_bar(self):
-            pass
-
-    app = MyClient(name="Foo Bar Service")
-    app.start()
-
-    assert app.name in registered_peers
-    assert "get_foo" in get_entrypoint_names()
-    assert "get_bar" in get_entrypoint_names()
-
-    app.stop()
 
 
 def test_can_start_two_clients(router):

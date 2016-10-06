@@ -1,80 +1,157 @@
+import pytest
+
 from wampy import Peer
-from wampy.messages.call import Call
-from wampy.registry import Registry
+from wampy.exceptions import WampError
 from wampy.roles.callee import rpc
+from wampy.roles.subscriber import subscribe
+
+from test.helpers import assert_stops_raising
 
 
-class DateService(Peer):
+class MetaClient(Peer):
 
-    @rpc
-    def get_date(self):
-        return "2016-01-01"
+    def __init__(self, *args, **kwargs):
+        super(MetaClient, self).__init__(*args, **kwargs)
+
+        self.on_create_call_count = 0
+        self.on_register_call_count = 0
+        self.on_unregister_call_count = 0
+
+    @subscribe(topic="wamp.registration.on_create")
+    def on_create_handler(self, *args, **kwargs):
+        """ Fired when a registration is created through a
+        registration request for an URI which was
+        previously without a registration. """
+        self.on_create_call_count += 1
+
+    @subscribe(topic="wamp.registration.on_register")
+    def on_register_handler(self, *args, **kwargs):
+        """ Fired when a _Callee_ session is added to a
+        registration. """
+        self.on_register_call_count += 1
+
+    @subscribe(topic="wamp.registration.on_unregister")
+    def on_unregister_handler(self, *args, **kwargs):
+        """Fired when a Callee session is removed from a
+        registration. """
+        self.on_unregister_call_count += 1
 
 
-def test_registration_and_goodbye(router):
-    client = Peer(name="Caller")
-    client.start()
+@pytest.yield_fixture
+def meta_client(router):
+    peer = MetaClient(name="meta subscriber")
+    with peer:
+        yield peer
 
-    message = Call(
-        procedure="wamp.registration.list",
-    )
 
-    client.send_message(message)
-    response = client.recv_message()
+class TestMetaEvents:
 
-    # e.g. [
-    #     50, 3892220001, {},
-    #     [{u'prefix': [], u'exact': [427621208574865], u'wildcard': []}]
-    # ]
-    wamp_code, _, _, registrations = response
-    assert wamp_code == 50  # result
+    def test_on_create(self, meta_client):
 
-    registered = registrations[0]['exact']
-    assert len(registered) == 0
+        class Client(Peer):
+            @rpc
+            def foo(self):
+                pass
 
-    # Now fire up a service
-    service = DateService(name="Date Service")
-    service.start()
+        callee = Client(name="foo")
 
-    client.send_message(message)
-    response = client.recv_message()
+        assert meta_client.on_create_call_count == 0
 
-    wamp_code, _, _, registrations = response
-    assert wamp_code == 50  # result
+        with callee:
+            def check_call_count():
+                assert meta_client.on_create_call_count == 1
 
-    registered = registrations[0]['exact']
-    assert len(registered) == 1
+            assert_stops_raising(check_call_count)
 
-    date_service_id = registered[0]
-    assert date_service_id in Registry.registration_map.keys()
+    def test_on_register(self, meta_client):
 
-    # get the meta data on this registration
-    metadata_call_message = Call(
-        procedure="wamp.registration.get",
-        args=[date_service_id],
-    )
+        class Client(Peer):
+            @rpc
+            def foo(self):
+                pass
 
-    client.send_message(metadata_call_message)
-    response = client.recv_message()
+        callee = Client(name="foo provider")
+        caller = Peer(name="foo consumner")
 
-    wamp_code, registered_id, _, data_list = response
-    assert wamp_code == 50  # result
-    assert len(data_list) == 1
+        with callee:
+            with caller:
+                caller.rpc.foo()
 
-    metadata = data_list[0]
-    assert metadata['id'] == date_service_id
-    assert metadata['match'] == 'exact'
-    assert metadata['uri'] == 'get_date'
+            def check_call_count():
+                assert meta_client.on_register_call_count == 1
 
-    # Now stop the service
-    service.stop()
+            assert_stops_raising(check_call_count)
 
-    client.send_message(message)
-    response = client.recv_message()
-    wamp_code, _, _, registrations = response
-    assert wamp_code == 50  # result
+    def test_on_unregister(self, meta_client):
 
-    registered = registrations[0]['exact']
-    assert len(registered) == 0
+        class Client(Peer):
+            @rpc
+            def foo(self):
+                pass
 
-    client.stop()
+        callee = Client(name="foo provider")
+
+        assert meta_client.on_unregister_call_count == 0
+
+        with callee:
+            pass
+
+        def check_call_count():
+            assert meta_client.on_unregister_call_count == 1
+
+        assert_stops_raising(check_call_count)
+
+
+class TestMetaProcedures:
+
+    def test_get_registration_list(self, router):
+        client = Peer(name="Caller")
+        with client:
+            registrations = client.get_registration_list()
+            registered = registrations['exact']
+            assert len(registered) == 0
+
+            class DateService(Peer):
+                @rpc
+                def get_date(self):
+                    return "2016-01-01"
+
+            service = DateService(name="Date Service")
+            with service:
+                registrations = client.get_registration_list()
+                registered = registrations['exact']
+                assert len(registered) == 1
+
+    def test_get_registration_lookup(self, router):
+        client = Peer(name="Caller")
+        with client:
+            registration_id = client.get_registration_lookup(
+                procedure_name="spam")
+            assert registration_id is None
+
+            class SpamService(Peer):
+                @rpc
+                def spam(self):
+                    return "eggs and ham"
+
+            service = SpamService(name="Spam Service")
+            with service:
+                registration_id = client.get_registration_lookup(
+                    procedure_name="spam")
+                assert registration_id in service.registration_map.values()
+                assert len(service.registration_map.values()) == 1
+
+    def __test_get_registration_match(self, router):
+        client = Peer(name="Caller")
+        with client:
+            with pytest.raises(WampError):
+                client.get_registration_info(procedure_name="spam")
+
+            class SpamService(Peer):
+                @rpc
+                def spam(self):
+                    return "eggs and ham"
+
+            service = SpamService(name="Spam Service")
+            with service:
+                info = client.get_registration_info(procedure_name="spam")
