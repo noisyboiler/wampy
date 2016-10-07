@@ -16,7 +16,6 @@ from wampy.constants import DEFAULT_HOST, DEFAULT_PORT
 from wampy.networking.connection import WampConnection
 
 from wampy.errors import ConnectionError
-from wampy.registry import Registry
 
 
 logger = logging.getLogger('wampy.testing')
@@ -180,7 +179,6 @@ class Crossbar(object):
         eventlet.sleep(1)
         logger.info('crossbar shut down')
 
-        Registry.clear()
         logger.info('registry cleared')
 
 
