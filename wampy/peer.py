@@ -438,11 +438,23 @@ class Peer(object):
         according to some match policy."""
         return self.call("wamp.registration.lookup", procedure_name)
 
-    def get_registration_info(self, registration_id):
-        """ Retrieves information on a particular registration."""
-        return self.call("wamp.registration.get", registration_id)
-
     def get_registration_match(self, procedure_name):
         """ Obtains the registration best matching a given procedure
         URI."""
         return self.call("wamp.registration.match", procedure_name)
+
+    def get_registration(self, registration_id):
+        """ Retrieves information on a particular registration. """
+        return self.call("wamp.registration.get", registration_id)
+
+    def list_callees(self, registration_id):
+        """ Retrieves a list of session IDs for sessions currently
+        attached to the registration. """
+        return self.call(
+            "wamp.registration.list_callees", registration_id)
+
+    def count_callees(self, registration_id):
+        """ Obtains the number of sessions currently attached to a
+        registration. """
+        return self.call(
+            "wamp.registration.count_callees", registration_id)

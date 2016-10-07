@@ -142,10 +142,10 @@ class TestMetaProcedures:
                 assert registration_id in service.registration_map.values()
                 assert len(service.registration_map.values()) == 1
 
-    def test_registration_info_not_found(self, router):
+    def test_registration_not_found(self, router):
         client = Peer(name="Caller")
         with client:
-            response_msg = client.get_registration_info(registration_id="spam")
+            response_msg = client.get_registration(registration_id="spam")
 
             response_code, call_code, _, _, error_uri, args = (
                 response_msg)
@@ -156,7 +156,7 @@ class TestMetaProcedures:
             assert args == [
                 u'no registration with ID spam exists on this dealer']
 
-    def test_get_registration_info(self, router):
+    def test_get_registration(self, router):
         class SpamService(Peer):
             @rpc
             def spam(self):
@@ -166,7 +166,7 @@ class TestMetaProcedures:
         with service:
             registration_id = service.registration_map['spam']
             with Peer(name="Caller") as client:
-                info = client.get_registration_info(
+                info = client.get_registration(
                     registration_id=registration_id
                 )
 
@@ -179,3 +179,65 @@ class TestMetaProcedures:
         }
 
         assert expected_info == info
+
+    def test_registration_match_not_found(self, router):
+        client = Peer(name="Caller")
+        with client:
+            matched_id = client.get_registration_match(
+                procedure_name="spam")
+
+            assert matched_id is None
+
+    def test_get_registration_match(self, router):
+        class SpamService(Peer):
+            @rpc
+            def spam(self):
+                return "eggs and ham"
+
+        with SpamService(name="Spam Service") as service:
+            with Peer(name="Caller") as client:
+                matched_id = client.get_registration_match(
+                    procedure_name="spam")
+
+                assert matched_id == service.registration_map['spam']
+
+    def test_list_callees(self, router):
+        class SpamService(Peer):
+            @rpc
+            def spam(self):
+                return "spam"
+
+        class FooService(Peer):
+            @rpc
+            def foo(self):
+                return "foo"
+
+        class BarService(Peer):
+            @rpc
+            def bar(self):
+                return "bar"
+
+        with SpamService(name="Spam Service") as spam_service:
+            registration_id = spam_service.registration_map['spam']
+
+            # these are new sessions but not part of the same registration
+            with FooService(name="Foo Service"):
+                with BarService(name="bar Service"):
+
+                    with Peer(name="my client") as client:
+                        callees = client.list_callees(registration_id)
+
+                        assert len(callees) == 1
+                        assert callees[0] == spam_service.session.id
+
+    def test_count_callees(self, router):
+        class SpamService(Peer):
+            @rpc
+            def spam(self):
+                return "spam"
+
+        with SpamService(name="Spam Service") as spam_service:
+            registration_id = spam_service.registration_map['spam']
+            with Peer(name="my client") as client:
+                count = client.count_callees(registration_id)
+                assert count == 1
