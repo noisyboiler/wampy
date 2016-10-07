@@ -2,7 +2,7 @@ import eventlet
 import pytest
 
 from wampy.errors import WampyError
-from wampy import Peer
+from wampy import Client
 from wampy.roles.subscriber import subscribe
 
 
@@ -20,7 +20,7 @@ def assert_stops_raising(
             eventlet.sleep(interval)
 
 
-class SubscribingClient(Peer):
+class SubscribingClient(Client):
 
     call_count = 0
 
@@ -31,17 +31,15 @@ class SubscribingClient(Peer):
 
 @pytest.yield_fixture
 def foo_subscriber(router):
-    peer = SubscribingClient(name="subscribe")
-
-    peer.start()
-    yield peer
-    peer.stop()
+    client = SubscribingClient(name="subscribe")
+    with client:
+        yield client
 
 
 def test_cannot_publish_nothing_to_topic(foo_subscriber, router):
     assert foo_subscriber.call_count == 0
 
-    client = Peer(name="publisher")
+    client = Client(name="publisher")
 
     with client:
         with pytest.raises(WampyError):
@@ -53,7 +51,7 @@ def test_cannot_publish_nothing_to_topic(foo_subscriber, router):
 def test_cannot_publish_args_to_topic(foo_subscriber, router):
     assert foo_subscriber.call_count == 0
 
-    client = Peer(name="publisher")
+    client = Client(name="publisher")
 
     with client:
 
@@ -78,7 +76,7 @@ def test_cannot_publish_args_to_topic(foo_subscriber, router):
 def test_publish_kwargs_to_topic(foo_subscriber, router):
     assert foo_subscriber.call_count == 0
 
-    client = Peer(name="publisher")
+    client = Client(name="publisher")
 
     client.start()
     client.publish(topic="foo", message="foobar")
@@ -102,7 +100,7 @@ def test_publish_kwargs_to_topic(foo_subscriber, router):
 
 def test_kwargs_are_received(router):
 
-    class SubscribingClient(Peer):
+    class SubscribingClient(Client):
         received_kwargs = None
 
         @subscribe(topic="foo")
@@ -116,7 +114,7 @@ def test_kwargs_are_received(router):
     with reader:
         assert SubscribingClient.received_kwargs is None
 
-        publisher = Peer(name="publisher")
+        publisher = Client(name="publisher")
 
         assert SubscribingClient.received_kwargs is None
 

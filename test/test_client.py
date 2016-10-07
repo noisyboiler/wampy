@@ -1,9 +1,9 @@
-from wampy import Peer
+from wampy import Client
 
 
 def test_client_connects_to_router(router):
 
-    class MyClient(Peer):
+    class MyClient(Client):
         pass
 
     client = MyClient(name="my test client")
@@ -24,7 +24,7 @@ def test_client_connects_to_router(router):
 
 def test_can_start_two_clients(router):
 
-    class MyClient(Peer):
+    class MyClient(Client):
         pass
 
     app_one = MyClient(name="my test client")

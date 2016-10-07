@@ -2,7 +2,7 @@ import eventlet
 import logging
 import pytest
 
-from wampy import Peer
+from wampy import Client
 from wampy.roles.callee import rpc
 
 
@@ -12,12 +12,12 @@ logger = logging.getLogger('test_rpc')
 def make_service_clients(router, names):
     clients = []
     for name in names:
-        clients.append(Peer(name=name))
+        clients.append(Client(name=name))
 
     return clients
 
 
-class BinaryNumberService(Peer):
+class BinaryNumberService(Client):
 
     @rpc
     def get_binary(self, integer):

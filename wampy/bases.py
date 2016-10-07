@@ -12,8 +12,6 @@ from wampy.messages.subscribe import Subscribe
 from wampy.messages.goodbye import Goodbye
 from wampy.messages.yield_ import Yield
 from wampy.messages.hello import Hello
-from wampy.roles.publisher import PublishProxy
-from wampy.roles.caller import CallProxy, RpcProxy
 from wampy.session import Session
 
 
@@ -93,18 +91,6 @@ class Peer(object):
         self.logger = logging.getLogger(
             'wampy.peers.client.{}'.format(self.name.replace(' ', '-')))
         self.logger.info('New client: "%s"', self.name)
-
-    @property
-    def call(self):
-        return CallProxy(client=self)
-
-    @property
-    def rpc(self):
-        return RpcProxy(client=self)
-
-    @property
-    def publish(self):
-        return PublishProxy(client=self)
 
     def __enter__(self):
         self.start()

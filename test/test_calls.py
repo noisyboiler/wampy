@@ -4,17 +4,17 @@ from datetime import date
 import pytest
 
 from wampy.roles.callee import rpc
-from wampy import Peer
+from wampy import Client
 
 
-class DateService(Peer):
+class DateService(Client):
 
     @rpc
     def get_todays_date(self):
         return datetime.date.today().isoformat()
 
 
-class HelloService(Peer):
+class HelloService(Client):
 
     @rpc
     def say_hello(self, name):
@@ -41,7 +41,7 @@ def hello_service(router):
 
 
 def test_call_with_no_args_or_kwargs(date_service, router):
-    client = Peer(name="just a client")
+    client = Client(name="just a client")
     with client:
         response = client.rpc.get_todays_date()
 
@@ -51,7 +51,7 @@ def test_call_with_no_args_or_kwargs(date_service, router):
 
 
 def test_call_with_args_but_no_kwargs(hello_service, router):
-    caller = Peer(name="just a client")
+    caller = Client(name="just a client")
     with caller:
         response = caller.rpc.say_hello("Simon")
 
@@ -59,7 +59,7 @@ def test_call_with_args_but_no_kwargs(hello_service, router):
 
 
 def test_call_with_no_args_but_a_default_kwarg(hello_service, router):
-    caller = Peer(name="Caller")
+    caller = Client(name="Caller")
     with caller:
         response = caller.rpc.say_greeting("Simon")
 
@@ -67,7 +67,7 @@ def test_call_with_no_args_but_a_default_kwarg(hello_service, router):
 
 
 def test_call_with_no_args_but_a_kwarg(hello_service, router):
-    caller = Peer(name="Caller")
+    caller = Client(name="Caller")
     with caller:
         response = caller.rpc.say_greeting("Simon", greeting="goodbye")
 

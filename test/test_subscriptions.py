@@ -1,12 +1,12 @@
 import pytest
 from mock import ANY
 
-from wampy import Peer
+from wampy import Client
 from wampy.roles.subscriber import subscribe
 from test.helpers import assert_stops_raising
 
 
-class MetaClient(Peer):
+class MetaClient(Client):
 
     def __init__(self, *args, **kwargs):
         super(MetaClient, self).__init__(*args, **kwargs)
@@ -35,7 +35,7 @@ class MetaClient(Peer):
 
 @pytest.yield_fixture
 def publisher(router):
-    client = Peer(name="publisher")
+    client = Client(name="publisher")
     client.start()
     client.publish(topic="foo", message="bar")
     yield client
@@ -44,23 +44,21 @@ def publisher(router):
 
 @pytest.yield_fixture
 def meta_subscriber(router):
-    peer = MetaClient(name="subscriber")
-
-    peer.start()
-    yield peer
-    peer.stop()
+    client = MetaClient(name="subscriber")
+    with client:
+        yield client
 
 
 class TestMetaEvents:
 
     def test_on_create(self, publisher, meta_subscriber):
 
-        class ClientPeer(Peer):
+        class FooClient(Client):
             @subscribe(topic="foo")
             def foo_handler(self, **kwargs):
                 pass
 
-        subscriber = ClientPeer(name="subscriber")
+        subscriber = FooClient(name="subscriber")
 
         assert meta_subscriber.on_create_call_count == 0
 
@@ -75,12 +73,12 @@ class TestMetaEvents:
 
     def test_on_subscribe(self, publisher, meta_subscriber):
 
-        class ClientPeer(Peer):
+        class FooClient(Client):
             @subscribe(topic="foo")
             def foo_handler(self, **kwargs):
                 pass
 
-        subscriber = ClientPeer(name="subscriber")
+        subscriber = FooClient(name="subscriber")
 
         assert meta_subscriber.on_subscribe_call_count == 0
 
@@ -94,12 +92,12 @@ class TestMetaEvents:
 
     def test_on_unsubscribe(self, publisher, meta_subscriber):
 
-        class ClientPeer(Peer):
+        class FooClient(Client):
             @subscribe(topic="foo")
             def foo_handler(self, **kwargs):
                 pass
 
-        subscriber = ClientPeer(name="subscriber")
+        subscriber = FooClient(name="subscriber")
 
         assert meta_subscriber.on_unsubscribe_call_count == 0
 
@@ -117,7 +115,7 @@ class TestMetaEvents:
 class TestMetaProcedures:
 
     def test_subscription_list(self, publisher):
-        class FooClientPeer(Peer):
+        class FooClient(Client):
             @subscribe(topic="foo")
             def foo_handler(self, **kwargs):
                 pass
@@ -125,18 +123,18 @@ class TestMetaProcedures:
         # two clients are the same subscription ID in the router, and so
         # two subscribers to the same topic should give a subscription
         # list with a single item only
-        foo_subscriber = FooClientPeer(name="foo subscriber")
-        another_foo_subscriber = FooClientPeer(name="another foo subscriber")
+        foo_subscriber = FooClient(name="foo subscriber")
+        another_foo_subscriber = FooClient(name="another foo subscriber")
 
         assert len(foo_subscriber.subscription_map) == 0
         assert len(another_foo_subscriber.subscription_map) == 0
 
-        class SpamClientPeer(Peer):
+        class SpamClientClient(Client):
             @subscribe(topic="spam")
             def spam_handler(self, **kwargs):
                 pass
 
-        spam_subscriber = SpamClientPeer(name="spam subscriber")
+        spam_subscriber = SpamClientClient(name="spam subscriber")
 
         with foo_subscriber:
             foo_subscription_id, topic = foo_subscriber.subscription_map[
@@ -192,19 +190,19 @@ class TestMetaProcedures:
         assert len(spam_subscriber.subscription_map) == 0
 
     def test_get_subscription_match(self, router):
-        class FooClientPeer(Peer):
+        class FooClient(Client):
             @subscribe(topic="foo")
             def foo_handler(self, **kwargs):
                 pass
 
         # two clients are the same subscription ID in the router....
-        foo_subscriber = FooClientPeer(name="foo subscriber")
-        another_foo_subscriber = FooClientPeer(name="another foo subscriber")
+        foo_subscriber = FooClient(name="foo subscriber")
+        another_foo_subscriber = FooClient(name="another foo subscriber")
 
         assert len(foo_subscriber.subscription_map) == 0
         assert len(another_foo_subscriber.subscription_map) == 0
 
-        just_a_client = Peer(name="just a client")
+        just_a_client = Client(name="just a client")
 
         with foo_subscriber:
             with another_foo_subscriber:
@@ -235,12 +233,12 @@ class TestMetaProcedures:
                     assert_stops_raising(check_list)
 
     def test_subscription_lookup(self, router):
-        class FooClientPeer(Peer):
+        class FooClient(Client):
             @subscribe(topic="foo")
             def foo_handler(self, **kwargs):
                 pass
 
-        foo_subscriber = FooClientPeer(name="foo subscriber")
+        foo_subscriber = FooClient(name="foo subscriber")
 
         assert len(foo_subscriber.subscription_map) == 0
 
@@ -255,24 +253,24 @@ class TestMetaProcedures:
             assert subscription_id == foo_subscription_id
 
     def test_subscription_lookup_topic_not_found(self, router):
-        class ClientPeer(Peer):
+        class FooClient(Client):
             pass
 
-        client = ClientPeer(name="foo subscriber")
+        client = FooClient(name="foo subscriber")
         with client:
             subscription_id = client.get_subscription_lookup(topic="spam")
             assert subscription_id is None
 
     def test_get_subscription_info(self, router):
-        class FooClientPeer(Peer):
+        class FooClient(Client):
             @subscribe(topic="foo")
             def foo_handler(self, **kwargs):
                 pass
 
-        foo_subscriber = FooClientPeer(name="foo subscriber")
-        another_foo_subscriber = FooClientPeer(name="another foo subscriber")
+        foo_subscriber = FooClient(name="foo subscriber")
+        another_foo_subscriber = FooClient(name="another foo subscriber")
 
-        just_a_client = Peer(name="just a client")
+        just_a_client = Client(name="just a client")
 
         with foo_subscriber:
             with another_foo_subscriber:
@@ -292,15 +290,15 @@ class TestMetaProcedures:
         assert expected_info == info
 
     def test_list_subscribers(self, router):
-        class FooClientPeer(Peer):
+        class FooClient(Client):
             @subscribe(topic="foo")
             def foo_handler(self, **kwargs):
                 pass
 
-        foo_subscriber = FooClientPeer(name="foo subscriber")
-        another_foo_subscriber = FooClientPeer(name="another foo subscriber")
+        foo_subscriber = FooClient(name="foo subscriber")
+        another_foo_subscriber = FooClient(name="another foo subscriber")
 
-        just_a_client = Peer(name="just a client")
+        just_a_client = Client(name="just a client")
 
         with foo_subscriber:
             with another_foo_subscriber:
@@ -320,15 +318,15 @@ class TestMetaProcedures:
         assert expected_subscribers == sorted(subscribers)
 
     def test_count_subscribers(self, router):
-        class FooClientPeer(Peer):
+        class FooClient(Client):
             @subscribe(topic="foo")
             def foo_handler(self, **kwargs):
                 pass
 
-        foo_subscriber = FooClientPeer(name="foo subscriber")
-        another_foo_subscriber = FooClientPeer(name="another foo subscriber")
+        foo_subscriber = FooClient(name="foo subscriber")
+        another_foo_subscriber = FooClient(name="another foo subscriber")
 
-        just_a_client = Peer(name="just a client")
+        just_a_client = Client(name="just a client")
 
         with foo_subscriber:
             with another_foo_subscriber:

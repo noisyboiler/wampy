@@ -1,7 +1,7 @@
 import pytest
 from mock import ANY
 
-from wampy import Peer
+from wampy import Client
 from wampy.messages import Message
 from wampy.roles.callee import rpc
 from wampy.roles.subscriber import subscribe
@@ -9,7 +9,7 @@ from wampy.roles.subscriber import subscribe
 from test.helpers import assert_stops_raising
 
 
-class MetaClient(Peer):
+class MetaClient(Client):
 
     def __init__(self, *args, **kwargs):
         super(MetaClient, self).__init__(*args, **kwargs)
@@ -40,21 +40,21 @@ class MetaClient(Peer):
 
 @pytest.yield_fixture
 def meta_client(router):
-    peer = MetaClient(name="meta subscriber")
-    with peer:
-        yield peer
+    client = MetaClient(name="meta subscriber")
+    with client:
+        yield client
 
 
 class TestMetaEvents:
 
     def test_on_create(self, meta_client):
 
-        class Client(Peer):
+        class FooClient(Client):
             @rpc
             def foo(self):
                 pass
 
-        callee = Client(name="foo")
+        callee = FooClient(name="foo")
 
         assert meta_client.on_create_call_count == 0
 
@@ -66,13 +66,13 @@ class TestMetaEvents:
 
     def test_on_register(self, meta_client):
 
-        class Client(Peer):
+        class FooClient(Client):
             @rpc
             def foo(self):
                 pass
 
-        callee = Client(name="foo provider")
-        caller = Peer(name="foo consumner")
+        callee = FooClient(name="foo provider")
+        caller = Client(name="foo consumner")
 
         with callee:
             with caller:
@@ -85,12 +85,12 @@ class TestMetaEvents:
 
     def test_on_unregister(self, meta_client):
 
-        class Client(Peer):
+        class FooClient(Client):
             @rpc
             def foo(self):
                 pass
 
-        callee = Client(name="foo provider")
+        callee = FooClient(name="foo provider")
 
         assert meta_client.on_unregister_call_count == 0
 
@@ -106,13 +106,13 @@ class TestMetaEvents:
 class TestMetaProcedures:
 
     def test_get_registration_list(self, router):
-        client = Peer(name="Caller")
+        client = Client(name="Caller")
         with client:
             registrations = client.get_registration_list()
             registered = registrations['exact']
             assert len(registered) == 0
 
-            class DateService(Peer):
+            class DateService(Client):
                 @rpc
                 def get_date(self):
                     return "2016-01-01"
@@ -124,13 +124,13 @@ class TestMetaProcedures:
                 assert len(registered) == 1
 
     def test_get_registration_lookup(self, router):
-        client = Peer(name="Caller")
+        client = Client(name="Caller")
         with client:
             registration_id = client.get_registration_lookup(
                 procedure_name="spam")
             assert registration_id is None
 
-            class SpamService(Peer):
+            class SpamService(Client):
                 @rpc
                 def spam(self):
                     return "eggs and ham"
@@ -143,7 +143,7 @@ class TestMetaProcedures:
                 assert len(service.registration_map.values()) == 1
 
     def test_registration_not_found(self, router):
-        client = Peer(name="Caller")
+        client = Client(name="Caller")
         with client:
             response_msg = client.get_registration(registration_id="spam")
 
@@ -157,7 +157,7 @@ class TestMetaProcedures:
                 u'no registration with ID spam exists on this dealer']
 
     def test_get_registration(self, router):
-        class SpamService(Peer):
+        class SpamService(Client):
             @rpc
             def spam(self):
                 return "eggs and ham"
@@ -165,7 +165,7 @@ class TestMetaProcedures:
         service = SpamService(name="Spam Service")
         with service:
             registration_id = service.registration_map['spam']
-            with Peer(name="Caller") as client:
+            with Client(name="Caller") as client:
                 info = client.get_registration(
                     registration_id=registration_id
                 )
@@ -181,7 +181,7 @@ class TestMetaProcedures:
         assert expected_info == info
 
     def test_registration_match_not_found(self, router):
-        client = Peer(name="Caller")
+        client = Client(name="Caller")
         with client:
             matched_id = client.get_registration_match(
                 procedure_name="spam")
@@ -189,30 +189,30 @@ class TestMetaProcedures:
             assert matched_id is None
 
     def test_get_registration_match(self, router):
-        class SpamService(Peer):
+        class SpamService(Client):
             @rpc
             def spam(self):
                 return "eggs and ham"
 
         with SpamService(name="Spam Service") as service:
-            with Peer(name="Caller") as client:
+            with Client(name="Caller") as client:
                 matched_id = client.get_registration_match(
                     procedure_name="spam")
 
                 assert matched_id == service.registration_map['spam']
 
     def test_list_callees(self, router):
-        class SpamService(Peer):
+        class SpamService(Client):
             @rpc
             def spam(self):
                 return "spam"
 
-        class FooService(Peer):
+        class FooService(Client):
             @rpc
             def foo(self):
                 return "foo"
 
-        class BarService(Peer):
+        class BarService(Client):
             @rpc
             def bar(self):
                 return "bar"
@@ -224,20 +224,20 @@ class TestMetaProcedures:
             with FooService(name="Foo Service"):
                 with BarService(name="bar Service"):
 
-                    with Peer(name="my client") as client:
+                    with Client(name="my client") as client:
                         callees = client.list_callees(registration_id)
 
                         assert len(callees) == 1
                         assert callees[0] == spam_service.session.id
 
     def test_count_callees(self, router):
-        class SpamService(Peer):
+        class SpamService(Client):
             @rpc
             def spam(self):
                 return "spam"
 
         with SpamService(name="Spam Service") as spam_service:
             registration_id = spam_service.registration_map['spam']
-            with Peer(name="my client") as client:
+            with Client(name="my client") as client:
                 count = client.count_callees(registration_id)
                 assert count == 1

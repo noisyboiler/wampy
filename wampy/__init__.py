@@ -3,7 +3,8 @@ import logging
 
 import eventlet
 
-from wampy.peers import Client as Peer  # NOQA
+from wampy.bases import Peer  # NOQA
+from wampy.peers import Client  # NOQA
 
 
 try:  # Python 2.7+

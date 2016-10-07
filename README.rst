@@ -32,9 +32,9 @@ Then open a Python console.
 
 ::
 
-    In [1]: from wampy import Peer
+    In [1]: from wampy import Client
 
-    In [2]: from wampy.entrypoints import rpc
+    In [2]: from wampy.roles.callee import rpc
 
     In [3]: class BinaryNumberService(Peer):
                 @rpc

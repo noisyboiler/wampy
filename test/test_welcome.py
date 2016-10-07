@@ -1,12 +1,12 @@
 import pytest
 
-from wampy import Peer
+from wampy import Client
 from wampy.roles.callee import rpc
 
 
 @pytest.fixture
 def service(router):
-    class Service(Peer):
+    class Service(Client):
         @rpc
         def foo(self):
             pass
