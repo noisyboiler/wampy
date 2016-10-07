@@ -279,8 +279,8 @@ class Peer(object):
 
         elif wamp_code == Message.ERROR:
             _, _, _, _, _, errors = message
-            self.logger.warning(errors)
-            raise WampError(', '.join(errors))
+            self.logger.error(errors)
+            self._message_queue.put(message)
 
         elif wamp_code == Message.SUBSCRIBED:
             self.logger.info(
@@ -438,9 +438,9 @@ class Peer(object):
         according to some match policy."""
         return self.call("wamp.registration.lookup", procedure_name)
 
-    def get_registration_info(self, procedure_name):
+    def get_registration_info(self, registration_id):
         """ Retrieves information on a particular registration."""
-        return self.call("wamp.registration.get", procedure_name)
+        return self.call("wamp.registration.get", registration_id)
 
     def get_registration_match(self, procedure_name):
         """ Obtains the registration best matching a given procedure

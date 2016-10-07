@@ -29,16 +29,18 @@ class CallProxy:
         self.client.send_message(message)
         response = self.client.recv_message()
         wamp_code = response[0]
-        if wamp_code != Message.RESULT:
-            raise WampProtocolError(
-                'unexpected message code: "%s"', wamp_code
-            )
 
-        logger.info(
-            '%s got response: "%s"', self.client.name, response)
-        results = response[3]
-        result = results[0]
-        return result
+        if wamp_code == Message.ERROR:
+            logger.error("call returned an error: %s", response)
+            return response
+        elif wamp_code == Message.RESULT:
+            logger.info(
+                '%s got response: "%s"', self.client.name, response)
+            results = response[3]
+            result = results[0]
+            return result
+
+        raise WampProtocolError("unexpected response: %s", response)
 
 
 class RpcProxy:

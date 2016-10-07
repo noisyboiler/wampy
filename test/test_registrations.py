@@ -1,7 +1,8 @@
 import pytest
+from mock import ANY
 
 from wampy import Peer
-from wampy.exceptions import WampError
+from wampy.messages import Message
 from wampy.roles.callee import rpc
 from wampy.roles.subscriber import subscribe
 
@@ -141,17 +142,40 @@ class TestMetaProcedures:
                 assert registration_id in service.registration_map.values()
                 assert len(service.registration_map.values()) == 1
 
-    def __test_get_registration_match(self, router):
+    def test_registration_info_not_found(self, router):
         client = Peer(name="Caller")
         with client:
-            with pytest.raises(WampError):
-                client.get_registration_info(procedure_name="spam")
+            response_msg = client.get_registration_info(registration_id="spam")
 
-            class SpamService(Peer):
-                @rpc
-                def spam(self):
-                    return "eggs and ham"
+            response_code, call_code, _, _, error_uri, args = (
+                response_msg)
 
-            service = SpamService(name="Spam Service")
-            with service:
-                info = client.get_registration_info(procedure_name="spam")
+            assert response_code == Message.ERROR
+            assert call_code == Message.CALL
+            assert error_uri == u'wamp.error.no_such_registration'
+            assert args == [
+                u'no registration with ID spam exists on this dealer']
+
+    def test_get_registration_info(self, router):
+        class SpamService(Peer):
+            @rpc
+            def spam(self):
+                return "eggs and ham"
+
+        service = SpamService(name="Spam Service")
+        with service:
+            registration_id = service.registration_map['spam']
+            with Peer(name="Caller") as client:
+                info = client.get_registration_info(
+                    registration_id=registration_id
+                )
+
+        expected_info = {
+            'match': 'exact',
+            'created': ANY,
+            'uri': 'spam',
+            'invoke': 'single',
+            'id': registration_id,
+        }
+
+        assert expected_info == info
