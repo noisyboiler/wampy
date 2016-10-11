@@ -1,7 +1,7 @@
 import pytest
 from mock import ANY
 
-from wampy import Client
+from wampy.peers.clients import StandAlone as Client
 from wampy.messages import Message
 from wampy.roles.callee import rpc
 from wampy.roles.subscriber import subscribe
@@ -76,7 +76,7 @@ class TestMetaEvents:
 
         with callee:
             with caller:
-                caller.rpc.foo()
+                caller.call("foo")
 
             def check_call_count():
                 assert meta_client.on_register_call_count == 1

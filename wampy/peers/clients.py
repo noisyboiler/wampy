@@ -1,21 +1,45 @@
+import eventlet
+
 from wampy.bases import Peer
-from wampy.roles.publisher import PublishProxy
-from wampy.roles.caller import CallProxy, RpcProxy
+from wampy.errors import WampProtocolError
+from wampy.messages import Message
+from wampy.roles.publisher import PublisherMixin
+from wampy.roles.callee import CalleeMixin
+from wampy.roles.caller import CallerMixin, RpcMixin
+from wampy.roles.subscriber import SubscriberMixin
 
 
-class Client(Peer):
+class ClientBase(Peer):
 
-    @property
-    def call(self):
-        return CallProxy(client=self)
+    def start(self):
+        # kick off the connection and the listener of it
+        self._connect_to_router()
+        # then then the session over the connection
+        self._say_hello_to_router()
 
-    @property
-    def rpc(self):
-        return RpcProxy(client=self)
+        def wait_for_session():
+            with eventlet.Timeout(5):
+                while self.session is None:
+                    eventlet.sleep(0)
 
-    @property
-    def publish(self):
-        return PublishProxy(client=self)
+        wait_for_session()
+        self._register_entrypoints()
+        self.logger.info('%s has started', self.name)
+
+    def stop(self):
+        self._say_goodbye_to_router()
+        message = self._wait_for_message()
+        if message[0] != Message.GOODBYE:
+            raise WampProtocolError(
+                "Unexpected response from router following GOODBYE: {}".format(
+                    message
+                )
+            )
+
+        self.managed_thread.kill()
+        self.session = None
+        self.subscription_map = {}
+        self.logger.info('%s has stopped', self.name)
 
     def get_subscription_info(self, subscription_id):
         """ Retrieves information on a particular subscription. """
@@ -79,3 +103,19 @@ class Client(Peer):
         registration. """
         return self.call(
             "wamp.registration.count_callees", registration_id)
+
+
+class StandAlone(
+        ClientBase, CallerMixin, CalleeMixin, PublisherMixin, SubscriberMixin):
+    """ A WAMP Client for use in Python applications, scripts and shells.
+    """
+
+
+class RpcClient(ClientBase, RpcMixin):
+    """ A simple client to call remote procedures by name """
+
+
+class ServiceBase(
+        ClientBase, RpcMixin, CalleeMixin, PublisherMixin, SubscriberMixin):
+    """ A WAMP Client for use in microservices.
+    """

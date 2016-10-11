@@ -78,3 +78,17 @@ class RpcProxy:
             return result
 
         return wrapper
+
+
+class CallerMixin:
+
+    @property
+    def call(self):
+        return CallProxy(client=self)
+
+
+class RpcMixin:
+
+    @property
+    def rpc(self):
+        return RpcProxy(client=self)

@@ -2,7 +2,7 @@ import eventlet
 import pytest
 
 from wampy.errors import WampyError
-from wampy import Client
+from wampy.peers.clients import StandAlone as Client
 from wampy.roles.subscriber import subscribe
 
 

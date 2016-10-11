@@ -13,14 +13,12 @@ The `WAMP Protocol`_ connects Clients via RPC or Pub/Sub over a Router.
 WAMP is most commonly a WebSocket subprotocol (runs on top of WebSocket) that uses JSON as message serialization format. However, the protocol can also run with MsgPack as serialization, run over raw TCP or in fact any message based, bidirectional, reliable transport - but **wampy** runs over websockets only.
 
 With **wampy** you can quickly and easily create your own WAMP clients, whether
-this is in a web app, a service or just in a Python shell.
+this is in a web app, a microservice or just in a Python shell.
 
-Quickstart: wampy from a Python console.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Quickstart: wampy from a Python shell
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Before any messaging can happen you need a Router. This is a Peer that
-implements the Dealer or Broker roles, or both. Messages are then routed
-between Clients over an administritive domain called a “realm”.
+Before any messaging can happen you need a Router. This is a Peer that implements the Dealer or Broker roles, or both. Messages are then routed between Clients over an administritive domain called a “realm”.
 
 For a quickstart I suggest that you use Crossbar.io and start it up on
 the default **host** and **port** with the default **realm** and
@@ -28,20 +26,25 @@ the default **host** and **port** with the default **realm** and
 alternatively run with wampy's testing setup ``pip install -r test_requirements.txt && crossbar start --config ./test/crossbar.config.json``. By default, a ``Peer`` connects to this
 endpoint, but this is configurable on initialisation.
 
-Then open a Python console.
+Then open a Python console and we'll create a Callee Peer.
 
 ::
 
-    In [1]: from wampy import Client
+    In [1]: from wampy.peers.routers import Crossbar
+
+    In [2]: from wampy.peers.clients import Wampy
 
     In [2]: from wampy.roles.callee import rpc
 
-    In [3]: class BinaryNumberService(Peer):
+    In [3]: class BinaryNumberService(Wampy):
+
+                router = Crossbar()
+
                 @rpc
                 def get_binary_number(self, number):
                     return bin(number)
 
-    In [4]: service = BinaryNumberService()
+    In [4]: service = BinaryNumberService(router=Crossbar())
 
     In [5]: service.start()
 
@@ -53,9 +56,7 @@ instruct it to register its RPC entrypoints with the Router.
 
 ::
 
-    In [7]]: from wampy.registry import get_registered_entrypoints
-
-    In [8]: get_registered_entrypoints()
+    In [8]: service.registration_map['get_binary_number']
     Out[8]: {2010994119734585: (__main__.BinaryNumberService, 'get_binary_number')}
 
 Any method of the ``Peer`` decorated with *rpc* will have been registered as

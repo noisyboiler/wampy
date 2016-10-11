@@ -6,10 +6,9 @@ import socket
 import subprocess
 import sys
 from contextlib import closing
-from time import time as now
+from time import time as now, sleep
 
 import colorlog
-import eventlet
 import pytest
 
 from wampy.constants import DEFAULT_HOST, DEFAULT_PORT
@@ -176,10 +175,8 @@ class Crossbar(object):
                 logger.info('killed parent process instead')
 
         # let the shutdown happen
-        eventlet.sleep(1)
+        sleep(2)
         logger.info('crossbar shut down')
-
-        logger.info('registry cleared')
 
 
 def check_socket(host, port):

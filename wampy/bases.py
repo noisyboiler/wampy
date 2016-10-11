@@ -6,9 +6,7 @@ from wampy.constants import DEFAULT_HOST, DEFAULT_PORT
 from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
 from wampy.errors import ConnectionError, WampError
 from wampy.networking.connection import WampConnection
-from wampy.messages.register import Register
 from wampy.messages import Message, MESSAGE_TYPE_MAP
-from wampy.messages.subscribe import Subscribe
 from wampy.messages.goodbye import Goodbye
 from wampy.messages.yield_ import Yield
 from wampy.messages.hello import Hello
@@ -76,6 +74,7 @@ class Peer(object):
         self.host = host
         self.port = port
         self.realm = realm
+
         self.roles = roles
 
         # a WAMP connection will be made with the Router.
@@ -166,33 +165,12 @@ class Peer(object):
 
             if hasattr(maybe_entrypoint, 'rpc'):
                 entrypoint_name = maybe_entrypoint.func_name
-                message = Register(procedure=entrypoint_name)
-
-                response_msg = self.send_message_and_wait_for_response(message)
-                _, _, registration_id = response_msg
-
-                self.registration_map[entrypoint_name] = registration_id
-
-                self.logger.info(
-                    'registering entrypoint "%s" for callee "%s"',
-                    entrypoint_name, self.name
-                )
+                self.register(entrypoint_name)
 
             if hasattr(maybe_entrypoint, 'subscriber'):
                 topic = maybe_entrypoint.topic
                 handler = maybe_entrypoint.handler
-                entrypoint_name = handler.func_name
-                message = Subscribe(topic=topic)
-
-                response_msg = self.send_message_and_wait_for_response(message)
-                _, _, subscription_id = response_msg
-
-                self.subscription_map[entrypoint_name] = subscription_id, topic
-
-                self.logger.info(
-                    'registering entrypoint "%s (%s)" for subscriber "%s"',
-                    entrypoint_name, topic, self.name
-                )
+                self.subscribe(topic, handler)
 
         self.logger.info(
             'registered entrypoints for client: "%s"', self.name
@@ -329,30 +307,6 @@ class Peer(object):
             )
 
         self.logger.info('%s handled message: "%s"', self.name, message)
-
-    def start(self):
-        # kick off the connection and the listener of it
-        self._connect_to_router()
-        # then then the session over the connection
-        self._say_hello_to_router()
-
-        def wait_for_session():
-            with eventlet.Timeout(5):
-                while self.session is None:
-                    eventlet.sleep(0)
-
-        wait_for_session()
-        self._register_entrypoints()
-        self.logger.info('%s has started', self.name)
-
-    def stop(self):
-        self._say_goodbye_to_router()
-        message = self._wait_for_message()
-        assert message[0] == Message.GOODBYE
-        self.managed_thread.kill()
-        self.session = None
-        self.subscription_map = {}
-        self.logger.info('%s has stopped', self.name)
 
     def send_message_and_wait_for_response(self, message):
         self.send_message(message)

@@ -21,3 +21,5 @@ DEFAULT_ROLES = {
         'publisher': {},
     },
 }
+
+SUBSCRIBER = "subscriber"
