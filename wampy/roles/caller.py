@@ -26,8 +26,8 @@ class CallProxy:
         message = Call(procedure=procedure, args=args, kwargs=kwargs)
         logger.info(
             '%s sending message: "%s"', self.client.name, message)
-        self.client.send_message(message)
-        response = self.client.recv_message()
+        response = self.client._send_message_and_wait_for_response(
+            message)
         wamp_code = response[0]
 
         if wamp_code == Message.ERROR:
@@ -63,8 +63,8 @@ class RpcProxy:
             message = Call(procedure=name, args=args, kwargs=kwargs)
             logger.info(
                 '%s sending message: "%s"', self.client.name, message)
-            self.client.send_message(message)
-            response = self.client.recv_message()
+            response = self.client._send_message_and_wait_for_response(
+                message)
             wamp_code = response[0]
             if wamp_code != Message.RESULT:
                 raise WampProtocolError(
@@ -78,17 +78,3 @@ class RpcProxy:
             return result
 
         return wrapper
-
-
-class CallerMixin:
-
-    @property
-    def call(self):
-        return CallProxy(client=self)
-
-
-class RpcMixin:
-
-    @property
-    def rpc(self):
-        return RpcProxy(client=self)

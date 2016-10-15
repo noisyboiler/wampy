@@ -1,22 +1,4 @@
 from wampy.errors import WampyError
-from wampy.messages.subscribe import Subscribe
-
-
-class SubscriberMixin(object):
-
-    def subscribe(self, topic, handler):
-        entrypoint_name = handler.func_name
-        message = Subscribe(topic=topic)
-
-        response_msg = self.send_message_and_wait_for_response(message)
-        _, _, subscription_id = response_msg
-
-        self.subscription_map[entrypoint_name] = subscription_id, topic
-
-        self.logger.info(
-            'registering entrypoint "%s (%s)" for subscriber "%s"',
-            entrypoint_name, topic, self.name
-        )
 
 
 class RegisterSubscriptionDecorator(object):

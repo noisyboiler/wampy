@@ -30,7 +30,7 @@ class PublishProxy:
             '%s publishing message: "%s"', self.client.name, message
         )
 
-        self.client.send_message(message)
+        self.client._send_message(message)
 
 
 class PublisherMixin:

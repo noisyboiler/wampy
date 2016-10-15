@@ -1,4 +1,4 @@
-from wampy.peers.clients import StandAlone as Client
+from wampy.peers.clients import Client
 
 
 def test_client_connects_to_router(router):

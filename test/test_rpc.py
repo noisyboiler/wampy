@@ -6,20 +6,20 @@ import eventlet
 import pytest
 
 from wampy.roles.callee import rpc
-from wampy.peers.clients import ServiceBase, RpcClient as Client
+from wampy.peers.clients import RpcClient
 
 
 logger = logging.getLogger('test_rpc')
 
 
-class DateService(ServiceBase):
+class DateService(RpcClient):
 
     @rpc
     def get_todays_date(self):
         return datetime.date.today().isoformat()
 
 
-class HelloService(ServiceBase):
+class HelloService(RpcClient):
 
     @rpc
     def say_hello(self, name):
@@ -33,7 +33,7 @@ class HelloService(ServiceBase):
         return message
 
 
-class BinaryNumberService(ServiceBase):
+class BinaryNumberService(RpcClient):
 
     @rpc
     def get_binary(self, integer):
@@ -96,13 +96,13 @@ def clients(client_instances):
 def make_service_clients(router, names):
     clients = []
     for name in names:
-        clients.append(Client(name=name))
+        clients.append(RpcClient(name=name))
 
     return clients
 
 
 def test_call_with_no_args_or_kwargs(date_service, router):
-    client = Client(name="just a client")
+    client = RpcClient(name="just a client")
     with client:
         response = client.rpc.get_todays_date()
 
@@ -112,7 +112,7 @@ def test_call_with_no_args_or_kwargs(date_service, router):
 
 
 def test_call_with_args_but_no_kwargs(hello_service, router):
-    caller = Client(name="just a client")
+    caller = RpcClient(name="just a client")
     with caller:
         response = caller.rpc.say_hello("Simon")
 
@@ -120,7 +120,7 @@ def test_call_with_args_but_no_kwargs(hello_service, router):
 
 
 def test_call_with_no_args_but_a_default_kwarg(hello_service, router):
-    caller = Client(name="Caller")
+    caller = RpcClient(name="Caller")
     with caller:
         response = caller.rpc.say_greeting("Simon")
 
@@ -128,7 +128,7 @@ def test_call_with_no_args_but_a_default_kwarg(hello_service, router):
 
 
 def test_call_with_no_args_but_a_kwarg(hello_service, router):
-    caller = Client(name="Caller")
+    caller = RpcClient(name="Caller")
     with caller:
         response = caller.rpc.say_greeting("Simon", greeting="goodbye")
 

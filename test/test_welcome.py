@@ -1,6 +1,6 @@
 import pytest
 
-from wampy.peers.clients import StandAlone as Client
+from wampy.peers.clients import Client
 from wampy.roles.callee import rpc
 
 

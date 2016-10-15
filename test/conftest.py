@@ -191,8 +191,6 @@ def check_socket(host, port):
 
 @pytest.yield_fixture
 def router():
-    check_socket(DEFAULT_HOST, DEFAULT_PORT)
-
     crossbar = Crossbar(
         host=DEFAULT_HOST,
         port=DEFAULT_PORT,
@@ -200,11 +198,13 @@ def router():
         crossbar_directory='./',
     )
 
+    check_socket(DEFAULT_HOST, DEFAULT_PORT)
     crossbar.start()
 
     yield crossbar
 
     crossbar.stop()
+    check_socket(DEFAULT_HOST, DEFAULT_PORT)
 
 
 @pytest.fixture
