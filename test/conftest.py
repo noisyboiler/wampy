@@ -6,17 +6,15 @@ import socket
 import subprocess
 import sys
 from contextlib import closing
-from time import time as now
+from time import time as now, sleep
 
 import colorlog
-import eventlet
 import pytest
 
 from wampy.constants import DEFAULT_HOST, DEFAULT_PORT
 from wampy.networking.connection import WampConnection
 
 from wampy.errors import ConnectionError
-from wampy.registry import Registry
 
 
 logger = logging.getLogger('wampy.testing')
@@ -177,11 +175,8 @@ class Crossbar(object):
                 logger.info('killed parent process instead')
 
         # let the shutdown happen
-        eventlet.sleep(1)
+        sleep(2)
         logger.info('crossbar shut down')
-
-        Registry.clear()
-        logger.info('registry cleared')
 
 
 def check_socket(host, port):
@@ -196,8 +191,6 @@ def check_socket(host, port):
 
 @pytest.yield_fixture
 def router():
-    check_socket(DEFAULT_HOST, DEFAULT_PORT)
-
     crossbar = Crossbar(
         host=DEFAULT_HOST,
         port=DEFAULT_PORT,
@@ -205,11 +198,13 @@ def router():
         crossbar_directory='./',
     )
 
+    check_socket(DEFAULT_HOST, DEFAULT_PORT)
     crossbar.start()
 
     yield crossbar
 
     crossbar.stop()
+    check_socket(DEFAULT_HOST, DEFAULT_PORT)
 
 
 @pytest.fixture

@@ -1,5 +1,5 @@
-wampy.entrypoints.rpc module
-============================
+wampy.roles.callee module
+=========================
 
 .. automodule:: rpc
     :members:

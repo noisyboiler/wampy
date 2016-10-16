@@ -3,8 +3,6 @@ import logging
 
 import eventlet
 
-from wampy.peer import Peer  # NOQA
-
 
 try:  # Python 2.7+
     from logging import NullHandler
@@ -16,6 +14,5 @@ except ImportError:
 root = logging.getLogger(__name__)
 root.addHandler(NullHandler())
 
-
+root.warning('eventlet about to monkey patched your environment')
 eventlet.monkey_patch()
-root.warning('eventlet has monkey patched your environment')
