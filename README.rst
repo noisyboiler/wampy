@@ -69,7 +69,7 @@ Now open another Python shell.
     In [1]: from wampy.peers.clients import RpcClient
 
     In [2]: with RpcClient(name="wampy") as client:
-                result = client.get_binary_number(number=100)
+                result = client.rpc.get_binary_number(number=100)
 
     In [3]: result
     Out[3]: u'0b1100100'
