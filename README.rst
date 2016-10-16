@@ -8,135 +8,78 @@ wampy
 .. image:: https://travis-ci.org/noisyboiler/wampy.svg?branch=master
     :target: https://travis-ci.org/noisyboiler/wampy
 
+wampy is a WAMP client that you can use in your web apps, microservices or just in a python shell.
+
+WAMP
+----
+
 The `WAMP Protocol`_ connects Clients via RPC or Pub/Sub over a Router.
 
 WAMP is most commonly a WebSocket subprotocol (runs on top of WebSocket) that uses JSON as message serialization format. However, the protocol can also run with MsgPack as serialization, run over raw TCP or in fact any message based, bidirectional, reliable transport - but **wampy** runs over websockets only.
 
-With **wampy** you can quickly and easily create your own WAMP clients, whether
-this is in a web app, a microservice or just in a Python shell.
+With **wampy** you can quickly and easily create your own WAMP clients, whether this is in a web app, a microservice, a script or just in a Python shell.
 
 Quickstart: wampy from a Python shell
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Before any messaging can happen you need a Router. This is a Peer that implements the Dealer or Broker roles, or both. Messages are then routed between Clients over an administritive domain called a “realm”.
+Before any messaging can happen you need a Router. Messages are then routed between Clients over an administritive domain called a “realm”.
 
-For a quickstart I suggest that you use Crossbar.io and start it up on
-the default **host** and **port** with the default **realm** and
-**roles**. See the `Crossbar.io docs`_ for the instructions of this or
-alternatively run with wampy's testing setup ``pip install -r test_requirements.txt && crossbar start --config ./test/crossbar.config.json``. By default, a ``Peer`` connects to this
-endpoint, but this is configurable on initialisation.
-
-Then open a Python console and we'll create a Callee Peer.
+For a quickstart I suggest that you use Crossbar.io and start it up on the default **host** and **port** with the default **realm** and **roles**. See the `Crossbar.io docs`_ for the instructions of this or alternatively run with wampy's testing setup:
 
 ::
 
-    In [1]: from wampy.peers.routers import Crossbar
+    $ pip install -r test_requirements.txt
 
-    In [2]: from wampy.peers.clients import Wampy
+    $ crossbar start --config ./test/crossbar.config.json
+
+By default, a client connects to this endpoint, but this is configurable on initialisation.
+
+Now open a Python console and we'll create a simple service that takes a decimal number and returns the binary representation of it.
+
+::
+
+    In [1]: from wampy.peers import Client
 
     In [2]: from wampy.roles.callee import rpc
 
-    In [3]: class BinaryNumberService(Wampy):
-
-                router = Crossbar()
+    In [3]: class BinaryNumberService(Client):
 
                 @rpc
                 def get_binary_number(self, number):
                     return bin(number)
 
-    In [4]: service = BinaryNumberService(router=Crossbar())
+    In [4]: service = BinaryNumberService(name="Binary Number Service")
+
+The preferred usage of a wampy client is as a context manager which handles connections for you, but for demonstration purposes we'll explicitly start and stop the service.
+
+::
 
     In [5]: service.start()
 
     In [6]: service.session.id
     Out[6]: 3941615218422338
 
-If a ``Peer`` implements the *Callee* **role**, then just by starting the ``Peer`` you
-instruct it to register its RPC entrypoints with the Router.
+    In [7]: service.registration_map['get_binary_number']
+    Out[7]: 8205738934160840
+
+Now open another Python shell.
 
 ::
 
-    In [8]: service.registration_map['get_binary_number']
-    Out[8]: {2010994119734585: (__main__.BinaryNumberService, 'get_binary_number')}
+    In [1]: from wampy.peers.clients import RpcClient
 
-Any method of the ``Peer`` decorated with *rpc* will have been registered as
-publically availabile over the Router.
+    In [2]: with RpcClient(name="wampy") as client:
+                result = client.get_binary_number(number=100)
 
-You can launch a client to call this entrypoint in this shell or in a new one 
-– it really doesn't matter. You would need to explicitly pass ``host`` and ``port`` when not relying on the default values and you can also optionally give your ``Peer`` a name, which may help in your shell, app or your ELK stack.
+    In [3]: result
+    Out[3]: u'0b1100100'
 
-::
 
-    In [9]: client = Peer(name="Binary Number Caller", host="localhost", port="8080")
-
-    In [10]: client.start()  # note that you can context-manage clients and avoid this step!
-
-All clients know about the entrypoints made available by the ``DateService`` and with one you can call these over a RPC.
+If you don’t context-manage your client, then you do have to explicitly call ``stop`` in order to gracefully disassociate yourself from the router, but also to tidy up the green threads and connections.
 
 ::
 
-    In [11]: client.rpc.get_binary_number(100)
-    Out [11]: u'0b1100100'
-
-If you don’t context-manage your client, then you do have to explicitly
-call ``stop`` in order to gracefully disassociate yourself from the
-router, but also to tidy up the green threads and connections.
-
-::
-
-    In [12]: client.stop()
-
-You can also publish to and subscribe to topics. This is most fun when you open a second terminal!
-
-::
-
-    In [1]: from wampy import Peer
-
-    In [2]: from wampy.entrypoints import subscribe
-
-    In [3]: class NewsReader(Peer):
-
-                def __init__(self, *args, **kwargs):
-                    super(NewsReader, self).__init__(*args, **kwargs)
-                    self.messages = []
-
-                @subscribe(topic="news")
-                def handle_news(self, *args, **kwargs):
-                    headlines = kwargs['headlines']
-                    for headline in headlines:
-                        self.messages.append(headline)
-
-    In [5]: reader = NewsReader()
-
-    In [6]: reader.start()
-
-Because we're in a terminal you also need something to poll async for messages, such as...
-
-::
-
-    In [7]: def listen_for_news(reader):
-                import eventlet()
-                while True:
-                    try:
-                        message = reader.messages.pop()
-                    except IndexError:
-                        eventlet.sleep()
-                    else:
-                        print(message)
-
-    In [8]: listen_for_news(reader)
-
-Jump back to the other terminal and publish some news!
-
-::
-
-    In [13]: with cliient:
-                client.publish(topic="news", headlines=[
-                    "wampy is great!",
-                    "probably best to use wampy in your next project!",
-                ])
-
-News will print out in your second terminal!
+    In [8]: client.stop()
 
 For further documentation see ReadTheDocs_.
 

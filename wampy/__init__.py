@@ -14,6 +14,5 @@ except ImportError:
 root = logging.getLogger(__name__)
 root.addHandler(NullHandler())
 
-
+root.warning('eventlet about to monkey patched your environment')
 eventlet.monkey_patch()
-root.warning('eventlet has monkey patched your environment')

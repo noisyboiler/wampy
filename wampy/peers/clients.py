@@ -338,7 +338,8 @@ class Client(ClientBase):
                 When the WAMP connection succeeded, but then the WAMP Session
                 failed to establish.
 
-        Once initialised use the client as a context manager, e.g. ::
+        Once initialised the preferred way to use the client is as a context
+        manager, e.g. ::
 
             with client:
                 # do stuff here
