@@ -1,82 +1,74 @@
 Quickstart: wampy from a Python console.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Before any messaging can happen you need a Router. This is a Peer that
-implements the Dealer or Broker roles, or both. Messages are then routed
-between Clients over an administritive domain called a “realm”.
+Before any messaging can happen you need a Router. Messages are then routed between Clients over an administritive domain called a “realm”.
 
-For a quickstart I suggest that you use Crossbar.io and start it up on
-the default **host** and **port** with the default **realm** and
-**roles**. See the `Crossbar.io docs`_ for the instructions of this or
-alternatively run with wampy's testing setup ``pip install -r test_requirements.txt && crossbar start --config ./test/crossbar.config.json``. By default, a ``Peer`` connects to this
-endpoint, but this is configurable on initialisation.
-
-Then open a Python console.
+For a quickstart I suggest that you use Crossbar.io and start it up on the default **host** and **port** with the default **realm** and **roles**. See the `Crossbar.io docs`_ for the instructions of this or alternatively run with wampy's testing setup:
 
 ::
 
-    In [1]: from wampy import Peer
+    $ pip install -r test_requirements.txt
 
-    In [2]: from wampy.entrypoints import rpc
+    $ crossbar start --config ./test/crossbar.config.json
 
-    In [3]: class BinaryNumberService(Peer):
+By default, a client connects to this endpoint, but this is configurable on initialisation.
+
+Now open a Python console and we'll create a simple service that takes a decimal number and returns the binary representation of it.
+
+::
+
+    In [1]: from wampy.peers import Client
+
+    In [2]: from wampy.roles.callee import rpc
+
+    In [3]: class BinaryNumberService(Client):
+
                 @rpc
                 def get_binary_number(self, number):
                     return bin(number)
 
-    In [4]: service = BinaryNumberService()
+    In [4]: service = BinaryNumberService(name="Binary Number Service")
+
+The preferred usage of a wampy client is as a context manager which handles connections for you, but for demonstration purposes we'll explicitly start and stop the service.
+
+::
 
     In [5]: service.start()
 
     In [6]: service.session.id
     Out[6]: 3941615218422338
 
-If a ``Peer`` implements the *Callee* **role**, then just by starting the ``Peer`` you
-instruct it to register its RPC entrypoints with the Router.
+    In [7]: service.registration_map['get_binary_number']
+    Out[7]: 8205738934160840
+
+Now open another Python shell.
 
 ::
 
-    In [7]]: from wampy.registry import get_registered_entrypoints
+    In [1]: from wampy.peers.clients import RpcClient
 
-    In [8]: get_registered_entrypoints()
-    Out[8]: {2010994119734585: (__main__.BinaryNumberService, 'get_binary_number')}
+    In [2]: with RpcClient(name="wampy") as client:
+                result = client.get_binary_number(number=100)
 
-Any method of the ``Peer`` decorated with *rpc* will have been registered as
-publically availabile over the Router.
+    In [3]: result
+    Out[3]: u'0b1100100'
 
-You can launch a client to call this entrypoint in this shell or in a new one 
-– it really doesn't matter. You would need to explicitly pass ``host`` and ``port`` when not relying on the default values and you can also optionally give your ``Peer`` a name, which may help in your shell, app or your ELK stack.
 
-::
-
-    In [9]: client = Peer(name="Binary Number Caller", host="localhost", port="8080")
-
-    In [10]: client.start()  # note that you can context-manage clients and avoid this step!
-
-All clients know about the entrypoints made available by the ``DateService`` and with one you can call these over a RPC.
+If you don’t context-manage your client, then you do have to explicitly call ``stop`` in order to gracefully disassociate yourself from the router, but also to tidy up the green threads and connections.
 
 ::
 
-    In [11]: client.rpc.get_binary_number(100)
-    Out [11]: u'0b1100100'
-
-If you don’t context-manage your client, then you do have to explicitly
-call ``stop`` in order to gracefully disassociate yourself from the
-router, but also to tidy up the green threads and connections.
-
-::
-
-    In [12]: client.stop()
+    In [8]: client.stop()
 
 You can also publish to and subscribe to topics. This is most fun when you open a second terminal!
 
 ::
 
-    In [1]: from wampy import Peer
+    In [1]: from wampy.peers.clients import Client
 
     In [2]: from wampy.entrypoints import subscribe
 
-    In [3]: class NewsReader(Peer):
+    In [3]: class NewsReader(Client):
 
                 def __init__(self, *args, **kwargs):
                     super(NewsReader, self).__init__(*args, **kwargs)
@@ -88,7 +80,7 @@ You can also publish to and subscribe to topics. This is most fun when you open 
                     for headline in headlines:
                         self.messages.append(headline)
 
-    In [5]: reader = NewsReader()
+    In [5]: reader = NewsReader(name="News Reader")
 
     In [6]: reader.start()
 
