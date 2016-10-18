@@ -13,8 +13,12 @@ from wampy.messages.yield_ import Yield
 from wampy.messages.hello import Hello
 from wampy.networking.connection import WampConnection
 from wampy.roles.publisher import PublishProxy
+from wampy.roles.callee import register_procedure
 from wampy.roles.caller import CallProxy, RpcProxy
 from wampy.session import Session
+
+
+MAX_META_COLLECTION_SIZE = 100
 
 
 class ClientBase(object):
@@ -87,15 +91,21 @@ class ClientBase(object):
         return message
 
     def _register_roles(self):
-        for maybe_entrypoint in self.__class__.__dict__.values():
-            if hasattr(maybe_entrypoint, 'rpc'):
-                entrypoint_name = maybe_entrypoint.func_name
-                self._register_procedure(entrypoint_name)
+        maybe_roles = self.__class__.__dict__.values()
 
-        for maybe_subscriber in self.__class__.__dict__.values():
-            if hasattr(maybe_subscriber, 'subscriber'):
-                topic = maybe_subscriber.topic
-                handler = maybe_subscriber.handler
+        for base in self.__class__.__bases__:
+            maybe_roles.extend(base.__dict__.values())
+
+        for maybe_role in maybe_roles:
+
+            if hasattr(maybe_role, 'callee'):
+                procedure_name = maybe_role.func_name
+                invocation_policy = maybe_role.invocation_policy
+                self._register_procedure(procedure_name, invocation_policy)
+
+            if hasattr(maybe_role, 'subscriber'):
+                topic = maybe_role.topic
+                handler = maybe_role.handler
                 self._subscribe(topic, handler)
 
         roles = self.subscription_map.keys() + self.registration_map.keys()
@@ -105,8 +115,14 @@ class ClientBase(object):
                 self.name, ','.join(roles)
             )
 
-    def _register_procedure(self, procedure_name):
-        message = Register(procedure=procedure_name)
+    def _register_procedure(self, procedure_name, invocation_policy="single"):
+        self.logger.info(
+            "registering %s with invocation policy %s",
+            procedure_name, invocation_policy
+        )
+
+        options = {"invoke": invocation_policy}
+        message = Register(procedure=procedure_name, options=options)
 
         response_msg = self._send_message_and_wait_for_response(message)
         _, _, registration_id = response_msg
@@ -119,17 +135,17 @@ class ClientBase(object):
         )
 
     def _subscribe(self, topic, handler):
-        entrypoint_name = handler.func_name
+        procedure_name = handler.func_name
         message = Subscribe(topic=topic)
 
         response_msg = self._send_message_and_wait_for_response(message)
         _, _, subscription_id = response_msg
 
-        self.subscription_map[entrypoint_name] = subscription_id, topic
+        self.subscription_map[procedure_name] = subscription_id, topic
 
         self.logger.info(
             'registering entrypoint "%s (%s)" for subscriber "%s"',
-            entrypoint_name, topic, self.name
+            procedure_name, topic, self.name
         )
 
     def _handle_message(self, message):
@@ -391,6 +407,10 @@ class Client(ClientBase):
     def publish(self):
         return PublishProxy(client=self)
 
+    @property
+    def rpc(self):
+        return RpcProxy(client=self)
+
     def start(self):
         # kick off the (managed) connection
         self._connect_to_router()
@@ -444,7 +464,6 @@ class Client(ClientBase):
     def count_subscribers(self, subscription_id):
         """ Obtains the number of sessions currently attached to the
         subscription. """
-
         return self.call(
             "wamp.subscription.count_subscribers", subscription_id)
 
@@ -480,10 +499,44 @@ class Client(ClientBase):
             "wamp.registration.count_callees", registration_id)
 
 
-class RpcClient(Client):
-    """ A WAMP Client for use in microservices that call remote
-    procedures by name.
-    """
+class ServiceBase(Client):
+
     @property
     def rpc(self):
         return RpcProxy(client=self)
+
+    @register_procedure(invocation_policy="roundrobin")
+    def get_meta(self):
+        meta = {
+            'name': self.name,
+            'subscriptions': self.subscription_map.keys(),
+            'registrations': self.registration_map.keys(),
+        }
+
+        return meta
+
+    def collect_client_meta_data(self):
+        collection = {}
+        client_count = 0
+
+        while True:
+            meta = self.rpc.get_meta()
+            peer_name = meta['name']
+            if peer_name in collection:
+                # while wampy servies do not announce themselves, we
+                # are forced to assume that we're the only client calling
+                # ``get_meta`` and that we have now completed the
+                # roundrobin of clients.
+                break
+
+            collection[peer_name] = meta
+            client_count += 1
+
+            if client_count > MAX_META_COLLECTION_SIZE:
+                self.logger.warning(
+                    "max clients reached during ``get_meta`` roundrobin"
+                )
+
+                break
+
+        return collection

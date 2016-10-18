@@ -1,47 +1,41 @@
 import datetime
-import logging
 from datetime import date
 
 import eventlet
 import pytest
 
-from wampy.roles.callee import rpc
-from wampy.peers.clients import RpcClient
+from wampy.roles.callee import register_procedure
+from wampy.peers.clients import Client as WampClient
 
 
-logger = logging.getLogger('test_rpc')
+class DateService(WampClient):
 
-
-class DateService(RpcClient):
-
-    @rpc
+    @register_procedure
     def get_todays_date(self):
         return datetime.date.today().isoformat()
 
 
-class HelloService(RpcClient):
+class HelloService(WampClient):
 
-    @rpc
+    @register_procedure
     def say_hello(self, name):
         message = "Hello {}".format(name)
         return message
 
-    @rpc
+    @register_procedure
     def say_greeting(self, name, greeting="hola"):
         message = "{greeting} to {name}".format(
             greeting=greeting, name=name)
         return message
 
 
-class BinaryNumberService(RpcClient):
+class BinaryNumberService(WampClient):
 
-    @rpc
+    @register_procedure
     def get_binary(self, integer):
         """ Return the binary format for a given base ten integer.
         """
-        logger.info('BinaryNumberService handling request for: "%s"', integer)
         result = bin(integer)
-        logger.info('BinaryNumberService returning: "%s"', result)
         return result
 
 
@@ -88,7 +82,6 @@ def clients(client_instances):
         client.start()
 
     yield client_instances
-    logger.info("stopping all clients")
     for client in client_instances:
         client.stop()
 
@@ -96,13 +89,13 @@ def clients(client_instances):
 def make_service_clients(router, names):
     clients = []
     for name in names:
-        clients.append(RpcClient(name=name))
+        clients.append(WampClient(name=name))
 
     return clients
 
 
 def test_call_with_no_args_or_kwargs(date_service, router):
-    client = RpcClient(name="just a client")
+    client = WampClient(name="just a client")
     with client:
         response = client.rpc.get_todays_date()
 
@@ -112,7 +105,7 @@ def test_call_with_no_args_or_kwargs(date_service, router):
 
 
 def test_call_with_args_but_no_kwargs(hello_service, router):
-    caller = RpcClient(name="just a client")
+    caller = WampClient(name="just a client")
     with caller:
         response = caller.rpc.say_hello("Simon")
 
@@ -120,7 +113,7 @@ def test_call_with_args_but_no_kwargs(hello_service, router):
 
 
 def test_call_with_no_args_but_a_default_kwarg(hello_service, router):
-    caller = RpcClient(name="Caller")
+    caller = WampClient(name="Caller")
     with caller:
         response = caller.rpc.say_greeting("Simon")
 
@@ -128,7 +121,7 @@ def test_call_with_no_args_but_a_default_kwarg(hello_service, router):
 
 
 def test_call_with_no_args_but_a_kwarg(hello_service, router):
-    caller = RpcClient(name="Caller")
+    caller = WampClient(name="Caller")
     with caller:
         response = caller.rpc.say_greeting("Simon", greeting="goodbye")
 
@@ -175,13 +168,8 @@ def test_concurrent_client_calls(binary_number_service, clients):
 
     def fetch_binary_form_of_number(request):
         client, base_ten_number = request
-        logger.info(
-            "%s fetching binary form of %s",
-            client.name, base_ten_number
-        )
         binary_number = client.rpc.get_binary(
             integer=base_ten_number)
-        logger.info('got binary number: %s', binary_number)
         return binary_number
 
     pool = eventlet.GreenPool()
