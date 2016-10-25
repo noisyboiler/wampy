@@ -1,10 +1,10 @@
 from mock import ANY
 
-from wampy.networking.connection import WampConnection
+from wampy.networking.connection import WampWebConnection
 
 
 def test_local_wamp_connection(router):
-    connection = WampConnection(host='localhost', port=8080)
+    connection = WampWebConnection(host='localhost', port=8080)
     connection.connect()
 
     # it's the same as a websocket, but other hoops have been jumped through

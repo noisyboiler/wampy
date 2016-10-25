@@ -38,7 +38,7 @@ Now open a Python console and we'll create a simple service that takes a decimal
 
 ::
 
-    In [1]: from wampy.peers import WebApplication
+    In [1]: from wampy import WebApplication
 
     In [2]: from wampy.roles.callee import rpc
 

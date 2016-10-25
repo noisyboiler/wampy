@@ -9,11 +9,11 @@ from wampy.messages.register import Register
 from wampy.messages.subscribe import Subscribe
 from wampy.messages.yield_ import Yield
 from wampy.messages.hello import Hello
-from wampy.networking.connection import WampConnection
+from wampy.networking.connection import WampWebConnection
 from wampy.session import Session
 
 
-class ClientBase(object):
+class WebBase(object):
 
     def __init__(self):
         self.subscription_map = {}
@@ -66,7 +66,7 @@ class ClientBase(object):
         self.stop()
 
     def _connect_to_router(self):
-        connection = WampConnection(
+        connection = WampWebConnection(
             host=self.host, port=self.port
         )
 

@@ -3,10 +3,10 @@ from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
 from wampy.roles.caller import CallProxy
 from wampy.roles.publisher import PublishProxy
 
-from .. bases import ClientBase
+from .. bases import WebBase
 
 
-class WebClient(ClientBase):
+class WebClient(WebBase):
     """ A WAMP Client for use in Python applications, scripts and shells.
     """
 
