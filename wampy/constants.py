@@ -19,6 +19,10 @@ DEFAULT_ROLES = {
     'roles': {
         'subscriber': {},
         'publisher': {},
+        'callee': {
+            'shared_registration': True,
+        },
+        'caller': {},
     },
 }
 

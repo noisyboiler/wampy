@@ -13,7 +13,7 @@ from wampy.networking.frames import ClientFrame, ServerFrame
 logger = logging.getLogger(__name__)
 
 
-class WampConnection(object):
+class WampWebConnection(object):
 
     def __init__(self, host, port, websocket_location="ws"):
         self.host = host

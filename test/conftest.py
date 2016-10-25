@@ -12,7 +12,7 @@ import colorlog
 import pytest
 
 from wampy.constants import DEFAULT_HOST, DEFAULT_PORT
-from wampy.networking.connection import WampConnection
+from wampy.networking.connection import WampWebConnection
 
 from wampy.errors import ConnectionError
 
@@ -209,7 +209,7 @@ def router():
 
 @pytest.fixture
 def connection(CrossBar):
-    connection = WampConnection(host=DEFAULT_HOST, port=DEFAULT_PORT)
+    connection = WampWebConnection(host=DEFAULT_HOST, port=DEFAULT_PORT)
     connection.connect()
 
     assert connection.status == 101  # websocket success status

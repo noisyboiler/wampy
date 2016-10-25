@@ -2,8 +2,6 @@ import logging
 
 import eventlet
 
-from wampy.constants import DEFAULT_HOST, DEFAULT_PORT
-from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
 from wampy.errors import ConnectionError, WampError, WampProtocolError
 from wampy.messages import Message, MESSAGE_TYPE_MAP
 from wampy.messages.goodbye import Goodbye
@@ -11,13 +9,54 @@ from wampy.messages.register import Register
 from wampy.messages.subscribe import Subscribe
 from wampy.messages.yield_ import Yield
 from wampy.messages.hello import Hello
-from wampy.networking.connection import WampConnection
-from wampy.roles.publisher import PublishProxy
-from wampy.roles.caller import CallProxy, RpcProxy
+from wampy.networking.connection import WampWebConnection
 from wampy.session import Session
 
 
-class ClientBase(object):
+class WebBase(object):
+
+    def __init__(self):
+        self.subscription_map = {}
+        self.registration_map = {}
+
+        # a WAMP connection will be made with the Router.
+        self._connection = None
+        # we spawn a green thread to listen for incoming messages
+        self._managed_thread = None
+        # incoming messages will be consumed from a Queue
+        self._message_queue = eventlet.Queue(maxsize=1)
+        # once we receieve a WELCOME message from the Router we'll have a
+        # session
+        self.session = None
+
+        self.logger = logging.getLogger(
+            'wampy.peers.clients.{}'.format(self.name.replace(' ', '-')))
+        self.logger.info('New client: "%s"', self.name)
+
+    def start(self):
+        # kick off the (managed) connection
+        self._connect_to_router()
+        # then statt a session
+        self._say_hello_to_router()
+        # and register any user defined roles
+        self._register_roles()
+
+        self.logger.info('%s has started', self.name)
+
+    def stop(self):
+        self._say_goodbye_to_router()
+        message = self._wait_for_message()
+        if message[0] != Message.GOODBYE:
+            raise WampProtocolError(
+                "Unexpected response from router following GOODBYE: {}".format(
+                    message
+                )
+            )
+
+        self.managed_thread.kill()
+        self.session = None
+        self.subscription_map = {}
+        self.logger.info('%s has stopped', self.name)
 
     def __enter__(self):
         self.start()
@@ -27,7 +66,7 @@ class ClientBase(object):
         self.stop()
 
     def _connect_to_router(self):
-        connection = WampConnection(
+        connection = WampWebConnection(
             host=self.host, port=self.port
         )
 
@@ -87,15 +126,21 @@ class ClientBase(object):
         return message
 
     def _register_roles(self):
-        for maybe_entrypoint in self.__class__.__dict__.values():
-            if hasattr(maybe_entrypoint, 'rpc'):
-                entrypoint_name = maybe_entrypoint.func_name
-                self._register_procedure(entrypoint_name)
+        maybe_roles = self.__class__.__dict__.values()
 
-        for maybe_subscriber in self.__class__.__dict__.values():
-            if hasattr(maybe_subscriber, 'subscriber'):
-                topic = maybe_subscriber.topic
-                handler = maybe_subscriber.handler
+        for base in self.__class__.__bases__:
+            maybe_roles.extend(base.__dict__.values())
+
+        for maybe_role in maybe_roles:
+
+            if hasattr(maybe_role, 'callee'):
+                procedure_name = maybe_role.func_name
+                invocation_policy = maybe_role.invocation_policy
+                self._register_procedure(procedure_name, invocation_policy)
+
+            if hasattr(maybe_role, 'subscriber'):
+                topic = maybe_role.topic
+                handler = maybe_role.handler
                 self._subscribe(topic, handler)
 
         roles = self.subscription_map.keys() + self.registration_map.keys()
@@ -105,8 +150,14 @@ class ClientBase(object):
                 self.name, ','.join(roles)
             )
 
-    def _register_procedure(self, procedure_name):
-        message = Register(procedure=procedure_name)
+    def _register_procedure(self, procedure_name, invocation_policy="single"):
+        self.logger.info(
+            "registering %s with invocation policy %s",
+            procedure_name, invocation_policy
+        )
+
+        options = {"invoke": invocation_policy}
+        message = Register(procedure=procedure_name, options=options)
 
         response_msg = self._send_message_and_wait_for_response(message)
         _, _, registration_id = response_msg
@@ -119,17 +170,17 @@ class ClientBase(object):
         )
 
     def _subscribe(self, topic, handler):
-        entrypoint_name = handler.func_name
+        procedure_name = handler.func_name
         message = Subscribe(topic=topic)
 
         response_msg = self._send_message_and_wait_for_response(message)
         _, _, subscription_id = response_msg
 
-        self.subscription_map[entrypoint_name] = subscription_id, topic
+        self.subscription_map[procedure_name] = subscription_id, topic
 
         self.logger.info(
             'registering entrypoint "%s (%s)" for subscriber "%s"',
-            entrypoint_name, topic, self.name
+            procedure_name, topic, self.name
         )
 
     def _handle_message(self, message):
@@ -292,198 +343,3 @@ class ClientBase(object):
         )
 
         self._connection.send_websocket_frame(str(message))
-
-
-class Client(ClientBase):
-    """ A WAMP Client for use in Python applications, scripts and shells.
-    """
-
-    def __init__(
-            self, name,
-            host=DEFAULT_HOST, port=DEFAULT_PORT,
-            realm=DEFAULT_REALM, roles=DEFAULT_ROLES
-    ):
-        """ Base class for any WAMP Client.
-
-        :Paramaters:
-            name : string
-                An identifier for the Client.
-
-            host : string
-                The hostnmae or IP of the Router to connect to. Defaults
-                to "localhost".
-
-            port : int
-                The port on the Router to connect to. Defaults to 8080.
-
-            realm : string
-                The Realm on the Router that the Client should connect to.
-                Defaults to "realm1".
-
-            roles : dictionary
-                A description of the Roles implemented by the Client,
-                e.g. ::
-
-                    {
-                        'roles': {
-                            'subscriber': {},
-                            'publisher': {},
-                        },
-                    }
-
-        :Raises:
-            ConnectionError
-                When the WAMP connection to the ``router`` failed.
-            SessionError
-                When the WAMP connection succeeded, but then the WAMP Session
-                failed to establish.
-
-        Once initialised the preferred way to use the client is as a context
-        manager, e.g. ::
-
-            with client:
-                # do stuff here
-
-        Otherwise ``start`` must be called on the Client, which will
-        do three things:
-
-            1.  Establish a WAMP connection with the Router, otherwise raise
-                a ``ConnectionError``.
-            2.  Proceeded to establishe a WAMP Session with the Router,
-                otherwise raise a SessionError.
-            3.  Register any roles on the client with the Router.
-
-        This must be followed by a ``client.stop()`` call when not context
-        managed.
-
-        """
-        self.subscription_map = {}
-        self.registration_map = {}
-
-        # an identifier of the Client for introspection and logging
-        self.name = name or self.__class__.__name__
-
-        self.host = host
-        self.port = port
-        self.realm = realm
-
-        self.roles = roles
-
-        # a WAMP connection will be made with the Router.
-        self._connection = None
-        # we spawn a green thread to listen for incoming messages
-        self._managed_thread = None
-        # incoming messages will be consumed from a Queue
-        self._message_queue = eventlet.Queue(maxsize=1)
-        # once we receieve a WELCOME message from the Router we'll have a
-        # session
-        self.session = None
-
-        self.logger = logging.getLogger(
-            'wampy.peers.client.{}'.format(self.name.replace(' ', '-')))
-        self.logger.info('New client: "%s"', self.name)
-
-    @property
-    def call(self):
-        return CallProxy(client=self)
-
-    @property
-    def publish(self):
-        return PublishProxy(client=self)
-
-    def start(self):
-        # kick off the (managed) connection
-        self._connect_to_router()
-        # then statt a session
-        self._say_hello_to_router()
-        # and register any user defined roles
-        self._register_roles()
-
-        self.logger.info('%s has started', self.name)
-
-    def stop(self):
-        self._say_goodbye_to_router()
-        message = self._wait_for_message()
-        if message[0] != Message.GOODBYE:
-            raise WampProtocolError(
-                "Unexpected response from router following GOODBYE: {}".format(
-                    message
-                )
-            )
-
-        self.managed_thread.kill()
-        self.session = None
-        self.subscription_map = {}
-        self.logger.info('%s has stopped', self.name)
-
-    def get_subscription_info(self, subscription_id):
-        """ Retrieves information on a particular subscription. """
-        return self.call("wamp.subscription.get", subscription_id)
-
-    def get_subscription_list(self):
-        """ Retrieves subscription IDs listed according to match
-        policies."""
-        return self.call("wamp.subscription.list")
-
-    def get_subscription_lookup(self, topic):
-        """ Obtains the subscription (if any) managing a topic,
-        according to some match policy. """
-        return self.call("wamp.subscription.lookup", topic)
-
-    def get_subscription_match(self, topic):
-        """ Retrieves a list of IDs of subscriptions matching a topic
-        URI, irrespective of match policy. """
-        return self.call("wamp.subscription.match", topic)
-
-    def list_subscribers(self, subscription_id):
-        """ Retrieves a list of session IDs for sessions currently
-        attached to the subscription. """
-        return self.call(
-            "wamp.subscription.list_subscribers", subscription_id)
-
-    def count_subscribers(self, subscription_id):
-        """ Obtains the number of sessions currently attached to the
-        subscription. """
-
-        return self.call(
-            "wamp.subscription.count_subscribers", subscription_id)
-
-    def get_registration_list(self):
-        """ Retrieves registration IDs listed according to match
-        policies."""
-        return self.call("wamp.registration.list")
-
-    def get_registration_lookup(self, procedure_name):
-        """ Obtains the registration (if any) managing a procedure,
-        according to some match policy."""
-        return self.call("wamp.registration.lookup", procedure_name)
-
-    def get_registration_match(self, procedure_name):
-        """ Obtains the registration best matching a given procedure
-        URI."""
-        return self.call("wamp.registration.match", procedure_name)
-
-    def get_registration(self, registration_id):
-        """ Retrieves information on a particular registration. """
-        return self.call("wamp.registration.get", registration_id)
-
-    def list_callees(self, registration_id):
-        """ Retrieves a list of session IDs for sessions currently
-        attached to the registration. """
-        return self.call(
-            "wamp.registration.list_callees", registration_id)
-
-    def count_callees(self, registration_id):
-        """ Obtains the number of sessions currently attached to a
-        registration. """
-        return self.call(
-            "wamp.registration.count_callees", registration_id)
-
-
-class RpcClient(Client):
-    """ A WAMP Client for use in microservices that call remote
-    procedures by name.
-    """
-    @property
-    def rpc(self):
-        return RpcProxy(client=self)
