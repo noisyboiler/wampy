@@ -4,18 +4,29 @@ from datetime import date
 import eventlet
 import pytest
 
+from wampy import WebApplication
 from wampy.roles.callee import register_procedure
-from wampy.peers.clients import Client as WampClient
 
 
-class DateService(WampClient):
+class Service(WebApplication):
+
+    @register_procedure(invocation_policy="roundrobin")
+    def get_todays_date(self):
+        return datetime.datetime.today()
+
+    @register_procedure(invocation_policy="roundrobin")
+    def get_squared(self, number):
+        return number * number
+
+
+class DateService(WebApplication):
 
     @register_procedure
     def get_todays_date(self):
         return datetime.date.today().isoformat()
 
 
-class HelloService(WampClient):
+class HelloService(WebApplication):
 
     @register_procedure
     def say_hello(self, name):
@@ -29,7 +40,7 @@ class HelloService(WampClient):
         return message
 
 
-class BinaryNumberService(WampClient):
+class BinaryNumberService(WebApplication):
 
     @register_procedure
     def get_binary(self, integer):
@@ -89,13 +100,83 @@ def clients(client_instances):
 def make_service_clients(router, names):
     clients = []
     for name in names:
-        clients.append(WampClient(name=name))
+        clients.append(WebApplication(name=name))
 
     return clients
 
 
+class TestGetMetaFromClients(object):
+
+    @pytest.yield_fixture
+    def services(self, router):
+        names = [
+            "orion", "pluto", "saturn", "neptune", "earth",
+        ]
+
+        service_cluster = [Service(name=name) for name in names]
+
+        for service in service_cluster:
+            service.start()
+
+        yield
+
+        for service in service_cluster:
+            service.stop()
+
+    def test_get_meta(self, services):
+        stand_alone = WebApplication(name="enquirer")
+
+        expected_meta = {
+            'enquirer': {
+                'name': 'enquirer',
+                'registrations': ['get_meta'],
+                'subscriptions': []
+            },
+            'orion': {
+                'name': 'orion',
+                'registrations': [
+                    'get_meta', 'get_squared', 'get_todays_date'
+                ],
+                'subscriptions': []
+            },
+            'pluto': {
+                'name': 'pluto',
+                'registrations': [
+                    'get_meta', 'get_squared', 'get_todays_date'
+                ],
+                'subscriptions': []
+            },
+            'saturn': {
+                'name': 'saturn',
+                'registrations': [
+                    'get_meta', 'get_squared', 'get_todays_date'
+                ],
+                'subscriptions': []
+            },
+            'neptune': {
+                'name': 'neptune',
+                'registrations': [
+                    'get_meta', 'get_squared', 'get_todays_date'
+                ],
+                'subscriptions': []
+            },
+            'earth': {
+                'name': 'earth',
+                'registrations': [
+                    'get_meta', 'get_squared', 'get_todays_date'
+                ],
+                'subscriptions': []
+            },
+        }
+
+        with stand_alone as client:
+            collection = client.collect_client_meta_data()
+
+        assert collection == expected_meta
+
+
 def test_call_with_no_args_or_kwargs(date_service, router):
-    client = WampClient(name="just a client")
+    client = WebApplication(name="just a client")
     with client:
         response = client.rpc.get_todays_date()
 
@@ -105,7 +186,7 @@ def test_call_with_no_args_or_kwargs(date_service, router):
 
 
 def test_call_with_args_but_no_kwargs(hello_service, router):
-    caller = WampClient(name="just a client")
+    caller = WebApplication(name="just a client")
     with caller:
         response = caller.rpc.say_hello("Simon")
 
@@ -113,7 +194,7 @@ def test_call_with_args_but_no_kwargs(hello_service, router):
 
 
 def test_call_with_no_args_but_a_default_kwarg(hello_service, router):
-    caller = WampClient(name="Caller")
+    caller = WebApplication(name="Caller")
     with caller:
         response = caller.rpc.say_greeting("Simon")
 
@@ -121,7 +202,7 @@ def test_call_with_no_args_but_a_default_kwarg(hello_service, router):
 
 
 def test_call_with_no_args_but_a_kwarg(hello_service, router):
-    caller = WampClient(name="Caller")
+    caller = WebApplication(name="Caller")
     with caller:
         response = caller.rpc.say_greeting("Simon", greeting="goodbye")
 

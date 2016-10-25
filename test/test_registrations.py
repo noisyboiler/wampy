@@ -1,7 +1,7 @@
 import pytest
 from mock import ANY
 
-from wampy.peers.clients import Client
+from wampy import WebClient as Client
 from wampy.messages import Message
 from wampy.roles.callee import register_procedure
 from wampy.roles.subscriber import subscribe

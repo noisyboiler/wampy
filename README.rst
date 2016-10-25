@@ -38,11 +38,11 @@ Now open a Python console and we'll create a simple service that takes a decimal
 
 ::
 
-    In [1]: from wampy.peers import Client
+    In [1]: from wampy.peers import WebApplication
 
     In [2]: from wampy.roles.callee import rpc
 
-    In [3]: class BinaryNumberService(Client):
+    In [3]: class BinaryNumberService(WebApplication):
 
                 @rpc
                 def get_binary_number(self, number):
@@ -50,7 +50,7 @@ Now open a Python console and we'll create a simple service that takes a decimal
 
     In [4]: service = BinaryNumberService(name="Binary Number Service")
 
-The preferred usage of a wampy client is as a context manager which handles connections for you, but for demonstration purposes we'll explicitly start and stop the service.
+The intended usage of a wampy client is as a context manager which will handle the websocket connection for you, but for demonstration purposes we'll explicitly start and stop the service.
 
 ::
 
@@ -66,14 +66,13 @@ Now open another Python shell.
 
 ::
 
-    In [1]: from wampy.peers.clients import RpcClient
+    In [1]: from wampy import WebClient
 
-    In [2]: with RpcClient(name="wampy") as client:
+    In [2]: with WebClient(name="wampy") as client:
                 result = client.rpc.get_binary_number(number=100)
 
     In [3]: result
     Out[3]: u'0b1100100'
-
 
 If you don’t context-manage your client, then you do have to explicitly call ``stop`` in order to gracefully disassociate yourself from the router, but also to tidy up the green threads and connections.
 

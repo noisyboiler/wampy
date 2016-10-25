@@ -1,7 +1,7 @@
 import pytest
 from mock import ANY
 
-from wampy.peers.clients import Client
+from wampy import WebClient as Client
 from wampy.roles.subscriber import subscribe
 from test.helpers import assert_stops_raising
 

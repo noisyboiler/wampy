@@ -1,23 +1,10 @@
-import eventlet
 import pytest
 
 from wampy.errors import WampyError
-from wampy.peers.clients import Client
+from wampy import WebClient as Client
 from wampy.roles.subscriber import subscribe
 
-
-def assert_stops_raising(
-        fn, exception_type=Exception, timeout=5, interval=0.1):
-
-    with eventlet.Timeout(timeout):
-        while True:
-            try:
-                fn()
-            except exception_type:
-                pass
-            else:
-                return
-            eventlet.sleep(interval)
+from test.helpers import assert_stops_raising
 
 
 class SubscribingClient(Client):

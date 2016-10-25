@@ -1,6 +1,6 @@
 import pytest
 
-from wampy.peers.clients import Client
+from wampy import WebClient as Client
 from wampy.roles.callee import rpc
 
 
