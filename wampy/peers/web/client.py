@@ -1,6 +1,6 @@
 from wampy.constants import DEFAULT_HOST, DEFAULT_PORT
 from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
-from wampy.roles.caller import CallProxy
+from wampy.roles.caller import CallProxy, RpcProxy
 from wampy.roles.publisher import PublishProxy
 
 from .. bases import WebBase
@@ -61,6 +61,10 @@ class WebClient(WebBase):
     @property
     def call(self):
         return CallProxy(client=self)
+
+    @property
+    def rpc(self):
+        return RpcProxy(client=self)
 
     @property
     def publish(self):

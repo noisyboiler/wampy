@@ -8,7 +8,7 @@ wampy
 .. image:: https://travis-ci.org/noisyboiler/wampy.svg?branch=master
     :target: https://travis-ci.org/noisyboiler/wampy
 
-wampy is a WAMP client that you can use in your web apps, microservices or just in a python shell.
+With **wampy** you can quickly and easily create your own WAMP clients, whether this is in a web app, a microservice, a script or just in a Python shell.
 
 WAMP
 ----
@@ -16,8 +16,6 @@ WAMP
 The `WAMP Protocol`_ connects Clients via RPC or Pub/Sub over a Router.
 
 WAMP is most commonly a WebSocket subprotocol (runs on top of WebSocket) that uses JSON as message serialization format. However, the protocol can also run with MsgPack as serialization, run over raw TCP or in fact any message based, bidirectional, reliable transport - but **wampy** runs over websockets only.
-
-With **wampy** you can quickly and easily create your own WAMP clients, whether this is in a web app, a microservice, a script or just in a Python shell.
 
 Quickstart: wampy from a Python shell
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -80,14 +78,6 @@ If you don’t context-manage your client, then you do have to explicitly call `
 
     In [8]: client.stop()
 
-For further documentation see ReadTheDocs_.
-
-::
-
-    exit()
-
-Read The Docs
-~~~~~~~~~~~~~
 
 Check out the full documentation at ReadTheDocs_.
 

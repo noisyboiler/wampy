@@ -1,16 +1,11 @@
 from wampy.peers.web.client import WebClient
 from wampy.roles.callee import register_procedure
-from wampy.roles.caller import RpcProxy
 
 
 MAX_META_COLLECTION_SIZE = 100
 
 
 class WebApplication(WebClient):
-
-    @property
-    def rpc(self):
-        return RpcProxy(client=self)
 
     @register_procedure(invocation_policy="roundrobin")
     def get_meta(self):
