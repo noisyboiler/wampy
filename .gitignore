@@ -69,3 +69,4 @@ node.key
 config.yaml
 docs/_*
 key.*
+test-runner-log

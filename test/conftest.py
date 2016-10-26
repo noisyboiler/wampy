@@ -43,6 +43,17 @@ class TCPConnection(object):
         _socket.connect((self.host, self.port))
 
 
+def add_file_logging():
+    root = logging.getLogger()
+    fhandler = logging.FileHandler(filename='test-runner-log.log', mode='a')
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    fhandler.setFormatter(formatter)
+    root.addHandler(fhandler)
+    root.setLevel(logging.DEBUG)
+
+
 def pytest_configure(config):
     if config.option.logging_level is None:
         logging_level = logging.INFO
@@ -76,6 +87,9 @@ def pytest_configure(config):
     root = logging.getLogger()
     root.addHandler(sh)
 
+    if config.option.file_logging is True:
+        add_file_logging()
+
 
 def pytest_addoption(parser):
     parser.addoption(
@@ -84,6 +98,15 @@ def pytest_addoption(parser):
         action='store',
         dest='logging_level',
         help='configure the logging level',
+    )
+
+    parser.addoption(
+        '--file-logging',
+        type=bool,
+        action='store',
+        dest='file_logging',
+        help='optionally log to file',
+        default=False,
     )
 
 
