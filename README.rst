@@ -72,7 +72,7 @@ Now open another Python shell.
     In [3]: result
     Out[3]: u'0b1100100'
 
-If you don’t context-manage your client, then you do have to explicitly call ``stop`` in order to gracefully disassociate yourself from the router, but also to tidy up the green threads and connections.
+If you don’t context-manage your client, then you do have to explicitly call ``stop`` in order to gracefully disassociate yourself from the router.
 
 ::
 
