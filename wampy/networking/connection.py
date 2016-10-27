@@ -148,11 +148,13 @@ class WampWebConnection(object):
         logger.info('sent message: "%s"', message)
 
     def read_websocket_frame(self, bufsize=1):
+        logger.debug('read a WebSocket frame')
         frame = None
         received_bytes = bytearray()
 
         while True:
             try:
+                logger.debug('receiving %s bytes', bufsize)
                 bytes = self.socket.recv(bufsize)
             except socket.timeout as e:
                 message = str(e)
@@ -163,18 +165,20 @@ class WampWebConnection(object):
             if not bytes:
                 break
 
+            logger.debug('bytes received')
             received_bytes.extend(bytes)
 
             try:
                 frame = ServerFrame(received_bytes)
             except IncompleteFrameError as exc:
+                logger.debug('IncompleteFrameError')
                 pass
             else:
                 break
 
         if frame is None:
             raise WampProtocolError("No frame returned")
-
+        logger.debug('return complete Frame')
         return frame
 
     def send_websocket_frame(self, message):
