@@ -19,14 +19,14 @@ The WAMP Protocol facilitates communication between independent applications ove
 
 An actor in this process is called a **Peer**. And a **Peer** is either a **Client** or a **Router**.
 
-WAMP messaging occurs between **Clients** over a **Router** via a Remote Procedure Call (RPC) or the Publish/Subscribe pattern. As long as a Client knows how to connect to a Router it does not then need to know anything further about other connected Clients other than a proxy string name for an endpoint, i.e. it does not care where the Client application is, how many of them there might be, how they might be written or how to identify them. This is unlike other protocols, such as AMQP for example, where you also need to consider exchanges and queues in order to explicitly connect actors from your applications.
+WAMP messaging occurs between **Clients** over a **Router** via a Remote Procedure Call (RPC) or the Publish/Subscribe pattern. As long as your Client knows how to connect to a Router it does not then need to know much further about other connected Clients beyond a shared string name for an endpoint, i.e. it does not care where the Client application is, how many of them there might be, how they might be written or how to identify them. This is unlike other protocols, such as AMQP for example, where you also need to consider exchanges and queues in order to explicitly connect actors from your applications.
 
 WAMP is most commonly a WebSocket subprotocol (runs on top of WebSocket) that uses JSON as message serialization format. However, the protocol can also run with MsgPack as serialization, run over raw TCP or in fact any message based, bidirectional, reliable transport - but **wampy** (currently) runs over websockets only.
 
 Quickstart: wampy from a Python shell
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Before any messaging can happen you need a **Router**. Messages are then routed between **Clients** over an administritive domain on the Router called a **Realm**.
+Before any messaging can happen you do need that **Router** I mentioned. Messages are then routed between **Clients** over an administritive domain on the Router called a **Realm**.
 
 For the quickeststart I suggest that you use Crossbar.io and start it up on the default **host** and **port** with the default **realm** and **roles**. See the `Crossbar.io docs`_ for the instructions of this or alternatively run with wampy's testing setup:
 
