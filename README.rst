@@ -15,9 +15,11 @@ WAMP
 
 The `WAMP Protocol`_ is a powerful tool for your web applications, microservices or free time fun and games.
 
-The WAMP Protocol facilitates communication between independent applications over a shared "router".
+The **WAMP Protocol** facilitates communication between independent applications over a common "router".
 
-An actor in this process is called a **Peer**. And a **Peer** is either a **Client** or a **Router**.
+An actor in this process is called a **Peer**.
+
+And a **Peer** is either a **Client** or a **Router**.
 
 WAMP messaging occurs between **Clients** over a **Router** via a **Remote Procedure Call (RPC)** or the **Publish/Subscribe** pattern. As long as your **Client** knows how to connect to a **Router** it does not then need to know anything further about other connected **Peers** beyond a shared string name for an endpoint, i.e. it does not care where a **Client** application is, how many of them there might be, how they might be written or how to identify them. This is unlike other protocols, such as AMQP for example, where you also need to consider exchanges and queues in order to explicitly connect actors from your applications.
 
