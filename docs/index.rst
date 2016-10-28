@@ -19,8 +19,6 @@ Contents:
 .. toctree::
 	:maxdepth: 3
 
-	quickstart
-
 modules
 -------
 
