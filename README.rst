@@ -13,7 +13,7 @@ With **wampy** you can quickly and easily create your own WAMP clients, whether 
 WAMP
 ----
 
-The `WAMP Protocol`_ is a powerful tool for your web applications, microservices and tools, else just your free time, fun and games!
+The `WAMP Protocol`_ is a powerful tool for your web applications, microservices and tools - else just your free time, fun and games!
 
 **WAMP** facilitates communication between independent applications over a common "router". An actor in this process is called a **Peer**, and a **Peer** has a type of either **Client** or **Router**.
 
