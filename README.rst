@@ -15,7 +15,7 @@ WAMP
 
 The `WAMP Protocol`_ is a powerful tool for your web applications, microservices or free time fun and games.
 
-The **WAMP Protocol** facilitates communication between independent applications over a common "router".
+**WAMP** facilitates communication between independent applications over a common "router".
 
 An actor in this process is called a **Peer**.
 
