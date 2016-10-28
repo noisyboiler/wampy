@@ -5,35 +5,35 @@ import eventlet
 import pytest
 
 from wampy import WebApplication
-from wampy.roles.callee import register_procedure
+from wampy.roles.callee import register_rpc
 
 
 class Service(WebApplication):
 
-    @register_procedure(invocation_policy="roundrobin")
+    @register_rpc(invocation_policy="roundrobin")
     def get_todays_date(self):
         return datetime.datetime.today()
 
-    @register_procedure(invocation_policy="roundrobin")
+    @register_rpc(invocation_policy="roundrobin")
     def get_squared(self, number):
         return number * number
 
 
 class DateService(WebApplication):
 
-    @register_procedure
+    @register_rpc
     def get_todays_date(self):
         return datetime.date.today().isoformat()
 
 
 class HelloService(WebApplication):
 
-    @register_procedure
+    @register_rpc
     def say_hello(self, name):
         message = "Hello {}".format(name)
         return message
 
-    @register_procedure
+    @register_rpc
     def say_greeting(self, name, greeting="hola"):
         message = "{greeting} to {name}".format(
             greeting=greeting, name=name)
@@ -42,7 +42,7 @@ class HelloService(WebApplication):
 
 class BinaryNumberService(WebApplication):
 
-    @register_procedure
+    @register_rpc
     def get_binary(self, integer):
         """ Return the binary format for a given base ten integer.
         """

@@ -25,4 +25,4 @@ class RegisterProcedureDecorator(object):
 
 
 rpc = RegisterProcedureDecorator.decorator
-register_procedure = RegisterProcedureDecorator.decorator
+register_rpc = RegisterProcedureDecorator.decorator
