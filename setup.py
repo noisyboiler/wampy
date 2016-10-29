@@ -31,4 +31,9 @@ setup(
     install_requires=[
         "eventlet==0.18.4",
     ],
+    entry_points={
+        'console_scripts': [
+            'wampy=wampy.cli.main:main',
+        ],
+    },
 )

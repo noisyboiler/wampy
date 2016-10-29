@@ -13,16 +13,24 @@ With **wampy** you can quickly and easily create your own WAMP clients, whether 
 WAMP
 ----
 
-The `WAMP Protocol`_ connects Clients via RPC or Pub/Sub over a Router.
+The `WAMP Protocol`_ is a powerful tool for your web applications and microservices - else just for your free time, fun and games!
 
-WAMP is most commonly a WebSocket subprotocol (runs on top of WebSocket) that uses JSON as message serialization format. However, the protocol can also run with MsgPack as serialization, run over raw TCP or in fact any message based, bidirectional, reliable transport - but **wampy** runs over websockets only.
+**WAMP** facilitates communication between independent applications over a common "router". An actor in this process is called a **Peer**, and a **Peer** is either a **Client** or the **Router**.
 
-Quickstart: wampy from a Python shell
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+**WAMP** messaging occurs between **Clients** over the **Router** via **Remote Procedure Call (RPC)** or the **Publish/Subscribe** pattern. As long as your **Client** knows how to connect to a **Router** it does not then need to know anything further about other connected **Peers** beyond a shared string name for an endpoint or topic, i.e. it does not care where a **Client** application is, how many of them there might be, how they might be written or how to identify them. This is more simple than other messaging protocols, such as AMQP for example, where you also need to consider exchanges and queues in order to explicitly connect to actors from your applications.
 
-Before any messaging can happen you need a Router. Messages are then routed between Clients over an administritive domain called a “realm”.
+**WAMP** is most commonly a WebSocket subprotocol (runs on top of WebSocket) that uses JSON as message serialization format. However, the protocol can also run with MsgPack as serialization, run over raw TCP or in fact any message based, bidirectional, reliable transport - but **wampy** (currently) runs over websockets only.
 
-For a quickstart I suggest that you use Crossbar.io and start it up on the default **host** and **port** with the default **realm** and **roles**. See the `Crossbar.io docs`_ for the instructions of this or alternatively run with wampy's testing setup:
+At a high level **WAMP** is a very simple and powerful protocol which will allow you to use buzz words like "real time", "de-coupled" and "scaleable" in no time at all. At a lower level you can quickly get bogged down in the complexities of the transports - but hey, that's what **wampy** is here to abstract away from you! **wampy** tries to provide an intuitive API for your **WAMP** messaging.
+
+For further reading please see some of the popular blog posts on WAMP such as http://tavendo.com/blog/post/is-crossbar-the-future-of-python-web-apps/.
+
+Quickstart: wampy from the command line
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Before any messaging can happen you do need that **Router** I mentioned. Messages are then routed between **Clients** over an administritive domain on the Router called a **Realm**.
+
+For the quickeststart I suggest that you use Crossbar.io and start it up on the default **host** and **port** with the default **realm** and **roles**. See the `Crossbar.io docs`_ for the instructions of this or alternatively run with wampy's testing setup:
 
 ::
 
@@ -30,41 +38,38 @@ For a quickstart I suggest that you use Crossbar.io and start it up on the defau
 
     $ crossbar start --config ./test/crossbar.config.json
 
-By default, a client connects to this endpoint, but this is configurable on initialisation.
+By default a **wampy** ``WebClient`` connects to this endpoint, but this is configurable on initialisation for your particular use case.
 
-Now open a Python console and we'll create a simple service that takes a decimal number and returns the binary representation of it.
-
-::
-
-    In [1]: from wampy import WebApplication
-
-    In [2]: from wampy.roles.callee import rpc
-
-    In [3]: class BinaryNumberService(WebApplication):
-
-                @rpc
-                def get_binary_number(self, number):
-                    return bin(number)
-
-    In [4]: service = BinaryNumberService(name="Binary Number Service")
-
-The intended usage of a wampy client is as a context manager which will handle the websocket connection for you, but for demonstration purposes we'll explicitly start and stop the service.
+Now open your preferred text editor and we'll write a few lies of Python constructing a simple WAMP service that takes a decimal number and returns the binary representation of it - fantastic!
 
 ::
 
-    In [5]: service.start()
+    from wampy.peers import WebApplication
+    from wampy.roles import register_rpc
 
-    In [6]: service.session.id
-    Out[6]: 3941615218422338
+    class BinaryNumberService(WebApplication):
 
-    In [7]: service.registration_map['get_binary_number']
-    Out[7]: 8205738934160840
+        @register_rpc
+        def get_binary_number(self, number):
+            return bin(number)
 
-Now open another Python shell.
+Save this module somewhere on your Python path and we'll use a ``wampy`` command line interface tool to start the service.
 
 ::
 
-    In [1]: from wampy import WebClient
+    $ wampy run path.to.your.module.including.module_name:BinaryNumberService
+
+For example, running a ``wampy`` example application.
+
+::
+
+    $ wampy run docs.examples.services:DateService
+
+Now, open a Python console in a new terminal, allowing the ``DateService`` to run uninterupted in your original terminal (but once you're done with it ``Ctrl-C`` is required).
+
+::
+
+    In [1]: from wampy.peers import WebClient
 
     In [2]: with WebClient(name="wampy") as client:
                 result = client.rpc.get_binary_number(number=100)
@@ -72,14 +77,10 @@ Now open another Python shell.
     In [3]: result
     Out[3]: u'0b1100100'
 
-If you don’t context-manage your client, then you do have to explicitly call ``stop`` in order to gracefully disassociate yourself from the router.
 
-::
+Please check out the full documentation at ReadTheDocs_ for more patterns.
 
-    In [8]: client.stop()
-
-
-Check out the full documentation at ReadTheDocs_.
+Thank you.
 
 Build the docs
 ~~~~~~~~~~~~~~

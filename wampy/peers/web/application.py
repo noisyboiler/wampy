@@ -1,5 +1,5 @@
 from wampy.peers.web.client import WebClient
-from wampy.roles.callee import register_procedure
+from wampy.roles.callee import register_rpc
 
 
 MAX_META_COLLECTION_SIZE = 100
@@ -7,7 +7,7 @@ MAX_META_COLLECTION_SIZE = 100
 
 class WebApplication(WebClient):
 
-    @register_procedure(invocation_policy="roundrobin")
+    @register_rpc(invocation_policy="roundrobin")
     def get_meta(self):
         meta = {
             'name': self.name,

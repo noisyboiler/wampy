@@ -1,6 +1,7 @@
 import logging
 
 from wampy.errors import WampProtocolError
+from wampy.messages import MESSAGE_TYPE_MAP
 from wampy.messages import Message
 from wampy.messages.call import Call
 
@@ -68,7 +69,9 @@ class RpcProxy:
             wamp_code = response[0]
             if wamp_code != Message.RESULT:
                 raise WampProtocolError(
-                    'unexpected message code: "%s"', wamp_code
+                    'unexpected message code: "%s (%s) %s"',
+                    wamp_code, MESSAGE_TYPE_MAP[wamp_code],
+                    response[5]
                 )
 
             logger.info(

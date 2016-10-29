@@ -3,7 +3,7 @@ from mock import ANY
 
 from wampy import WebClient as Client
 from wampy.messages import Message
-from wampy.roles.callee import register_procedure
+from wampy.roles.callee import register_rpc
 from wampy.roles.subscriber import subscribe
 
 from test.helpers import assert_stops_raising
@@ -50,7 +50,7 @@ class TestMetaEvents:
     def test_on_create(self, meta_client):
 
         class FooClient(Client):
-            @register_procedure
+            @register_rpc
             def foo(self):
                 pass
 
@@ -67,7 +67,7 @@ class TestMetaEvents:
     def test_on_register(self, meta_client):
 
         class FooClient(Client):
-            @register_procedure
+            @register_rpc
             def foo(self):
                 pass
 
@@ -86,7 +86,7 @@ class TestMetaEvents:
     def test_on_unregister(self, meta_client):
 
         class FooClient(Client):
-            @register_procedure
+            @register_rpc
             def foo(self):
                 pass
 
@@ -113,7 +113,7 @@ class TestMetaProcedures:
             assert len(registered) == 0
 
             class DateService(Client):
-                @register_procedure
+                @register_rpc
                 def get_date(self):
                     return "2016-01-01"
 
@@ -131,7 +131,7 @@ class TestMetaProcedures:
             assert registration_id is None
 
             class SpamService(Client):
-                @register_procedure
+                @register_rpc
                 def spam(self):
                     return "eggs and ham"
 
@@ -158,7 +158,7 @@ class TestMetaProcedures:
 
     def test_get_registration(self, router):
         class SpamService(Client):
-            @register_procedure
+            @register_rpc
             def spam(self):
                 return "eggs and ham"
 
@@ -190,7 +190,7 @@ class TestMetaProcedures:
 
     def test_get_registration_match(self, router):
         class SpamService(Client):
-            @register_procedure
+            @register_rpc
             def spam(self):
                 return "eggs and ham"
 
@@ -203,17 +203,17 @@ class TestMetaProcedures:
 
     def test_list_callees(self, router):
         class SpamService(Client):
-            @register_procedure
+            @register_rpc
             def spam(self):
                 return "spam"
 
         class FooService(Client):
-            @register_procedure
+            @register_rpc
             def foo(self):
                 return "foo"
 
         class BarService(Client):
-            @register_procedure
+            @register_rpc
             def bar(self):
                 return "bar"
 
@@ -232,7 +232,7 @@ class TestMetaProcedures:
 
     def test_count_callees(self, router):
         class SpamService(Client):
-            @register_procedure
+            @register_rpc
             def spam(self):
                 return "spam"
 

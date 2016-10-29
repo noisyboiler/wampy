@@ -109,7 +109,7 @@ class WebBase(object):
                     if frame:
                         message = frame.payload
                         self._handle_message(message)
-                except (SystemExit, KeyboardInterrupt):
+                except (SystemExit, KeyboardInterrupt, ConnectionError):
                     break
 
         gthread = eventlet.spawn(connection_handler)
@@ -136,7 +136,7 @@ class WebBase(object):
             if hasattr(maybe_role, 'callee'):
                 procedure_name = maybe_role.func_name
                 invocation_policy = maybe_role.invocation_policy
-                self._register_procedure(procedure_name, invocation_policy)
+                self._register_rpc(procedure_name, invocation_policy)
 
             if hasattr(maybe_role, 'subscriber'):
                 topic = maybe_role.topic
@@ -150,7 +150,7 @@ class WebBase(object):
                 self.name, ','.join(roles)
             )
 
-    def _register_procedure(self, procedure_name, invocation_policy="single"):
+    def _register_rpc(self, procedure_name, invocation_policy="single"):
         self.logger.info(
             "registering %s with invocation policy %s",
             procedure_name, invocation_policy
