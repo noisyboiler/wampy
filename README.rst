@@ -21,14 +21,12 @@ The `WAMP Protocol`_ is a powerful tool for your web applications and microservi
 
 **WAMP** is most commonly a WebSocket subprotocol (runs on top of WebSocket) that uses JSON as message serialization format. However, the protocol can also run with MsgPack as serialization, run over raw TCP or in fact any message based, bidirectional, reliable transport - but **wampy** (currently) runs over websockets only.
 
-At a high level **WAMP** is a very simple and powerful protocol which will allow you to use buzz words like "real time", "de-coupled" and "scaleable" in no time at all. At a lower level you can quickly get bogged down in the complexities of the transports - but hey, that's what **wampy** is here to abstract away from you!
-
-**wampy** tries to provide an intuitive API for your **WAMP** messaging.
+At a high level **WAMP** is a very simple and powerful protocol which will allow you to use buzz words like "real time", "de-coupled" and "scaleable" in no time at all. At a lower level you can quickly get bogged down in the complexities of the transports - but hey, that's what **wampy** is here to abstract away from you! **wampy** tries to provide an intuitive API for your **WAMP** messaging.
 
 For further reading please see some of the popular blog posts on WAMP such as http://tavendo.com/blog/post/is-crossbar-the-future-of-python-web-apps/.
 
-Quickstart: wampy from a Python shell
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Quickstart: wampy from the command line
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Before any messaging can happen you do need that **Router** I mentioned. Messages are then routed between **Clients** over an administritive domain on the Router called a **Realm**.
 
@@ -55,7 +53,7 @@ Now open your preferred text editor and we'll write a few lies of Python constru
         def get_binary_number(self, number):
             return bin(number)
 
-Save this module somewhere on your Python path and we'll use a ``wampy`` command lime interface tool to start the service.
+Save this module somewhere on your Python path and we'll use a ``wampy`` command line interface tool to start the service.
 
 ::
 
