@@ -1,1 +1,1 @@
-from . web.application import WebApplication  # noqa
+from . web.application import WebApplication, WebClient  # noqa

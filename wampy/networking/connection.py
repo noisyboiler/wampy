@@ -4,6 +4,8 @@ import uuid
 from base64 import encodestring
 from socket import error as socket_error
 
+import greenlet
+
 from wampy.constants import WEBSOCKET_SUBPROTOCOLS, WEBSOCKET_VERSION
 from wampy.errors import (
     IncompleteFrameError, ConnectionError, WampProtocolError)
@@ -156,6 +158,8 @@ class WampWebConnection(object):
             try:
                 logger.debug('receiving %s bytes', bufsize)
                 bytes = self.socket.recv(bufsize)
+            except greenlet.GreenletExit as exc:
+                raise ConnectionError('Connection closed: "{}"'.format(exc))
             except socket.timeout as e:
                 message = str(e)
                 raise ConnectionError('timeout: "{}"'.format(message))

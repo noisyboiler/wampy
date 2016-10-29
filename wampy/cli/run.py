@@ -6,6 +6,8 @@ wampy run module:app
 import os
 import sys
 
+import eventlet
+
 
 class CommandError(Exception):
     pass
@@ -49,7 +51,7 @@ class AppRunner(object):
         for app in self.apps:
             try:
                 app.managed_thread.wait()
-            except:
+            except Exception:
                 app.stop()
 
 
@@ -58,6 +60,7 @@ def run(app):
     mod = import_module(module_name)
     app_class = getattr(mod, app_name)
 
+    # add to app args here
     host = "localhost"
     port = 8080
     app = app_class(
@@ -79,9 +82,12 @@ def run(app):
                 runner.stop()
             except KeyboardInterrupt:
                 runner.stop()
+
         else:
             # runner.wait completed
             break
+
+        eventlet.sleep()
 
 
 def main(args):

@@ -109,7 +109,7 @@ class WebBase(object):
                     if frame:
                         message = frame.payload
                         self._handle_message(message)
-                except (SystemExit, KeyboardInterrupt):
+                except (SystemExit, KeyboardInterrupt, ConnectionError):
                     break
 
         gthread = eventlet.spawn(connection_handler)

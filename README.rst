@@ -13,11 +13,11 @@ With **wampy** you can quickly and easily create your own WAMP clients, whether 
 WAMP
 ----
 
-The `WAMP Protocol`_ is a powerful tool for your web applications, microservices and tools - else just your free time, fun and games!
+The `WAMP Protocol`_ is a powerful tool for your web applications and microservices - else just for your free time, fun and games!
 
-**WAMP** facilitates communication between independent applications over a common "router". An actor in this process is called a **Peer**, and a **Peer** has a type of either **Client** or **Router**.
+**WAMP** facilitates communication between independent applications over a common "router". An actor in this process is called a **Peer**, and a **Peer** is either a **Client** or the **Router**.
 
-WAMP messaging occurs between **Clients** over a **Router** via a **Remote Procedure Call (RPC)** or the **Publish/Subscribe** pattern. As long as your **Client** knows how to connect to a **Router** it does not then need to know anything further about other connected **Peers** beyond a shared string name for an endpoint, i.e. it does not care where a **Client** application is, how many of them there might be, how they might be written or how to identify them. This is unlike other protocols, such as AMQP for example, where you also need to consider exchanges and queues in order to explicitly connect to actors from your applications.
+**WAMP** messaging occurs between **Clients** over the **Router** via **Remote Procedure Call (RPC)** or the **Publish/Subscribe** pattern. As long as your **Client** knows how to connect to a **Router** it does not then need to know anything further about other connected **Peers** beyond a shared string name for an endpoint or topic, i.e. it does not care where a **Client** application is, how many of them there might be, how they might be written or how to identify them. This is more simple than other messaging protocols, such as AMQP for example, where you also need to consider exchanges and queues in order to explicitly connect to actors from your applications.
 
 **WAMP** is most commonly a WebSocket subprotocol (runs on top of WebSocket) that uses JSON as message serialization format. However, the protocol can also run with MsgPack as serialization, run over raw TCP or in fact any message based, bidirectional, reliable transport - but **wampy** (currently) runs over websockets only.
 
@@ -71,7 +71,7 @@ Now, open a Python console in a new terminal, allowing the ``DateService`` to ru
 
 ::
 
-    In [1]: from wampy import WebClient
+    In [1]: from wampy.peers import WebClient
 
     In [2]: with WebClient(name="wampy") as client:
                 result = client.rpc.get_binary_number(number=100)
