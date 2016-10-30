@@ -5,6 +5,7 @@ wampy run module:app
 """
 import os
 import sys
+from urlparse import urlparse
 
 import eventlet
 
@@ -55,14 +56,11 @@ class AppRunner(object):
                 app.stop()
 
 
-def run(app):
+def run(app, host, port):
     module_name, app_name = app[0].split(':')
     mod = import_module(module_name)
     app_class = getattr(mod, app_name)
 
-    # add to app args here
-    host = "localhost"
-    port = 8080
     app = app_class(
         name=app_class.__class__.__name__,
         host=host,
@@ -95,7 +93,12 @@ def main(args):
         sys.path.insert(0, '.')
 
     app = args.application
-    run(app)
+    router_url = args.router
+    parsed_connection_details = urlparse(router_url)
+    host = parsed_connection_details.hostname
+    port = parsed_connection_details.port
+
+    run(app, host, port)
 
 
 def init_parser(parser):
@@ -105,7 +108,7 @@ def init_parser(parser):
         help='python path to one wampy application class to run')
 
     parser.add_argument(
-        '--router', default='ws://localhost:8091',
+        '--router', default='http://localhost:8080',
         help='WAMP router url')
 
     return parser
