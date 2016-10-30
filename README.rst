@@ -65,7 +65,7 @@ For example, running a ``wampy`` example application.
 
     $ wampy run docs.examples.services:DateService
 
-Now, open a Python console in a new terminal, allowing the ``DateService`` to run uninterupted in your original terminal (but once you're done with it ``Ctrl-C`` is required).
+Now, open a Python console in a new terminal, allowing the ``BinaryNumberService`` to run uninterupted in your original terminal (but once you're done with it ``Ctrl-C`` is required).
 
 ::
 
