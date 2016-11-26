@@ -120,7 +120,7 @@ class WebBase(object):
         while q.qsize() == 0:
             # if the expected message is not there, switch context to
             # allow other threads to continue working to fetch it for us
-            eventlet.sleep(0)
+            eventlet.sleep()
 
         message = q.get()
         return message
@@ -160,7 +160,12 @@ class WebBase(object):
         message = Register(procedure=procedure_name, options=options)
 
         response_msg = self._send_message_and_wait_for_response(message)
-        _, _, registration_id = response_msg
+
+        try:
+            _, _, registration_id = response_msg
+        except ValueError:
+            self.logger.error("failed to register entrypoint: %s", response_msg)
+            return
 
         self.registration_map[procedure_name] = registration_id
 

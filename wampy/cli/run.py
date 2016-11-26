@@ -62,14 +62,17 @@ def run(app, host, port):
     app_class = getattr(mod, app_name)
 
     app = app_class(
-        name=app_class.__class__.__name__,
+        name=app_name,
         host=host,
         port=port
     )
 
     runner = AppRunner()
     runner.add_app(app)
+    print("starting up service....")
     runner.run()
+
+    print("{} is now running and connected to {}.".format(app_name, host))
 
     while True:
         try:
@@ -84,8 +87,6 @@ def run(app, host, port):
         else:
             # runner.wait completed
             break
-
-        eventlet.sleep()
 
 
 def main(args):
