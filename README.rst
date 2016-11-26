@@ -83,6 +83,14 @@ Now, open a Python console in a new terminal, allowing the ``BinaryNumberService
     In [3]: result
     Out[3]: u'0b1100100'
 
+Note that the `WebClient` here is connecting to `localhost` and `8080`, but you could just as easily have done:
+
+::
+
+    In [1]: from wampy.peers import WebClient
+
+    In [2]: with WebClient(name="wampy", host="example.com", port=XXXX) as client:
+                result = client.rpc.get_binary_number(number=100)
 
 Please check out the full documentation at ReadTheDocs_ for more patterns.
 
