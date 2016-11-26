@@ -63,13 +63,7 @@ For example, running a ``wampy`` example application.
 
 ::
 
-    $ wampy run docs.examples.services:DateService
-
-or
-
-::
-
-    $ wampy run docs.examples.services:DateService --router http://wampy.online:8082
+    $ wampy run docs.examples.services:DateService --router localhost:8080
 
 Now, open a Python console in a new terminal, allowing the ``BinaryNumberService`` to run uninterupted in your original terminal (but once you're done with it ``Ctrl-C`` is required).
 
