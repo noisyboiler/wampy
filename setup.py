@@ -35,5 +35,9 @@ setup(
         'console_scripts': [
             'wampy=wampy.cli.main:main',
         ],
+        # pytest looks up the pytest11 entrypoint to discover its plugins
+        'pytest11': [
+            'pytest_wampy=wampy.testing.pytest',
+        ]
     },
 )
