@@ -37,7 +37,7 @@ setup(
         ],
         # pytest looks up the pytest11 entrypoint to discover its plugins
         'pytest11': [
-            'pytest_wampy=wampy.testing.pytest',
+            'pytest_wampy=wampy.testing.pytest_plugin',
         ]
     },
 )
