@@ -1,7 +1,0 @@
-crossbar==0.15.0
-mock==1.3.0
-pytest==2.8.7
-pytest-capturelog
-colorlog
-pycmd
-flake8

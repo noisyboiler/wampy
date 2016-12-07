@@ -31,6 +31,16 @@ setup(
     install_requires=[
         "eventlet==0.18.4",
     ],
+    extras_require={
+        'dev': [
+            "crossbar==0.15.0",
+            "pytest==2.9.1",
+            "mock==1.3.0",
+            "pytest-capturelog",
+            "colorlog",
+            "flake8",
+        ]
+    },
     entry_points={
         'console_scripts': [
             'wampy=wampy.cli.main:main',

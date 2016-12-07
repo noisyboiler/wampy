@@ -7,8 +7,6 @@ import os
 import sys
 from urlparse import urlparse
 
-import eventlet
-
 
 class CommandError(Exception):
     pass
