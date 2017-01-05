@@ -1,3 +1,4 @@
+from wampy.peers.clients import Client
 from wampy.errors import WampyError
 
 
@@ -21,3 +22,13 @@ class RegisterSubscriptionDecorator(object):
         return wrapped_f
 
 subscribe = RegisterSubscriptionDecorator
+
+
+class TopicSubscriber(object):
+
+    def __init__(self, router, topic):
+        self.router = router
+        self.topic = topic
+
+    def setup(self):
+        self.connection = Client()

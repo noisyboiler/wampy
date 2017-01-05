@@ -25,9 +25,7 @@ class CallProxy:
 
     def __call__(self, procedure, *args, **kwargs):
         message = Call(procedure=procedure, args=args, kwargs=kwargs)
-        logger.info(
-            '%s sending message: "%s"', self.client.name, message)
-        response = self.client._send_message_and_wait_for_response(
+        response = self.client.send_message_and_wait_for_response(
             message)
         wamp_code = response[0]
 
@@ -35,8 +33,6 @@ class CallProxy:
             logger.error("call returned an error: %s", response)
             return response
         elif wamp_code == Message.RESULT:
-            logger.info(
-                '%s got response: "%s"', self.client.name, response)
             results = response[3]
             result = results[0]
             return result
@@ -62,9 +58,7 @@ class RpcProxy:
 
         def wrapper(*args, **kwargs):
             message = Call(procedure=name, args=args, kwargs=kwargs)
-            logger.info(
-                '%s sending message: "%s"', self.client.name, message)
-            response = self.client._send_message_and_wait_for_response(
+            response = self.client.send_message_and_wait_for_response(
                 message)
             wamp_code = response[0]
             if wamp_code != Message.RESULT:
@@ -74,8 +68,6 @@ class RpcProxy:
                     response[5]
                 )
 
-            logger.info(
-                '%s got response: "%s"', self.client.name, response)
             results = response[3]
             result = results[0]
             return result

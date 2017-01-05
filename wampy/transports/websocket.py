@@ -15,9 +15,12 @@ from wampy.networking.frames import ClientFrame, ServerFrame
 logger = logging.getLogger(__name__)
 
 
-class WampWebConnection(object):
-    """ A WAMP Connection with an underlying websocket transport.
-    """
+class Transport(object):
+    """ A Transport connects two WAMP Peers and provides a channel over which
+    WAMP messages for a WAMP Session can flow in both directions. """
+
+
+class WebSocket(Transport):
 
     def __init__(self, host, port, websocket_location="ws"):
         self.host = host
@@ -152,7 +155,7 @@ class WampWebConnection(object):
         logger.info('sent message: "%s"', message)
 
     def read_websocket_frame(self, bufsize=1):
-        logger.debug('read a new WebSocket frame')
+        logger.debug('read a WebSocket frame')
         frame = None
         received_bytes = bytearray()
 
@@ -175,6 +178,7 @@ class WampWebConnection(object):
             try:
                 frame = ServerFrame(received_bytes)
             except IncompleteFrameError as exc:
+                # this is totallt expecteda and we let it silently pass
                 pass
             else:
                 break

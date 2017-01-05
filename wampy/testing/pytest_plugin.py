@@ -10,10 +10,10 @@ from time import time as now, sleep
 
 import pytest
 
-from wampy.constants import DEFAULT_HOST, DEFAULT_PORT
-from wampy.networking.connection import WampWebConnection
-
+from wampy.constants import DEFAULT_HOST, DEFAULT_PORT, DEFAULT_REALM
 from wampy.errors import ConnectionError
+from wampy.networking.connection import WampWebConnection
+from wampy.session import Session
 
 
 logger = logging.getLogger('wampy.testing')
@@ -154,7 +154,7 @@ def router():
 
 
 @pytest.fixture
-def connection(CrossBar):
+def connection(router):
     connection = WampWebConnection(host=DEFAULT_HOST, port=DEFAULT_PORT)
     connection.connect()
 
@@ -162,3 +162,15 @@ def connection(CrossBar):
     assert connection.headers['upgrade'] == 'websocket'
 
     return connection
+
+
+@pytest.fixture
+def session_maker(router, connection):
+
+    def maker(client, realm=DEFAULT_REALM, transport=connection):
+        return Session(
+            client=client, router=router,
+            realm=realm, transport=transport,
+        )
+
+    return maker
