@@ -197,6 +197,10 @@ class Client(object):
 
 
 class DefaultClient(Client):
+    """ A convieniance Client that passes in defaults expected by
+    Crossbar.
+
+    """
 
     def __init__(
             self, roles=DEFAULT_ROLES, realm=DEFAULT_REALM,
@@ -208,6 +212,8 @@ class DefaultClient(Client):
 
 
 class ServiceClient(Client):
+    """ Designed to be used as part of a cluster of clients.
+    """
 
     @register_rpc(invocation_policy="roundrobin")
     def get_meta(self):
