@@ -7,7 +7,7 @@ from wampy.messages import Message
 from wampy.messages.hello import Hello
 from wampy.messages.goodbye import Goodbye
 from wampy.messages.yield_ import Yield
-from wampy.transports.websocket import WebSocket
+from wampy.transports.websocket.connection import WebSocket
 
 from wampy.messages import MESSAGE_TYPE_MAP
 

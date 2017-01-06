@@ -9,18 +9,14 @@ import greenlet
 from wampy.constants import WEBSOCKET_SUBPROTOCOLS, WEBSOCKET_VERSION
 from wampy.errors import (
     IncompleteFrameError, ConnectionError, WampProtocolError)
-from wampy.networking.frames import ClientFrame, ServerFrame
+
+from . frames import ClientFrame, ServerFrame
 
 
 logger = logging.getLogger(__name__)
 
 
-class Transport(object):
-    """ A Transport connects two WAMP Peers and provides a channel over which
-    WAMP messages for a WAMP Session can flow in both directions. """
-
-
-class WebSocket(Transport):
+class WebSocket(object):
 
     def __init__(self, host, port, websocket_location="ws"):
         self.host = host

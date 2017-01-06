@@ -13,7 +13,7 @@ import pytest
 from wampy.constants import DEFAULT_HOST, DEFAULT_PORT, DEFAULT_REALM
 from wampy.errors import ConnectionError
 from wampy.session import Session
-from wampy.transports.websocket import WebSocket
+from wampy.transports.websocket.connection import WebSocket
 
 
 logger = logging.getLogger('wampy.testing')
