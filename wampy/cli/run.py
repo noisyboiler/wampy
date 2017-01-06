@@ -53,8 +53,9 @@ class AppRunner(object):
     def wait(self):
         for app in self.apps:
             try:
-                app.managed_thread.wait()
-            except Exception:
+                app.session._managed_thread.wait()
+            except Exception as exc:
+                print(exc)
                 app.stop()
 
 
