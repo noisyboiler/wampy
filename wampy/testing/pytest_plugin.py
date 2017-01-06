@@ -12,8 +12,8 @@ import pytest
 
 from wampy.constants import DEFAULT_HOST, DEFAULT_PORT, DEFAULT_REALM
 from wampy.errors import ConnectionError
-from wampy.networking.connection import WampWebConnection
 from wampy.session import Session
+from wampy.transports.websocket import WebSocket
 
 
 logger = logging.getLogger('wampy.testing')
@@ -155,7 +155,7 @@ def router():
 
 @pytest.fixture
 def connection(router):
-    connection = WampWebConnection(host=DEFAULT_HOST, port=DEFAULT_PORT)
+    connection = WebSocket(host=DEFAULT_HOST, port=DEFAULT_PORT)
     connection.connect()
 
     assert connection.status == 101  # websocket success status
