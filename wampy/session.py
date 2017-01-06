@@ -234,12 +234,10 @@ class Session(object):
     def _connect(self):
         connection = self.transport
 
-        logger.debug('connecting to %s', self.router)
         try:
             connection.connect()
         except Exception as exc:
             raise ConnectionError(exc)
-        logger.debug('connected to %s', self.router)
 
         self._listen_on_connection(connection, self._message_queue)
         self._connection = connection
