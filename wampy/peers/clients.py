@@ -32,8 +32,6 @@ class Client(object):
             transport=self.transport)
 
         self.id = id or str(uuid4())
-        self.subscription_map = {}
-        self.registration_map = {}
 
     def __enter__(self):
         self.start()
@@ -42,14 +40,20 @@ class Client(object):
     def __exit__(self, exception_type, exception_value, traceback):
         self.stop()
 
+    @property
+    def subscription_map(self):
+        return self.session.subscription_map
+
+    @property
+    def registration_map(self):
+        return self.session.registration_map
+
     def start(self):
         self.session.begin()
         self.register_roles()
 
     def stop(self):
         self.session.end()
-        self.subscription_map = {}
-        self.registration_map = {}
 
     def send_message(self, message):
         self.session.send_message(message)
@@ -96,12 +100,12 @@ class Client(object):
                 "failed to register callee: %s", response_msg)
             return
 
-        self.registration_map[procedure_name] = registration_id
+        self.session.registration_map[procedure_name] = registration_id
 
         logger.info(
             '%s registered callee: "%s"', self.id, procedure_name,
         )
-        logger.info("%s: %s", self.id, self.registration_map)
+        logger.info("%s: %s", self.id, self.session.registration_map)
 
     def _subscribe(self, topic, handler):
         procedure_name = handler.func_name
@@ -110,7 +114,7 @@ class Client(object):
         response_msg = self.send_message_and_wait_for_response(message)
         _, _, subscription_id = response_msg
 
-        self.subscription_map[procedure_name] = subscription_id, topic
+        self.session.subscription_map[procedure_name] = subscription_id, topic
 
         logger.info(
             '%s registered subscriber "%s (%s)"',
@@ -219,8 +223,8 @@ class ServiceClient(Client):
     def get_meta(self):
         meta = {
             'id': self.id,
-            'subscriptions': self.subscription_map.keys(),
-            'registrations': self.registration_map.keys(),
+            'subscriptions': self.session.subscription_map.keys(),
+            'registrations': self.session.registration_map.keys(),
         }
 
         return meta

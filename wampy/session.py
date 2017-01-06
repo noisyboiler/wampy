@@ -62,6 +62,9 @@ class Session(object):
         self.realm = realm
         self.transport = transport
 
+        self.subscription_map = {}
+        self.registration_map = {}
+
         self.session_id = None
         # spawn a green thread to listen for incoming messages over
         # a connection and put them on a queue to be processed
@@ -93,6 +96,8 @@ class Session(object):
     def end(self):
         self._say_goodbye()
         self._disconnet()
+        self.subscription_map = {}
+        self.registration_map = {}
         self.session_id = None
 
     def send_message(self, message):
@@ -137,7 +142,7 @@ class Session(object):
                         message)
 
             registration_id_procedure_name_map = {
-                v: k for k, v in self.client.registration_map.items()
+                v: k for k, v in self.registration_map.items()
             }
 
             procedure_name = registration_id_procedure_name_map[
@@ -209,9 +214,8 @@ class Session(object):
                     # ]
                     _, subscription_id, _, details = message
 
-            # TODO: prob should not know about the client's subsc map here
             id_to_func_name_map = {
-                v[0]: k for k, v in self.client.subscription_map.items()
+                v[0]: k for k, v in self.subscription_map.items()
             }
 
             func_name = id_to_func_name_map[subscription_id]
