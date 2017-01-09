@@ -6,14 +6,12 @@ from uuid import uuid4
 from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
 from wampy.messages.register import Register
 from wampy.messages.subscribe import Subscribe
-from wampy.peers.routers import Router
+from wampy.peers.routers import Crossbar as Router
 from wampy.session import session_builder
 from wampy.roles.callee import register_rpc
 from wampy.roles.caller import CallProxy, RpcProxy
 from wampy.roles.publisher import PublishProxy
 
-
-MAX_META_COLLECTION_SIZE = 100
 
 logger = logging.getLogger("wampy.clients")
 

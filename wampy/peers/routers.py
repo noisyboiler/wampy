@@ -2,7 +2,7 @@ from wampy.constants import DEFAULT_HOST, DEFAULT_PORT
 from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
 
 
-class Router(object):
+class Crossbar(object):
 
     def __init__(
             self, host=DEFAULT_HOST, port=DEFAULT_PORT,

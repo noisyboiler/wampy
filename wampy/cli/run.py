@@ -66,10 +66,7 @@ def run(app, host, port):
 
     # TODO: realm and roles should be passed in too
     router = Router(host=host, port=port)
-
-    app = app_class(
-        router=router
-    )
+    app = app_class(router=router)
 
     runner = AppRunner()
     runner.add_app(app)
