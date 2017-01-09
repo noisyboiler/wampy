@@ -9,13 +9,14 @@ import greenlet
 from wampy.constants import WEBSOCKET_SUBPROTOCOLS, WEBSOCKET_VERSION
 from wampy.errors import (
     IncompleteFrameError, ConnectionError, WampProtocolError)
-from wampy.networking.frames import ClientFrame, ServerFrame
+
+from . frames import ClientFrame, ServerFrame
 
 
 logger = logging.getLogger(__name__)
 
 
-class WampWebConnection(object):
+class WebSocket(object):
 
     def __init__(self, host, port, websocket_location="ws"):
         self.host = host
@@ -156,7 +157,6 @@ class WampWebConnection(object):
 
         while True:
             try:
-                logger.debug('receiving %s bytes', bufsize)
                 bytes = self.socket.recv(bufsize)
             except greenlet.GreenletExit as exc:
                 raise ConnectionError('Connection closed: "{}"'.format(exc))
@@ -169,13 +169,12 @@ class WampWebConnection(object):
             if not bytes:
                 break
 
-            logger.debug('bytes received')
             received_bytes.extend(bytes)
 
             try:
                 frame = ServerFrame(received_bytes)
             except IncompleteFrameError as exc:
-                logger.debug('IncompleteFrameError')
+                # this is totallt expecteda and we let it silently pass
                 pass
             else:
                 break

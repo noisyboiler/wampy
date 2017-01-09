@@ -11,7 +11,7 @@ except ImportError:
         def emit(self, record):
             pass
 
-from . peers.web import WebClient, WebApplication  # noqa
+from . peers.clients import Client  # noqa
 
 
 root = logging.getLogger(__name__)

@@ -1,7 +1,7 @@
 import pytest
 from mock import ANY
 
-from wampy import WebClient as Client
+from wampy.peers.clients import DefaultClient as Client
 from wampy.messages import Message
 from wampy.roles.callee import register_rpc
 from wampy.roles.subscriber import subscribe
@@ -27,7 +27,7 @@ class MetaClient(Client):
 
     @subscribe(topic="wamp.registration.on_register")
     def on_register_handler(self, *args, **kwargs):
-        """ Fired when a _Callee_ session is added to a
+        """ Fired when a Callee session is added to a
         registration. """
         self.on_register_call_count += 1
 
@@ -40,7 +40,7 @@ class MetaClient(Client):
 
 @pytest.yield_fixture
 def meta_client(router):
-    client = MetaClient(name="meta subscriber")
+    client = MetaClient()
     with client:
         yield client
 
@@ -54,7 +54,7 @@ class TestMetaEvents:
             def foo(self):
                 pass
 
-        callee = FooClient(name="foo")
+        callee = FooClient()
 
         assert meta_client.on_create_call_count == 0
 
@@ -71,8 +71,8 @@ class TestMetaEvents:
             def foo(self):
                 pass
 
-        callee = FooClient(name="foo provider")
-        caller = Client(name="foo consumner")
+        callee = FooClient()
+        caller = Client()
 
         with callee:
             with caller:
@@ -90,7 +90,7 @@ class TestMetaEvents:
             def foo(self):
                 pass
 
-        callee = FooClient(name="foo provider")
+        callee = FooClient()
 
         assert meta_client.on_unregister_call_count == 0
 
@@ -106,7 +106,7 @@ class TestMetaEvents:
 class TestMetaProcedures:
 
     def test_get_registration_list(self, router):
-        client = Client(name="Caller")
+        client = Client()
         with client:
             registrations = client.get_registration_list()
             registered = registrations['exact']
@@ -117,14 +117,14 @@ class TestMetaProcedures:
                 def get_date(self):
                     return "2016-01-01"
 
-            service = DateService(name="Date Service")
+            service = DateService()
             with service:
                 registrations = client.get_registration_list()
                 registered = registrations['exact']
                 assert len(registered) == 1
 
     def test_get_registration_lookup(self, router):
-        client = Client(name="Caller")
+        client = Client()
         with client:
             registration_id = client.get_registration_lookup(
                 procedure_name="spam")
@@ -135,7 +135,7 @@ class TestMetaProcedures:
                 def spam(self):
                     return "eggs and ham"
 
-            service = SpamService(name="Spam Service")
+            service = SpamService()
             with service:
                 registration_id = client.get_registration_lookup(
                     procedure_name="spam")
@@ -143,7 +143,7 @@ class TestMetaProcedures:
                 assert len(service.registration_map.values()) == 1
 
     def test_registration_not_found(self, router):
-        client = Client(name="Caller")
+        client = Client()
         with client:
             response_msg = client.get_registration(registration_id="spam")
 
@@ -162,10 +162,10 @@ class TestMetaProcedures:
             def spam(self):
                 return "eggs and ham"
 
-        service = SpamService(name="Spam Service")
+        service = SpamService()
         with service:
             registration_id = service.registration_map['spam']
-            with Client(name="Caller") as client:
+            with Client() as client:
                 info = client.get_registration(
                     registration_id=registration_id
                 )
@@ -181,7 +181,7 @@ class TestMetaProcedures:
         assert expected_info == info
 
     def test_registration_match_not_found(self, router):
-        client = Client(name="Caller")
+        client = Client()
         with client:
             matched_id = client.get_registration_match(
                 procedure_name="spam")
@@ -194,8 +194,8 @@ class TestMetaProcedures:
             def spam(self):
                 return "eggs and ham"
 
-        with SpamService(name="Spam Service") as service:
-            with Client(name="Caller") as client:
+        with SpamService() as service:
+            with Client() as client:
                 matched_id = client.get_registration_match(
                     procedure_name="spam")
 
@@ -217,14 +217,14 @@ class TestMetaProcedures:
             def bar(self):
                 return "bar"
 
-        with SpamService(name="Spam Service") as spam_service:
+        with SpamService() as spam_service:
             registration_id = spam_service.registration_map['spam']
 
             # these are new sessions but not part of the same registration
-            with FooService(name="Foo Service"):
-                with BarService(name="bar Service"):
+            with FooService():
+                with BarService():
 
-                    with Client(name="my client") as client:
+                    with Client() as client:
                         callees = client.list_callees(registration_id)
 
                         assert len(callees) == 1
@@ -236,8 +236,8 @@ class TestMetaProcedures:
             def spam(self):
                 return "spam"
 
-        with SpamService(name="Spam Service") as spam_service:
+        with SpamService() as spam_service:
             registration_id = spam_service.registration_map['spam']
-            with Client(name="my client") as client:
+            with Client() as client:
                 count = client.count_callees(registration_id)
                 assert count == 1

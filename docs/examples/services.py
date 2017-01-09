@@ -1,10 +1,10 @@
 import datetime
 
-from wampy.peers import WebApplication
+from wampy.peers.clients import DefaultClient
 from wampy.roles import register_rpc
 
 
-class DateService(WebApplication):
+class DateService(DefaultClient):
     """ A web service that returns the current date.
 
     usage ::

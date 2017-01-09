@@ -34,7 +34,7 @@ For the quickeststart I suggest that you use Crossbar.io and start it up on the 
 
 ::
 
-    $ pip install -r test_requirements.txt
+    $ pip install --editable .[dev]
 
     $ crossbar start --config ./test/crossbar.config.json
 
@@ -44,10 +44,10 @@ Now open your preferred text editor and we'll write a few lies of Python constru
 
 ::
 
-    from wampy.peers import WebApplication
+    from wampy.peers.clients import Client
     from wampy.roles import register_rpc
 
-    class BinaryNumberService(WebApplication):
+    class BinaryNumberService(Client):
 
         @register_rpc
         def get_binary_number(self, number):
@@ -63,27 +63,29 @@ For example, running a ``wampy`` example application.
 
 ::
 
-    $ wampy run docs.examples.services:DateService --router localhost:8080
+    $ wampy run docs.examples.services:DateService --router http://localhost:8080
 
 Now, open a Python console in a new terminal, allowing the ``BinaryNumberService`` to run uninterupted in your original terminal (but once you're done with it ``Ctrl-C`` is required).
 
 ::
 
-    In [1]: from wampy.peers import WebClient
+    In [1]: from wampy.peers.clients import DefaultClient
 
-    In [2]: with WebClient(name="wampy") as client:
+    In [2]: with DefaultClient() as client:
                 result = client.rpc.get_binary_number(number=100)
 
     In [3]: result
     Out[3]: u'0b1100100'
 
-Note that the `WebClient` here is connecting to `localhost` and `8080`, but you could just as easily have done:
+Note that the `Client` here is connecting to `localhost` and `8080`, but you could also have done:
 
 ::
 
-    In [1]: from wampy.peers import WebClient
+    In [1]: from wampy.peers.clients import Client
 
-    In [2]: with WebClient(name="wampy", host="example.com", port=XXXX) as client:
+    In [2]: from wampy.peers.routers import Crossbar
+
+    In [2]: with Client(router=Crossbar()) as client:
                 result = client.rpc.get_binary_number(number=100)
 
 Please check out the full documentation at ReadTheDocs_ for more patterns.

@@ -2,12 +2,14 @@
 
 wampy run module:app
 
+Largely experimental for now.... sorry.
+
 """
 import os
 import sys
 from urlparse import urlparse
 
-import eventlet
+from wampy.peers.routers import Router
 
 
 class CommandError(Exception):
@@ -51,8 +53,9 @@ class AppRunner(object):
     def wait(self):
         for app in self.apps:
             try:
-                app.managed_thread.wait()
-            except Exception:
+                app.session._managed_thread.wait()
+            except Exception as exc:
+                print(exc)
                 app.stop()
 
 
@@ -61,11 +64,9 @@ def run(app, host, port):
     mod = import_module(module_name)
     app_class = getattr(mod, app_name)
 
-    app = app_class(
-        name=app_name,
-        host=host,
-        port=port
-    )
+    # TODO: realm and roles should be passed in too
+    router = Router(host=host, port=port)
+    app = app_class(router=router)
 
     runner = AppRunner()
     runner.add_app(app)
@@ -88,6 +89,8 @@ def run(app, host, port):
             # runner.wait completed
             break
 
+    print('disconnected')
+
 
 def main(args):
     if '.' not in sys.path:
@@ -99,7 +102,11 @@ def main(args):
     host = parsed_connection_details.hostname
     port = parsed_connection_details.port
 
-    run(app, host, port)
+    if host is None:
+        # guess!
+        host, port = router_url.split(':')
+
+    run(app, host, int(port))
 
 
 def init_parser(parser):

@@ -26,11 +26,9 @@ class PublishProxy:
             )
 
         message = Publish(topic=topic, options={}, **kwargs)
-        logger.info(
-            '%s publishing message: "%s"', self.client.name, message
-        )
+        logger.info('publishing message: "%s"', message)
 
-        self.client._send_message(message)
+        self.client.send_message(message)
 
 
 class PublisherMixin:
