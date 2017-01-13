@@ -46,12 +46,18 @@ class Client(object):
     def registration_map(self):
         return self.session.registration_map
 
-    def start(self):
+    def start_session(self):
         self.session.begin()
+
+    def end_session(self):
+        self.session.end()
+
+    def start(self):
+        self.start_session()
         self.register_roles()
 
     def stop(self):
-        self.session.end()
+        self.end_session()
 
     def send_message(self, message):
         self.session.send_message(message)
