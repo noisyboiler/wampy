@@ -19,7 +19,10 @@ class Client(object):
     """ A WAMP Client for use in Python applications, scripts and shells.
     """
 
-    def __init__(self, roles, realm, router, transport="websocket", id=None):
+    def __init__(
+            self, roles=DEFAULT_ROLES, realm=DEFAULT_REALM, router=Router(),
+            transport="websocket", id=None
+    ):
         self.roles = roles
         self.realm = realm
         self.router = router
@@ -163,21 +166,6 @@ class Client(object):
         registration. """
         return self.call(
             "wamp.registration.count_callees", registration_id)
-
-
-class DefaultClient(Client):
-    """ A convieniance Client that passes in defaults expected by
-    Crossbar.
-
-    """
-
-    def __init__(
-            self, roles=DEFAULT_ROLES, realm=DEFAULT_REALM,
-            transport="websocket", router=Router(), id=None,
-    ):
-        super(DefaultClient, self).__init__(
-            roles, realm, router, transport, id
-        )
 
 
 class ServiceClient(Client):

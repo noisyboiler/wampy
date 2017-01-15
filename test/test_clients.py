@@ -4,7 +4,7 @@ from datetime import date
 import eventlet
 import pytest
 
-from wampy.peers.clients import DefaultClient as Client
+from wampy.peers.clients import Client
 from wampy.roles.callee import register_rpc
 
 

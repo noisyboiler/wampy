@@ -1,6 +1,6 @@
 import pytest
 
-from wampy.peers.clients import DefaultClient as Client
+from wampy.peers.clients import Client
 from wampy.roles.subscriber import subscribe
 from wampy.errors import WampyError
 
