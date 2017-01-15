@@ -4,13 +4,12 @@ from uuid import uuid4
 
 
 from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
-from wampy.messages.register import Register
-from wampy.messages.subscribe import Subscribe
 from wampy.peers.routers import Crossbar as Router
 from wampy.session import session_builder
-from wampy.roles.callee import register_rpc
+from wampy.roles.callee import register_rpc, register_procedure
 from wampy.roles.caller import CallProxy, RpcProxy
 from wampy.roles.publisher import PublishProxy
+from wampy.roles.subscriber import subscribe_to_topic
 
 
 logger = logging.getLogger("wampy.clients")
@@ -20,7 +19,10 @@ class Client(object):
     """ A WAMP Client for use in Python applications, scripts and shells.
     """
 
-    def __init__(self, roles, realm, router, transport="websocket", id=None):
+    def __init__(
+            self, roles=DEFAULT_ROLES, realm=DEFAULT_REALM, router=Router(),
+            transport="websocket", id=None
+    ):
         self.roles = roles
         self.realm = realm
         self.router = router
@@ -46,12 +48,18 @@ class Client(object):
     def registration_map(self):
         return self.session.registration_map
 
-    def start(self):
+    def begin_session(self):
         self.session.begin()
+
+    def end_session(self):
+        self.session.end()
+
+    def start(self):
+        self.begin_session()
         self.register_roles()
 
     def stop(self):
-        self.session.end()
+        self.end_session()
 
     def send_message(self, message):
         self.session.send_message(message)
@@ -73,51 +81,13 @@ class Client(object):
             if hasattr(maybe_role, 'callee'):
                 procedure_name = maybe_role.func_name
                 invocation_policy = maybe_role.invocation_policy
-                self._register_rpc(procedure_name, invocation_policy)
+                register_procedure(
+                    self.session, procedure_name, invocation_policy)
 
             if hasattr(maybe_role, 'subscriber'):
                 topic = maybe_role.topic
                 handler = maybe_role.handler
-                self._subscribe(topic, handler)
-
-    def _register_rpc(self, procedure_name, invocation_policy="single"):
-        logger.info(
-            "registering %s with invocation policy %s",
-            procedure_name, invocation_policy
-        )
-
-        options = {"invoke": invocation_policy}
-        message = Register(procedure=procedure_name, options=options)
-
-        response_msg = self.send_message_and_wait_for_response(message)
-
-        try:
-            _, _, registration_id = response_msg
-        except ValueError:
-            logger.error(
-                "failed to register callee: %s", response_msg)
-            return
-
-        self.session.registration_map[procedure_name] = registration_id
-
-        logger.info(
-            '%s registered callee: "%s"', self.id, procedure_name,
-        )
-        logger.info("%s: %s", self.id, self.session.registration_map)
-
-    def _subscribe(self, topic, handler):
-        procedure_name = handler.func_name
-        message = Subscribe(topic=topic)
-
-        response_msg = self.send_message_and_wait_for_response(message)
-        _, _, subscription_id = response_msg
-
-        self.session.subscription_map[procedure_name] = subscription_id, topic
-
-        logger.info(
-            '%s registered subscriber "%s (%s)"',
-            self.id, procedure_name, topic
-        )
+                subscribe_to_topic(self.session, topic, handler)
 
     def send_message_and_wait_for_response(self, message):
         self.session.send_message(message)
@@ -196,21 +166,6 @@ class Client(object):
         registration. """
         return self.call(
             "wamp.registration.count_callees", registration_id)
-
-
-class DefaultClient(Client):
-    """ A convieniance Client that passes in defaults expected by
-    Crossbar.
-
-    """
-
-    def __init__(
-            self, roles=DEFAULT_ROLES, realm=DEFAULT_REALM,
-            transport="websocket", router=Router(), id=None,
-    ):
-        super(DefaultClient, self).__init__(
-            roles, realm, router, transport, id
-        )
 
 
 class ServiceClient(Client):

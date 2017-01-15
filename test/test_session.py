@@ -1,4 +1,4 @@
-from wampy.peers.clients import DefaultClient as Client
+from wampy.peers.clients import Client
 
 
 class TestSession:
