@@ -5,12 +5,12 @@ from uuid import uuid4
 
 from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
 from wampy.messages.register import Register
-from wampy.messages.subscribe import Subscribe
 from wampy.peers.routers import Crossbar as Router
 from wampy.session import session_builder
 from wampy.roles.callee import register_rpc
 from wampy.roles.caller import CallProxy, RpcProxy
 from wampy.roles.publisher import PublishProxy
+from wampy.roles.subscriber import subscribe_to_topic
 
 
 logger = logging.getLogger("wampy.clients")
@@ -46,14 +46,14 @@ class Client(object):
     def registration_map(self):
         return self.session.registration_map
 
-    def start_session(self):
+    def begin_session(self):
         self.session.begin()
 
     def end_session(self):
         self.session.end()
 
     def start(self):
-        self.start_session()
+        self.begin_session()
         self.register_roles()
 
     def stop(self):
@@ -84,7 +84,7 @@ class Client(object):
             if hasattr(maybe_role, 'subscriber'):
                 topic = maybe_role.topic
                 handler = maybe_role.handler
-                self._subscribe(topic, handler)
+                subscribe_to_topic(self.session, topic, handler)
 
     def _register_rpc(self, procedure_name, invocation_policy="single"):
         logger.info(
@@ -101,7 +101,8 @@ class Client(object):
             _, _, registration_id = response_msg
         except ValueError:
             logger.error(
-                "failed to register callee: %s", response_msg)
+                "failed to register callee: %s", response_msg
+            )
             return
 
         self.session.registration_map[procedure_name] = registration_id
@@ -110,20 +111,6 @@ class Client(object):
             '%s registered callee: "%s"', self.id, procedure_name,
         )
         logger.info("%s: %s", self.id, self.session.registration_map)
-
-    def _subscribe(self, topic, handler):
-        procedure_name = handler.func_name
-        message = Subscribe(topic=topic)
-
-        response_msg = self.send_message_and_wait_for_response(message)
-        _, _, subscription_id = response_msg
-
-        self.session.subscription_map[procedure_name] = subscription_id, topic
-
-        logger.info(
-            '%s registered subscriber "%s (%s)"',
-            self.id, procedure_name, topic
-        )
 
     def send_message_and_wait_for_response(self, message):
         self.session.send_message(message)

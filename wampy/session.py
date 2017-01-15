@@ -121,6 +121,11 @@ class Session(object):
         return message
 
     def handle_message(self, message):
+        logger.info(
+            "%s received message: %s",
+            self.client.id, MESSAGE_TYPE_MAP[message[0]]
+        )
+
         wamp_code = message[0]
         if wamp_code == Message.REGISTERED:  # 64
             self._message_queue.put(message)
@@ -220,11 +225,13 @@ class Session(object):
 
             func_name = id_to_func_name_map[subscription_id]
             try:
-                entrypoint = getattr(self.client, func_name)
+                func = getattr(self.client, func_name)
             except AttributeError:
-                logger.error("Event handler not found: %s", func_name)
-            else:
-                entrypoint(*payload_list, **payload_dict)
+                raise WampError(
+                    "Event handler not found: {}".format(func_name)
+                )
+
+            func(*payload_list, **payload_dict)
 
         else:
             logger.warning(
