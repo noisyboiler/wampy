@@ -1,7 +1,7 @@
 import pytest
 
 from wampy.constants import DEFAULT_REALM
-from wampy.peers.clients import DefaultClient as Client
+from wampy.peers.clients import Client
 from wampy.roles.subscriber import TopicSubscriber
 
 from test.helpers import assert_stops_raising
