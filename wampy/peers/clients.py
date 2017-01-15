@@ -4,10 +4,9 @@ from uuid import uuid4
 
 
 from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
-from wampy.messages.register import Register
 from wampy.peers.routers import Crossbar as Router
 from wampy.session import session_builder
-from wampy.roles.callee import register_rpc
+from wampy.roles.callee import register_rpc, register_procedure
 from wampy.roles.caller import CallProxy, RpcProxy
 from wampy.roles.publisher import PublishProxy
 from wampy.roles.subscriber import subscribe_to_topic
@@ -79,38 +78,13 @@ class Client(object):
             if hasattr(maybe_role, 'callee'):
                 procedure_name = maybe_role.func_name
                 invocation_policy = maybe_role.invocation_policy
-                self._register_rpc(procedure_name, invocation_policy)
+                register_procedure(
+                    self.session, procedure_name, invocation_policy)
 
             if hasattr(maybe_role, 'subscriber'):
                 topic = maybe_role.topic
                 handler = maybe_role.handler
                 subscribe_to_topic(self.session, topic, handler)
-
-    def _register_rpc(self, procedure_name, invocation_policy="single"):
-        logger.info(
-            "registering %s with invocation policy %s",
-            procedure_name, invocation_policy
-        )
-
-        options = {"invoke": invocation_policy}
-        message = Register(procedure=procedure_name, options=options)
-
-        response_msg = self.send_message_and_wait_for_response(message)
-
-        try:
-            _, _, registration_id = response_msg
-        except ValueError:
-            logger.error(
-                "failed to register callee: %s", response_msg
-            )
-            return
-
-        self.session.registration_map[procedure_name] = registration_id
-
-        logger.info(
-            '%s registered callee: "%s"', self.id, procedure_name,
-        )
-        logger.info("%s: %s", self.id, self.session.registration_map)
 
     def send_message_and_wait_for_response(self, message):
         self.session.send_message(message)
