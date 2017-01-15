@@ -51,10 +51,14 @@ class TopicSubscriber(object):
     def __init__(
             self, router, realm, topic, roles=None, transport="websocket"
     ):
-        """ Subscribes to a single topic on a realm on the given router.
+        """ Subscribe to a single topic.
+
+        All messages receieved are appended to a list maintained on the
+        instance.
 
         :Parameters:
             router: instance
+                subclass of :cls:`wampy.peers.routers.Router`
             realm : string
             topic: string
             roles: dictionary
@@ -83,6 +87,7 @@ class TopicSubscriber(object):
 
     def __exit__(self, exception_type, exception_value, traceback):
         self.stop()
+        self.messages = []
 
     def start(self):
         self.session.begin()
