@@ -1,7 +1,8 @@
 import logging
 from uuid import uuid4
 
-from wampy.errors import WampyError
+from wampy.errors import WampyError, WampProtocolError
+from wampy.messages import Message
 from wampy.messages.subscribe import Subscribe
 from wampy.session import session_builder
 
@@ -12,10 +13,22 @@ def subscribe_to_topic(session, topic, handler):
     procedure_name = handler.func_name
     message = Subscribe(topic=topic)
 
-    session.send_message(message)
-    response_msg = session.recv_message()
+    try:
+        session.send_message(message)
+        response_msg = session.recv_message()
+    except Exception as exc:
+        raise WampProtocolError(
+            "failed to subscribe to {}: \"{}\"".format(
+                topic, exc)
+        )
 
-    _, _, subscription_id = response_msg
+    wamp_code, _, subscription_id = response_msg
+    if wamp_code != Message.SUBSCRIBED:
+        raise WampProtocolError(
+            "failed to subscribe to {}: \"{}\"".format(
+                topic, wamp_code)
+        )
+
     session.subscription_map[procedure_name] = subscription_id, topic
 
     logger.info(
@@ -49,7 +62,8 @@ class TopicSubscriber(object):
     """ Stand alone websocket topic subscriber """
 
     def __init__(
-            self, router, realm, topic, roles=None, transport="websocket"
+            self, router, realm, topic, roles=None, transport="websocket",
+            message_queue=None,
     ):
         """ Subscribe to a single topic.
 
@@ -79,7 +93,8 @@ class TopicSubscriber(object):
             client=self, router=self.router, realm=self.realm,
             transport=self.transport)
 
-        self.messages = []
+        self.subscribed = False
+        self.messages = message_queue or []
 
     def __enter__(self):
         self.start()
@@ -94,9 +109,11 @@ class TopicSubscriber(object):
         subscribe_to_topic(
             session=self.session, topic=self.topic, handler=self.topic_handler
         )
+        self.subscribed = True
 
     def stop(self):
         self.session.end()
+        self.subscribed = False
 
     def topic_handler(self, *args, **kwargs):
         logger.info(
