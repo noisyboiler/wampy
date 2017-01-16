@@ -110,6 +110,7 @@ class TopicSubscriber(object):
             session=self.session, topic=self.topic, handler=self.topic_handler
         )
         self.subscribed = True
+        logger.info("subscribed to %s", self.topic)
 
     def stop(self):
         self.session.end()
