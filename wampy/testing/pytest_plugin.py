@@ -8,7 +8,6 @@ import sys
 from contextlib import closing
 from time import time as now, sleep
 
-import eventlet
 import pytest
 
 from wampy.constants import DEFAULT_HOST, DEFAULT_PORT, DEFAULT_REALM
@@ -105,12 +104,6 @@ class Crossbar(object):
         self._wait_until_ready()
 
     def stop(self):
-        logger.warning(
-            "sleeping for 2 seconds while Crossbar handles GOODBYEs"
-        )
-        # wait a second for any GOODBYE messages to be processed
-        eventlet.sleep(2)
-
         logger.info('sending SIGTERM to %s', self.proc.pid)
 
         try:
