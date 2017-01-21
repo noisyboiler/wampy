@@ -110,9 +110,13 @@ class Session(object):
 
         self._connection.send_websocket_frame(str(message))
 
-    def recv_message(self):
+    def recv_message(self, timeout=5):
         logger.debug('waiting for message')
-        message = self._wait_for_message()
+
+        try:
+            message = self._wait_for_message(timeout)
+        except eventlet.Timeout:
+            raise WampProtocolError("no message returned")
 
         logger.debug(
             'received message: "%s"', MESSAGE_TYPE_MAP[message[0]]
@@ -282,13 +286,17 @@ class Session(object):
             # be from the Router implementation
             logger.warning("GOODBYE failed!: %s", exc)
         else:
-            message = self.recv_message()
-            if message[0] != Message.GOODBYE:
-                raise WampProtocolError(
-                    "Unexpected response from GOODBYE message: {}".format(
-                        message
+            try:
+                message = self.recv_message(timeout=2)
+                if message[0] != Message.GOODBYE:
+                    raise WampProtocolError(
+                        "Unexpected response from GOODBYE message: {}".format(
+                            message
+                        )
                     )
-                )
+            except WampProtocolError:
+                # Server already gone away?
+                pass
 
     def _listen_on_connection(self, connection, message_queue):
         def connection_handler():
@@ -298,18 +306,23 @@ class Session(object):
                     if frame:
                         message = frame.payload
                         self.handle_message(message)
-                except (SystemExit, KeyboardInterrupt, ConnectionError):
+                except (
+                        SystemExit, KeyboardInterrupt, ConnectionError,
+                        WampProtocolError,
+                ):
                     break
 
         gthread = eventlet.spawn(connection_handler)
         self._managed_thread = gthread
 
-    def _wait_for_message(self):
+    def _wait_for_message(self, timeout):
         q = self._message_queue
-        while q.qsize() == 0:
-            # if the expected message is not there, switch context to
-            # allow other threads to continue working to fetch it for us
-            eventlet.sleep()
+
+        with eventlet.Timeout(timeout):
+            while q.qsize() == 0:
+                # if the expected message is not there, switch context to
+                # allow other threads to continue working to fetch it for us
+                eventlet.sleep()
 
         message = q.get()
         return message

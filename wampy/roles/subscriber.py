@@ -62,19 +62,20 @@ class TopicSubscriber(object):
     """ Stand alone websocket topic subscriber """
 
     def __init__(
-            self, router, realm, topic, roles=None, transport="websocket",
-            message_queue=None,
+            self, router, realm, topic, message_handler,
+            roles=None, transport="websocket",
     ):
         """ Subscribe to a single topic.
 
-        All messages receieved are appended to a list maintained on the
-        instance.
+        All messages receieved are appended to a ``message_queue`` which
+        should behave like a standard Python list.
 
         :Parameters:
             router: instance
                 subclass of :cls:`wampy.peers.routers.Router`
             realm : string
-            topic: string
+            topic : string
+            message_handler : func
             roles: dictionary
 
         """
@@ -82,6 +83,7 @@ class TopicSubscriber(object):
         self.router = router
         self.realm = realm
         self.topic = topic
+        self.message_handler = message_handler
         self.roles = roles or {
             'roles': {
                 'subscriber': {},
@@ -94,7 +96,6 @@ class TopicSubscriber(object):
             transport=self.transport)
 
         self.subscribed = False
-        self.messages = message_queue or []
 
     def __enter__(self):
         self.start()
@@ -121,4 +122,4 @@ class TopicSubscriber(object):
             "handling message from %s topic: (%s, %s)",
             self.topic, args, kwargs
         )
-        self.messages.append(kwargs['message'])
+        self.message_handler(kwargs['message'])
