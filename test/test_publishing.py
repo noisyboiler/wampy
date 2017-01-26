@@ -1,4 +1,5 @@
 import pytest
+from mock import ANY
 
 from wampy.peers.clients import Client
 from wampy.roles.subscriber import subscribe
@@ -111,8 +112,12 @@ def test_kwargs_are_received(router):
 
             def check_kwargs():
                 assert SubscribingClient.received_kwargs == {
-                    "message": "foobar",
-                    "spam": "eggs"
+                    'message': 'foobar',
+                    'spam': 'eggs',
+                    '_meta': {
+                        'topic': 'foo',
+                        'subscription_id': ANY,
+                    },
                 }
 
             assert_stops_raising(check_kwargs)

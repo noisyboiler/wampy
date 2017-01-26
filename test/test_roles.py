@@ -15,17 +15,20 @@ class TestTopicSubscriber(object):
         with Client() as client:
             yield client
 
-    def test_subscribe_to_topic(self, router, publisher):
+    def test_subscribe_to_topics(self, router, publisher):
         message_handler = Mock()
 
         subscriber = TopicSubscriber(
-            router=router, realm=DEFAULT_REALM, topic="foo",
+            router=router, realm=DEFAULT_REALM, topics=["foo", "spam"],
             message_handler=message_handler)
 
         def wait_for_message():
-            assert message_handler.called is True
-            assert message_handler.call_args == call(u'bar')
+            assert message_handler.call_count == 2
+            assert message_handler.call_args_list == [
+                call(u'bar'), call(u'ham')
+            ]
 
         with subscriber:
             publisher.publish(topic="foo", message="bar")
+            publisher.publish(topic="spam", message="ham")
             assert_stops_raising(wait_for_message)

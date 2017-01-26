@@ -223,17 +223,17 @@ class Session(object):
                     # ]
                     _, subscription_id, _, details = message
 
-            id_to_func_name_map = {
-                v[0]: k for k, v in self.subscription_map.items()
-            }
-
-            func_name = id_to_func_name_map[subscription_id]
+            func_name, topic = self.subscription_map[subscription_id]
             try:
                 func = getattr(self.client, func_name)
             except AttributeError:
                 raise WampError(
                     "Event handler not found: {}".format(func_name)
                 )
+
+            payload_dict['_meta'] = {}
+            payload_dict['_meta']['topic'] = topic
+            payload_dict['_meta']['subscription_id'] = subscription_id
 
             func(*payload_list, **payload_dict)
 
