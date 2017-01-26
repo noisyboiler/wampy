@@ -105,6 +105,12 @@ class Client(object):
     def publish(self):
         return PublishProxy(client=self)
 
+    def get_subscription_handler_names(self):
+        handler_names = []
+        for handler, topic in self.subscription_map.values():
+            handler_names.append(handler)
+        return handler_names
+
     def get_subscription_info(self, subscription_id):
         """ Retrieves information on a particular subscription. """
         return self.call("wamp.subscription.get", subscription_id)

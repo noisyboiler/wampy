@@ -137,8 +137,13 @@ class TestMetaProcedures:
         spam_subscriber = SpamClientClient()
 
         with foo_subscriber:
-            foo_subscription_id, topic = foo_subscriber.subscription_map[
-                'foo_handler']
+            for foo_subscription_id, details in foo_subscriber.subscription_map.items():
+                handler_name, topic = details
+                if handler_name == "foo_handler":
+                    break
+
+            _, topic = foo_subscriber.subscription_map[
+                foo_subscription_id]
 
             def check_list():
                 subscription_list = foo_subscriber.get_subscription_list()
@@ -149,11 +154,17 @@ class TestMetaProcedures:
             assert_stops_raising(check_list)
 
             with another_foo_subscriber:
-                another_subscription_id, topic = (
-                    another_foo_subscriber.subscription_map['foo_handler']
+                for another_subscription_id, details in foo_subscriber.subscription_map.items():
+                    handler_name, topic = details
+                    if handler_name == "foo_handler":
+                        break
+
+                handler_name, topic = (
+                    another_foo_subscriber.subscription_map[another_subscription_id]
                 )
 
                 assert another_subscription_id == foo_subscription_id
+                assert topic == "foo"
 
                 def check_list():
                     subscription_list = (
@@ -162,15 +173,15 @@ class TestMetaProcedures:
                     assert len(subscription_list['exact']) == 1
                     assert another_subscription_id in subscription_list[
                         'exact']
-                    assert topic == "foo"
 
                 assert_stops_raising(check_list)
 
                 with spam_subscriber:
                     # now there are 3 clients and 2 subscriptions
-
-                    spam_subscription_id, _ = spam_subscriber.subscription_map[
-                        'spam_handler']
+                    for spam_subscription_id, details in spam_subscriber.subscription_map.items():
+                        handler_name, topic = details
+                        if handler_name == "spam_handler":
+                            break
 
                     def check_list():
                         subscription_list = (
@@ -243,14 +254,20 @@ class TestMetaProcedures:
         assert len(foo_subscriber.subscription_map) == 0
 
         with foo_subscriber:
+            for foo_subscription_id, details in foo_subscriber.subscription_map.items():
+                handler_name, topic = details
+                if handler_name == "foo_handler":
+                    break
+
+            _, topic = foo_subscriber.subscription_map[foo_subscription_id]
+            assert topic == "foo"
+
             subscription_id = foo_subscriber.get_subscription_lookup(
                 topic="foo")
-            assert subscription_id is not None
+            assert foo_subscription_id == subscription_id
+            assert len(foo_subscriber.subscription_map) == 1
 
-            foo_subscription_id, topic = foo_subscriber.subscription_map[
-                'foo_handler']
-            assert topic == "foo"
-            assert subscription_id == foo_subscription_id
+        assert len(foo_subscriber.subscription_map) == 0
 
     def test_subscription_lookup_topic_not_found(self, router):
         class FooClient(Client):
@@ -268,17 +285,18 @@ class TestMetaProcedures:
                 pass
 
         foo_subscriber = FooClient()
-        another_foo_subscriber = FooClient()
-
         just_a_client = Client()
 
         with foo_subscriber:
-            with another_foo_subscriber:
-                with just_a_client:
-                    subscription_id, _ = foo_subscriber.subscription_map[
-                        'foo_handler']
-                    info = just_a_client.get_subscription_info(
-                            subscription_id=subscription_id)
+            with just_a_client:
+                for subscription_id, details in foo_subscriber.subscription_map.items():
+                    handler_name, topic = details
+                    if handler_name == "foo_handler" and topic == "foo":
+                        break
+
+                info = just_a_client.get_subscription_info(
+                    subscription_id=subscription_id
+                )
 
         expected_info = {
             'created': ANY,

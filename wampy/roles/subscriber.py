@@ -29,7 +29,7 @@ def subscribe_to_topic(session, topic, handler):
                 topic, wamp_code)
         )
 
-    session.subscription_map[procedure_name] = subscription_id, topic
+    session.subscription_map[subscription_id] = procedure_name, topic
 
     logger.info(
         'registered handler "%s" for topic "%s"', procedure_name, topic
@@ -62,7 +62,7 @@ class TopicSubscriber(object):
     """ Stand alone websocket topic subscriber """
 
     def __init__(
-            self, router, realm, topic, message_handler,
+            self, router, realm, topics, message_handler,
             roles=None, transport="websocket",
     ):
         """ Subscribe to a single topic.
@@ -74,7 +74,7 @@ class TopicSubscriber(object):
             router: instance
                 subclass of :cls:`wampy.peers.routers.Router`
             realm : string
-            topic : string
+            topics : list
             message_handler : func
             roles: dictionary
 
@@ -82,7 +82,7 @@ class TopicSubscriber(object):
         self.id = str(uuid4())
         self.router = router
         self.realm = realm
-        self.topic = topic
+        self.topics = topics
         self.message_handler = message_handler
         self.roles = roles or {
             'roles': {
@@ -107,19 +107,18 @@ class TopicSubscriber(object):
 
     def start(self):
         self.session.begin()
-        subscribe_to_topic(
-            session=self.session, topic=self.topic, handler=self.topic_handler
-        )
+        for topic in self.topics:
+            subscribe_to_topic(
+                session=self.session, topic=topic, handler=self.topic_handler
+            )
+
         self.subscribed = True
-        logger.info("subscribed to %s", self.topic)
+        logger.info("subscribed to %s", ", ".join(self.topics))
 
     def stop(self):
         self.session.end()
         self.subscribed = False
 
     def topic_handler(self, *args, **kwargs):
-        logger.info(
-            "handling message from %s topic: (%s, %s)",
-            self.topic, args, kwargs
-        )
+        logger.info("handling message: (%s, %s)", args, kwargs)
         self.message_handler(kwargs['message'])
