@@ -121,4 +121,4 @@ class TopicSubscriber(object):
 
     def topic_handler(self, *args, **kwargs):
         logger.info("handling message: (%s, %s)", args, kwargs)
-        self.message_handler(kwargs['message'])
+        self.message_handler(*args, **kwargs)

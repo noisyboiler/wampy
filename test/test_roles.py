@@ -1,5 +1,6 @@
 import pytest
 from mock import Mock, call
+from mock import ANY
 
 from wampy.constants import DEFAULT_REALM
 from wampy.peers.clients import Client
@@ -25,7 +26,10 @@ class TestTopicSubscriber(object):
         def wait_for_message():
             assert message_handler.call_count == 2
             assert message_handler.call_args_list == [
-                call(u'bar'), call(u'ham')
+                call(_meta={
+                    'topic': 'foo', 'subscription_id': ANY}, message=u'bar'),
+                call(_meta={
+                    'topic': 'spam', 'subscription_id': ANY}, message=u'ham'),
             ]
 
         with subscriber:
