@@ -171,6 +171,7 @@ class Session(object):
                 result_args=result_args,
                 result_kwargs=result_kwargs,
             )
+            logger.info("yielding response: %s", message)
             self.send_message(message)
 
         elif wamp_code == Message.GOODBYE:  # 6
