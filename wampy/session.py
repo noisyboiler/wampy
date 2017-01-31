@@ -160,6 +160,7 @@ class Session(object):
             entrypoint = getattr(self.client, procedure_name)
 
             kwargs['error'] = None
+            kwargs['message'] = None
             kwargs['_meta'] = {}
             kwargs['_meta']['procedure_name'] = procedure_name
             kwargs['_meta']['session_id'] = self.session_id
@@ -170,6 +171,8 @@ class Session(object):
             except Exception as exc:
                 resp = None
                 kwargs['error'] = exc
+            else:
+                kwargs['message'] = resp
 
             result_args = [resp]
 
