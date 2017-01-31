@@ -1,4 +1,10 @@
 import json
+import logging
+
+from wampy.errors import WampProtocolError
+
+
+logger = logging.getLogger(__name__)
 
 
 class MessageError(Exception):
@@ -62,6 +68,12 @@ class Message(object):
 
         self.serialized = True
 
-        return json.dumps(
-            self.message, separators=(',', ':'), ensure_ascii=False,
-        )
+        try:
+            return json.dumps(
+                self.message, separators=(',', ':'), ensure_ascii=False,
+            )
+        except TypeError:
+            logger.exception(
+                "failed to serialise message: %s", self.message)
+            raise WampProtocolError(
+                "Message not serialized: {}".format(self.message))

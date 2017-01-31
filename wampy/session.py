@@ -15,7 +15,7 @@ from wampy.messages import MESSAGE_TYPE_MAP
 logger = logging.getLogger('wampy.session')
 
 
-def session_builder(client, router, realm, transport):
+def session_builder(client, router, realm, transport="websocket"):
     if transport == "websocket":
         transport = WebSocket(host=router.host, port=router.port)
         return Session(
