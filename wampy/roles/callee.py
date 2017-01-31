@@ -115,11 +115,8 @@ class ProcedureRegistrationFactory(object):
             return self.callback
 
     def start(self):
-        logger.debug("starting session")
         self.session.begin()
-        loger.debug("registering procedures: %s", self.procedures)
         for procedure_name in self.procedure_names:
-            logger.info("registering %s", procedure_name)
             register_procedure(self.session, procedure_name)
 
         logger.info("registered to %s", ", ".join(self.procedure_names))
