@@ -167,13 +167,14 @@ class Session(object):
             result_kwargs['_meta']['client_id'] = self.client.id
 
             message = Yield(
-                request_id, result_args=result_args, result_kwargs=result_kwargs
+                request_id,
+                result_args=result_args,
+                result_kwargs=result_kwargs,
             )
             self.send_message(message)
 
         elif wamp_code == Message.GOODBYE:  # 6
             _, _, response_message = message
-            assert response_message == 'wamp.close.normal'
             self._message_queue.put(message)
 
         elif wamp_code == Message.RESULT:  # 50
@@ -182,7 +183,6 @@ class Session(object):
         elif wamp_code == Message.WELCOME:  # 2
             _, session_id, _ = message
             self.session_id = session_id
-
             self._message_queue.put(message)
 
         elif wamp_code == Message.ERROR:
