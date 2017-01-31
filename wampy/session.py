@@ -161,7 +161,14 @@ class Session(object):
             resp = entrypoint(*args, **kwargs)
             result_args = [resp]
 
-            message = Yield(request_id, result_args=result_args)
+            result_kwargs = {'_meta': {}}
+            result_kwargs['_meta']['procedure_name'] = procedure_name
+            result_kwargs['_meta']['session_id'] = self.session_id
+            result_kwargs['_meta']['client_id'] = self.client.id
+
+            message = Yield(
+                request_id, result_args=result_args, result_kwargs=result_kwargs
+            )
             self.send_message(message)
 
         elif wamp_code == Message.GOODBYE:  # 6
@@ -170,8 +177,6 @@ class Session(object):
             self._message_queue.put(message)
 
         elif wamp_code == Message.RESULT:  # 50
-            _, request_id, data, response_list = message
-            # the message must be made available to the client
             self._message_queue.put(message)
 
         elif wamp_code == Message.WELCOME:  # 2
