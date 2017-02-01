@@ -159,27 +159,29 @@ class Session(object):
 
             entrypoint = getattr(self.client, procedure_name)
 
-            kwargs['error'] = None
-            kwargs['message'] = None
-            kwargs['_meta'] = {}
-            kwargs['_meta']['procedure_name'] = procedure_name
-            kwargs['_meta']['session_id'] = self.session_id
-            kwargs['_meta']['client_id'] = self.client.id
-
             try:
                 resp = entrypoint(*args, **kwargs)
             except Exception as exc:
                 resp = None
-                kwargs['error'] = exc
+                error = str(exc)
             else:
-                kwargs['message'] = resp
+                error = None
+
+            result_kwargs = {}
+
+            result_kwargs['error'] = error
+            result_kwargs['message'] = resp
+            result_kwargs['_meta'] = {}
+            result_kwargs['_meta']['procedure_name'] = procedure_name
+            result_kwargs['_meta']['session_id'] = self.session_id
+            result_kwargs['_meta']['client_id'] = self.client.id
 
             result_args = [resp]
 
             message = Yield(
                 request_id,
                 result_args=result_args,
-                result_kwargs=kwargs,
+                result_kwargs=result_kwargs,
             )
             logger.info("yielding response: %s", message)
             self.send_message(message)
