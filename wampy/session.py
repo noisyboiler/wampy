@@ -78,7 +78,7 @@ class Session(object):
                 session=self,
                 message_queue=self._message_queue)
         else:
-            self.message_handler = message_handler()
+            self.message_handler = message_handler
 
     @property
     def host(self):
@@ -92,7 +92,6 @@ class Session(object):
     def roles(self):
         return self.client.roles
 
-    # backwards (or maybe forwards!) compat
     @property
     def id(self):
         return self.session_id

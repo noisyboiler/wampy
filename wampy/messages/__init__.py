@@ -11,6 +11,18 @@ class MessageError(Exception):
     pass
 
 
+def is_a_wamp_message(message):
+    try:
+        wamp_code = message[0]
+    except:
+        return False
+
+    if wamp_code not in MESSAGE_TYPE_MAP:
+        return False
+
+    return True
+
+
 MESSAGE_TYPE_MAP = {
     1: 'HELLO',
     2: 'WELCOME',
@@ -56,8 +68,11 @@ class Message(object):
     CALL = 48
     YIELD = 70
 
-    def __init__(self):
-        self.message = None
+    def __init__(self, message=None):
+        if message and not is_a_wamp_message(message):
+            raise WampProtocolError("this is not a WAMP message: %s", message)
+
+        self.message = message
         self.serialized = False
 
     def serialize(self):

@@ -16,8 +16,6 @@ class Hello(Message):
     WAMP_CODE = 1
 
     def __init__(self, realm, roles):
-        super(Hello, self).__init__()
-
         self.realm = realm
         self.roles = roles
         self.message = [
