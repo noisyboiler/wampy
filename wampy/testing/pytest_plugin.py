@@ -140,7 +140,25 @@ def router():
     crossbar = Crossbar(
         host=DEFAULT_HOST,
         port=DEFAULT_PORT,
-        config_path='./test/crossbar.config.json',
+        config_path='./wampy/testing/configs/crossbar.config.json',
+        crossbar_directory='./',
+    )
+
+    check_socket(DEFAULT_HOST, DEFAULT_PORT)
+    crossbar.start()
+
+    yield crossbar
+
+    crossbar.stop()
+    check_socket(DEFAULT_HOST, DEFAULT_PORT)
+
+
+@pytest.yield_fixture
+def tls_router():
+    crossbar = Crossbar(
+        host=DEFAULT_HOST,
+        port=DEFAULT_PORT,
+        config_path='./wampy/testing/configs/crossbar.config.tls.json',
         crossbar_directory='./',
     )
 

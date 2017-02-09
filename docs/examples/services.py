@@ -14,7 +14,7 @@ class DateService(Client):
 
     e.g. ::
 
-        $ crossbar start --config ./test/crossbar.config.json
+        $ crossbar start --config ./wampy/testing/configs/crossbar.config.json
         $ wampy run docs.examples.services:SubscribingService --router http://localhost:8080
 
     """
@@ -32,7 +32,7 @@ class SubscribingService(Client):
 
     e.g. ::
 
-        $ crossbar start --config ./test/crossbar.config.json
+        $ crossbar start --config ./wampy/testing/configs/crossbar.config.json
         $ wampy run docs.examples.services:SubscribingService --router http://localhost:8080
 
     """

@@ -36,11 +36,14 @@ For the quickeststart I suggest that you use Crossbar.io and start it up on the 
 
     $ pip install --editable .[dev]
 
-    $ crossbar start --config ./test/crossbar.config.json
+    $ crossbar start --config ./wampy/testing/configs/crossbar.config.json
 
 By default a **wampy** ``WebClient`` connects to localhost on port 8080, but this is of course configurable, and is done so on client initialisation.
 
 Now open your preferred text editor and we'll write a few lies of Python constructing a simple WAMP service that takes a decimal number and returns the binary representation of it - fantastic stuff!
+
+Wampy RPC
+~~~~~~~~~
 
 ::
 
@@ -88,7 +91,8 @@ Note that the `Client` here is connecting to `localhost` and `8080`, but you cou
     In [3]: with Client(router=Crossbar()) as client:
                 result = client.rpc.get_binary_number(number=100)
 
-Publishing and Subscribing is equally as simple.
+Publishing and Subscribing is equally as simple
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To demonstrate, first of all you need a Publisher. You can either create one yourself in a python module or use the example client in `docs.examples.services`. Here we use the given example service, but all a Publisher is is a standard wampy client - any wampy client can call `publish` and pass in the parameters `topic` and `message`.
 
@@ -109,9 +113,25 @@ In another terminal, with a wampy virtualenv, you can create a Publihser - which
     In [3]: with Client(router=Crossbar()) as client:
                 client.publish(topic="foo", message="spam")
 
-Hopefully you'll see any message you send printed to the screen where the example service is running. You'll also see the meta data that wampy sends along with the message under the key `_meta`.
+Hopefully you'll see any message you send printed to the screen where the example service is running. You'll also see the meta data that wampy chooses to send.
 
 Thank you.
+
+Running the tests
+~~~~~~~~~~~~~~~~~
+
+::
+
+    $ pip install --editable .[dev]
+    $ py.test ./test -v
+
+wampy provides a Crossbar server pytest fixture that is started up and torn down betweem each test. You can use this in your own projects.
+
+Testing
+~~~~~~~
+
+wampy provides some pytest fixtures and helpers for you to run a crossbar server. These are `router`, `tls_router` and `session_maker`.
+
 
 Build the docs
 ~~~~~~~~~~~~~~
