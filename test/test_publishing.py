@@ -121,3 +121,37 @@ def test_kwargs_are_received(router):
                 }
 
             assert_stops_raising(check_kwargs)
+
+
+def test_subscribing_client_will_not_get_old_messages(router):
+
+    class SubscribingClient(Client):
+
+        call_count = 0
+
+        @subscribe(topic="foo")
+        def foo_topic_handler(self, **kwargs):
+            self.call_count += 1
+
+    # don't start this client yet
+    subscriber = SubscribingClient()
+
+    publisher = Client()
+    with publisher:
+        publisher.publish(topic="foo", message="foobar")
+        publisher.publish(topic="foo", message="foobar")
+        publisher.publish(topic="foo", message="spam")
+        publisher.publish(topic="foo", message="ham")
+
+        with subscriber:
+            def check_call_count():
+                assert subscriber.call_count == 0
+
+            assert_stops_raising(check_call_count)
+
+            publisher.publish(topic="foo", message="more ham")
+
+            def check_call_count():
+                assert subscriber.call_count == 1
+
+            assert_stops_raising(check_call_count)

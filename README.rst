@@ -85,10 +85,31 @@ Note that the `Client` here is connecting to `localhost` and `8080`, but you cou
 
     In [2]: from wampy.peers.routers import Crossbar
 
-    In [2]: with Client(router=Crossbar()) as client:
+    In [3]: with Client(router=Crossbar()) as client:
                 result = client.rpc.get_binary_number(number=100)
 
-Please check out the full documentation at ReadTheDocs_ for more patterns.
+Publishing and Subscribing is equally as simple.
+
+To demonstrate, first of all you need a Publisher. You can either create one yourself in a python module or use the example client in `docs.examples.services`. Here we use the given example service, but all a Publisher is is a standard wampy client - any wampy client can call `publish` and pass in the parameters `topic` and `message`.
+
+::
+    
+    $ wampy run docs.examples.services:SubscribingService --router http://localhost:8080
+
+Now we have a service running that subscribes to the topic "foo".
+
+In another terminal, with a wampy virtualenv, you can create a Publihser - which is no different to any other Client.
+
+::
+
+    In [1]: from wampy.peers.clients import Client
+
+    In [2]: from wampy.peers.routers import Crossbar
+
+    In [3]: with Client(router=Crossbar()) as client:
+                client.publish(topic="foo", message="spam")
+
+Hopefully you'll see any message you send printed to the screen where the example service is running. You'll also see the meta data that wampy sends along with the message under the key `_meta`.
 
 Thank you.
 
