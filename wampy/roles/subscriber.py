@@ -74,7 +74,7 @@ class TopicSubscriber(object):
             router: instance
                 subclass of :cls:`wampy.peers.routers.Router`
             realm : string
-            topics : list
+            topics : list of strings
             message_handler : func
             roles: dictionary
 
@@ -95,15 +95,12 @@ class TopicSubscriber(object):
             client=self, router=self.router, realm=self.realm,
             transport=self.transport)
 
-        self.subscribed = False
-
     def __enter__(self):
         self.start()
         return self
 
     def __exit__(self, exception_type, exception_value, traceback):
         self.stop()
-        self.messages = []
 
     def start(self):
         self.session.begin()
@@ -112,7 +109,6 @@ class TopicSubscriber(object):
                 session=self.session, topic=topic, handler=self.topic_handler
             )
 
-        self.subscribed = True
         logger.info("subscribed to %s", ", ".join(self.topics))
 
     def stop(self):

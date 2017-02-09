@@ -4,9 +4,9 @@ import eventlet
 
 from wampy.errors import ConnectionError, WampError, WampProtocolError
 from wampy.messages import Message
+from wampy.messages.handlers.default import DefaultMessageHandler
 from wampy.messages.hello import Hello
 from wampy.messages.goodbye import Goodbye
-from wampy.messages.yield_ import Yield
 from wampy.transports.websocket.connection import WebSocket
 
 from wampy.messages import MESSAGE_TYPE_MAP
@@ -15,7 +15,7 @@ from wampy.messages import MESSAGE_TYPE_MAP
 logger = logging.getLogger('wampy.session')
 
 
-def session_builder(client, router, realm, transport):
+def session_builder(client, router, realm, transport="websocket"):
     if transport == "websocket":
         transport = WebSocket(host=router.host, port=router.port)
         return Session(
@@ -43,7 +43,7 @@ class Session(object):
 
     """
 
-    def __init__(self, client, router, realm, transport):
+    def __init__(self, client, router, realm, transport, message_handler=None):
         """ A Session between a Client and a Router.
 
         :Parameters:
@@ -72,6 +72,14 @@ class Session(object):
         self._managed_thread = None
         self._message_queue = eventlet.Queue()
 
+        if message_handler is None:
+            self.message_handler = DefaultMessageHandler(
+                client=self.client,
+                session=self,
+                message_queue=self._message_queue)
+        else:
+            self.message_handler = message_handler
+
     @property
     def host(self):
         return self.router.host
@@ -84,7 +92,6 @@ class Session(object):
     def roles(self):
         return self.client.roles
 
-    # backwards (or maybe forwards!) compat
     @property
     def id(self):
         return self.session_id
@@ -123,124 +130,6 @@ class Session(object):
         )
 
         return message
-
-    def handle_message(self, message):
-        logger.info(
-            "%s received message: %s",
-            self.client.id, MESSAGE_TYPE_MAP[message[0]]
-        )
-
-        wamp_code = message[0]
-        if wamp_code == Message.REGISTERED:  # 64
-            self._message_queue.put(message)
-
-        elif wamp_code == Message.INVOCATION:  # 68
-            args = []
-            kwargs = {}
-
-            try:
-                # no args, no kwargs
-                _, request_id, registration_id, details = message
-            except ValueError:
-                # args, no kwargs
-                try:
-                    _, request_id, registration_id, details, args = message
-                except ValueError:
-                    # args and kwargs
-                    _, request_id, registration_id, details, args, kwargs = (
-                        message)
-
-            registration_id_procedure_name_map = {
-                v: k for k, v in self.registration_map.items()
-            }
-
-            procedure_name = registration_id_procedure_name_map[
-                registration_id]
-
-            entrypoint = getattr(self.client, procedure_name)
-            resp = entrypoint(*args, **kwargs)
-            result_args = [resp]
-
-            message = Yield(request_id, result_args=result_args)
-            self.send_message(message)
-
-        elif wamp_code == Message.GOODBYE:  # 6
-            _, _, response_message = message
-            assert response_message == 'wamp.close.normal'
-            self._message_queue.put(message)
-
-        elif wamp_code == Message.RESULT:  # 50
-            _, request_id, data, response_list = message
-            # the message must be made available to the client
-            self._message_queue.put(message)
-
-        elif wamp_code == Message.WELCOME:  # 2
-            _, session_id, _ = message
-            self.session_id = session_id
-
-            self._message_queue.put(message)
-
-        elif wamp_code == Message.ERROR:
-            _, _, _, _, _, errors = message
-            logger.error(errors)
-            self._message_queue.put(message)
-
-        elif wamp_code == Message.SUBSCRIBED:
-            self._message_queue.put(message)
-
-        elif wamp_code == Message.EVENT:
-            payload_list = []
-            payload_dict = {}
-
-            try:
-                # [
-                #   EVENT,
-                #   SUBSCRIBED.Subscription|id,
-                #   PUBLISHED.Publication|id,
-                #   Details|dict,
-                #   PUBLISH.Arguments|list,
-                #   PUBLISH.ArgumentKw|dict]
-                # ]
-                _, subscription_id, _, details, payload_list, payload_dict = (
-                    message)
-            except ValueError:
-
-                try:
-                    # [
-                    #   EVENT,
-                    #   SUBSCRIBED.Subscription|id,
-                    #   PUBLISHED.Publication|id,
-                    #   Details|dict,
-                    #   PUBLISH.Arguments|list,
-                    # ]
-                    _, subscription_id, _, details, payload_list = message
-                except ValueError:
-                    # [
-                    #   EVENT,
-                    #   SUBSCRIBED.Subscription|id,
-                    #   PUBLISHED.Publication|id,
-                    #   Details|dict,
-                    # ]
-                    _, subscription_id, _, details = message
-
-            func_name, topic = self.subscription_map[subscription_id]
-            try:
-                func = getattr(self.client, func_name)
-            except AttributeError:
-                raise WampError(
-                    "Event handler not found: {}".format(func_name)
-                )
-
-            payload_dict['_meta'] = {}
-            payload_dict['_meta']['topic'] = topic
-            payload_dict['_meta']['subscription_id'] = subscription_id
-
-            func(*payload_list, **payload_dict)
-
-        else:
-            logger.warning(
-                'unhandled message: "%s"', message
-            )
 
     def _connect(self):
         connection = self.transport
@@ -305,7 +194,7 @@ class Session(object):
                     frame = connection.read_websocket_frame()
                     if frame:
                         message = frame.payload
-                        self.handle_message(message)
+                        self.message_handler(message)
                 except (
                         SystemExit, KeyboardInterrupt, ConnectionError,
                         WampProtocolError,

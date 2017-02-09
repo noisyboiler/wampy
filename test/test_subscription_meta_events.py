@@ -137,7 +137,8 @@ class TestMetaProcedures:
         spam_subscriber = SpamClientClient()
 
         with foo_subscriber:
-            for foo_subscription_id, details in foo_subscriber.subscription_map.items():
+            for foo_subscription_id, details in \
+                    foo_subscriber.subscription_map.items():
                 handler_name, topic = details
                 if handler_name == "foo_handler":
                     break
@@ -154,13 +155,15 @@ class TestMetaProcedures:
             assert_stops_raising(check_list)
 
             with another_foo_subscriber:
-                for another_subscription_id, details in foo_subscriber.subscription_map.items():
+                for another_subscription_id, details in \
+                        foo_subscriber.subscription_map.items():
                     handler_name, topic = details
                     if handler_name == "foo_handler":
                         break
 
                 handler_name, topic = (
-                    another_foo_subscriber.subscription_map[another_subscription_id]
+                    another_foo_subscriber.subscription_map[
+                        another_subscription_id]
                 )
 
                 assert another_subscription_id == foo_subscription_id
@@ -178,7 +181,8 @@ class TestMetaProcedures:
 
                 with spam_subscriber:
                     # now there are 3 clients and 2 subscriptions
-                    for spam_subscription_id, details in spam_subscriber.subscription_map.items():
+                    for spam_subscription_id, details in \
+                            spam_subscriber.subscription_map.items():
                         handler_name, topic = details
                         if handler_name == "spam_handler":
                             break
@@ -254,7 +258,8 @@ class TestMetaProcedures:
         assert len(foo_subscriber.subscription_map) == 0
 
         with foo_subscriber:
-            for foo_subscription_id, details in foo_subscriber.subscription_map.items():
+            for foo_subscription_id, details in \
+                    foo_subscriber.subscription_map.items():
                 handler_name, topic = details
                 if handler_name == "foo_handler":
                     break
@@ -289,7 +294,8 @@ class TestMetaProcedures:
 
         with foo_subscriber:
             with just_a_client:
-                for subscription_id, details in foo_subscriber.subscription_map.items():
+                for subscription_id, details in \
+                        foo_subscriber.subscription_map.items():
                     handler_name, topic = details
                     if handler_name == "foo_handler" and topic == "foo":
                         break
