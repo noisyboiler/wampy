@@ -21,7 +21,7 @@ class Client(object):
 
     def __init__(
             self, roles=DEFAULT_ROLES, realm=DEFAULT_REALM, router=Router(),
-            transport="websocket", id=None
+            transport="ws", id=None
     ):
         self.roles = roles
         self.realm = realm

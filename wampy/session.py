@@ -15,13 +15,19 @@ from wampy.messages import MESSAGE_TYPE_MAP
 logger = logging.getLogger('wampy.session')
 
 
-def session_builder(client, router, realm, transport="websocket"):
-    if transport == "websocket":
-        transport = WebSocket(host=router.host, port=router.port)
-        return Session(
-            client=client, router=router, realm=realm, transport=transport
-        )
-    raise WampError("transport not supported: {}".format(transport))
+def session_builder(client, router, realm, transport="ws"):
+    if transport == "ws":
+        transport = WebSocket(
+            host=router.host, port=router.port, websocket_location="ws")
+    elif transport == "wss":
+        transport = WebSocket(
+            host=router.host, port=router.port, websocket_location="wss")
+    else:
+        raise WampError("transport not supported: {}".format(transport))
+
+    return Session(
+        client=client, router=router, realm=realm, transport=transport
+    )
 
 
 class Session(object):
