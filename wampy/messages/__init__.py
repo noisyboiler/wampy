@@ -68,11 +68,7 @@ class Message(object):
     CALL = 48
     YIELD = 70
 
-    def __init__(self, message=None):
-        if message and not is_a_wamp_message(message):
-            raise WampProtocolError("this is not a WAMP message: %s", message)
-
-        self.message = message
+    def __init__(self):
         self.serialized = False
 
     def serialize(self):

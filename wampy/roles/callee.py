@@ -111,18 +111,11 @@ class ProcedureRegistrationFactory(object):
         self.stop()
 
     def __getattr__(self, name):
-        # implemented to proxy vcalls
+        # implemented to proxy invocation calls
         if name in self.procedure_names:
             return self.callback
-        try:
-            # nothing to proxy
-            return getattr(self, name)
-        except Exception:
-            logger.exception(
-                "Client does not have the expected attribute: %s", name
-            )
-            # unexpected, so...
-            raise
+
+        return getattr(self, name)
 
     def start(self):
         self.session.begin()
