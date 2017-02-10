@@ -13,7 +13,7 @@ class TestTopicSubscriber(object):
 
     @pytest.yield_fixture
     def publisher(self, router):
-        with Client() as client:
+        with Client(router=router) as client:
             yield client
 
     def test_subscribe_to_topics(self, router, publisher):

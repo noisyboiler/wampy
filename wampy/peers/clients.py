@@ -4,7 +4,6 @@ from uuid import uuid4
 
 
 from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
-from wampy.peers.routers import Crossbar as Router
 from wampy.session import session_builder
 from wampy.roles.callee import register_rpc, register_procedure
 from wampy.roles.caller import CallProxy, RpcProxy
@@ -20,8 +19,8 @@ class Client(object):
     """
 
     def __init__(
-            self, roles=DEFAULT_ROLES, realm=DEFAULT_REALM, router=Router(),
-            transport="ws", id=None
+            self, router, roles=DEFAULT_ROLES, realm=DEFAULT_REALM,
+            transport="ws", id=None,
     ):
         self.roles = roles
         self.realm = realm

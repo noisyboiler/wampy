@@ -41,19 +41,19 @@ class BinaryNumberService(Client):
 
 @pytest.yield_fixture
 def date_service(router):
-    with DateService():
+    with DateService(router=router):
         yield
 
 
 @pytest.yield_fixture
 def hello_service(router):
-    with HelloService():
+    with HelloService(router=router):
         yield
 
 
 @pytest.yield_fixture
 def binary_number_service(router):
-    with BinaryNumberService():
+    with BinaryNumberService(router=router):
         yield
 
 
@@ -89,7 +89,7 @@ def clients(client_instances):
 def make_service_clients(router, ids):
     clients = []
     for id_ in ids:
-        clients.append(Client(id=id_))
+        clients.append(Client(router=router, id=id_))
 
     return clients
 
@@ -99,7 +99,7 @@ def test_client_connects_to_router(router):
     class MyClient(Client):
         pass
 
-    client = MyClient()
+    client = MyClient(router=router)
 
     assert client.session.id is None
 
@@ -119,11 +119,11 @@ def test_can_start_two_clients(router):
     class MyClient(Client):
         pass
 
-    app_one = MyClient()
+    app_one = MyClient(router=router)
     app_one.start()
     assert app_one.session.id
 
-    app_two = MyClient()
+    app_two = MyClient(router=router)
     app_two.start()
     assert app_two.session.id
 
@@ -135,7 +135,7 @@ def test_can_start_two_clients(router):
 
 
 def test_call_with_no_args_or_kwargs(date_service, router):
-    client = Client()
+    client = Client(router=router)
     with client:
         response = client.rpc.get_todays_date()
 
@@ -145,7 +145,7 @@ def test_call_with_no_args_or_kwargs(date_service, router):
 
 
 def test_call_with_args_but_no_kwargs(hello_service, router):
-    caller = Client()
+    caller = Client(router=router)
     with caller:
         response = caller.rpc.say_hello("Simon")
 
@@ -153,7 +153,7 @@ def test_call_with_args_but_no_kwargs(hello_service, router):
 
 
 def test_call_with_no_args_but_a_default_kwarg(hello_service, router):
-    caller = Client()
+    caller = Client(router=router)
     with caller:
         response = caller.rpc.say_greeting("Simon")
 
@@ -161,7 +161,7 @@ def test_call_with_no_args_but_a_default_kwarg(hello_service, router):
 
 
 def test_call_with_no_args_but_a_kwarg(hello_service, router):
-    caller = Client()
+    caller = Client(router=router)
     with caller:
         response = caller.rpc.say_greeting("Simon", greeting="goodbye")
 

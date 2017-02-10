@@ -192,8 +192,8 @@ class WebSocket(object):
 
 class TLSWebSocket(WebSocket):
     def __init__(
-            self, host, port, websocket_location, ssl_version=None,
-            certificate="./wampy/testing/keys/server_cert.pem"
+            self, host, port, websocket_location, certificate,
+            ssl_version=None,
     ):
         self.host = host
         self.port = port
@@ -217,7 +217,7 @@ class TLSWebSocket(WebSocket):
             ssl_version=self.ssl_version,
             ciphers="ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:\
             DH+AES:ECDH+3DES:DH+3DES:RSA+AES:RSA+3DES:!ADH:!AECDH:!MD5:!DSS",
-            cert_reqs=ssl.CERT_OPTIONAL,
+            cert_reqs=ssl.CERT_REQUIRED,
             ca_certs=self.certificate,
         )
 

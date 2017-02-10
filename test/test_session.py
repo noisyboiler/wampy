@@ -3,11 +3,11 @@ from wampy.peers.clients import Client
 
 class TestSession:
 
-    def test_welcome_message(self, session_maker):
+    def test_welcome_message(self, session_maker, router):
         class MyClient(Client):
             pass
 
-        client = MyClient()
+        client = MyClient(router=router)
         session = session_maker(client=client)
         session._connect()
 

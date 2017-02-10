@@ -21,7 +21,8 @@ def session_builder(client, router, realm, transport="ws"):
             host=router.host, port=router.port, websocket_location="ws")
     elif transport == "wss":
         transport = TLSWebSocket(
-            host=router.host, port=router.port, websocket_location="ws")
+            host=router.host, port=router.port, websocket_location="ws",
+            certificate=router.certificate)
     else:
         raise WampError("transport not supported: {}".format(transport))
 

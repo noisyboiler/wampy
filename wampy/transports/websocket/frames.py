@@ -226,6 +226,7 @@ class ServerFrame(Frame):
         self.fin = bytes[0] >> 7
 
         if self.fin == 0:
+            logger.exception("Multiple Frames Returned: %s", bytes)
             raise WampyError(
                 'Multiple framed responses not yet supported: {}'.format(bytes)
             )
