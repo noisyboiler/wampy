@@ -17,12 +17,14 @@ logger = logging.getLogger('wampy.session')
 
 def session_builder(client, router, realm, transport="ws"):
     if transport == "ws":
-        transport = WebSocket(
-            host=router.host, port=router.port, websocket_location="ws")
-    elif transport == "wss":
-        transport = TLSWebSocket(
-            host=router.host, port=router.port, websocket_location="ws",
-            certificate=router.certificate)
+        use_tls = router.can_use_tls
+        if use_tls:
+            transport = TLSWebSocket(
+                host=router.host, port=router.port, websocket_location="ws",
+                certificate=router.certificate)
+        else:
+            transport = WebSocket(
+                host=router.host, port=router.port, websocket_location="ws")
     else:
         raise WampError("transport not supported: {}".format(transport))
 

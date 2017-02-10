@@ -120,7 +120,9 @@ Hopefully you'll see any message you send printed to the screen where the exampl
 TLS Support (alpha)
 ~~~~~~~~~~~~~~~~~~
 
-When you instantiate your Client, over-ride the default ``ws`` transport with "wss" and pass in a path to the server certificate, e.g.
+This feature is only experimental....
+
+When you instantiate your Router, pass in a path to the server certificate along with the host and port that it operates on, e.g.
 
 ::
 
@@ -128,18 +130,16 @@ When you instantiate your Client, over-ride the default ``ws`` transport with "w
 
     In [2]: from wampy.peers.routers import Crossbar
 
-    In [3]: router=Crossbar(
-                host="example.com", port=xxxx, certificate="path.to.certificate")
+    In [3]: router = Crossbar(
+                host="example.com", port=8080, certificate="path.to.certificate")
 
-    In [3]: client = Client(router=router, transport="wss")
+    In [4]: client = Client(router=router)
 
-Your certificates must also be configured in your Crossbar.io config. For an example see ``crossbar.config.tls.json`` in the `testing` namespace. Also see ``test.test_transports.py``.
+Your certificate must also be configured in your Crossbar.io config. For an example see ``crossbar.config.tls.json`` in the `testing` namespace. Also see ``test.test_transports.py``.
 
-There are many undocumented features of this project.
+There are many undocumented features of this project and lots of new features to add.... Remember, you can help!
 
-
-Thank you.
-
+If you like this, then Thank You.
 
 Testing
 ~~~~~~~

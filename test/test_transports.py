@@ -27,10 +27,10 @@ def test_connection(router):
 
 
 def test_secure_connection(tls_router):
-    service = DateService(router=tls_router, transport="wss")
+    service = DateService(router=tls_router, transport="ws")
     with service:
 
-        client = Client(router=tls_router, transport="wss")
+        client = Client(router=tls_router, transport="ws")
 
         with client:
             result = client.rpc.get_todays_date()
