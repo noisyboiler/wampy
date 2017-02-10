@@ -135,6 +135,13 @@ Your certificates must be configured in your Crossbar.io config. For an example 
 
 Thank you.
 
+
+Testing
+~~~~~~~
+
+wampy provides some ``pytest`` fixtures and helpers for you to run a crossbar server. These are ``router``, ``tls_router`` and ``session_maker``.
+
+
 Running the tests
 ~~~~~~~~~~~~~~~~~
 
@@ -142,13 +149,6 @@ Running the tests
 
     $ pip install --editable .[dev]
     $ py.test ./test -v
-
-wampy provides a Crossbar server pytest fixture that is started up and torn down betweem each test. You can use this in your own projects.
-
-Testing
-~~~~~~~
-
-wampy provides some pytest fixtures and helpers for you to run a crossbar server. These are `router`, `tls_router` and `session_maker`.
 
 
 Build the docs
