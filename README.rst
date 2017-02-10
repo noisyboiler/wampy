@@ -36,11 +36,14 @@ For the quickeststart I suggest that you use Crossbar.io and start it up on the 
 
     $ pip install --editable .[dev]
 
-    $ crossbar start --config ./test/crossbar.config.json
+    $ crossbar start --config ./wampy/testing/configs/crossbar.config.json
 
 By default a **wampy** ``WebClient`` connects to localhost on port 8080, but this is of course configurable, and is done so on client initialisation.
 
 Now open your preferred text editor and we'll write a few lies of Python constructing a simple WAMP service that takes a decimal number and returns the binary representation of it - fantastic stuff!
+
+Wampy RPC
+~~~~~~~~~
 
 ::
 
@@ -85,12 +88,68 @@ Note that the `Client` here is connecting to `localhost` and `8080`, but you cou
 
     In [2]: from wampy.peers.routers import Crossbar
 
-    In [2]: with Client(router=Crossbar()) as client:
+    In [3]: with Client(router=Crossbar()) as client:
                 result = client.rpc.get_binary_number(number=100)
 
-Please check out the full documentation at ReadTheDocs_ for more patterns.
+Publishing and Subscribing is equally as simple
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To demonstrate, first of all you need a Subscriber. You can either create one yourself in a python module or use the example client in `docs.examples.services`. Here we use the given example service, but all a Subscriber is is a wampy Client with a method decorated by ``subscribe``.
+
+Let's start up that example service.
+
+::
+    
+    $ wampy run docs.examples.services:SubscribingService --router http://localhost:8080
+
+Now we have a service running that subscribes to the topic "foo".
+
+In another terminal, with a wampy virtualenv, you can create a Publihser - which is no different to any other Client.
+
+::
+
+    In [1]: from wampy.peers.clients import Client
+
+    In [2]: from wampy.peers.routers import Crossbar
+
+    In [3]: with Client(router=Crossbar()) as client:
+                client.publish(topic="foo", message="spam")
+
+Hopefully you'll see any message you send printed to the screen where the example service is running. You'll also see the meta data that wampy chooses to send.
+
+TLS Support (alpha)
+~~~~~~~~~~~~~~~~~~
+
+When you instantiate your Client, over-ride the default ``ws`` transport with "wss", e.g.
+
+::
+
+    In [1]: from wampy.peers.clients import Client
+
+    In [2]: from wampy.peers.routers import Crossbar
+
+    In [3]: client = Client(router=Crossbar(), transport="wss")
+
+Your certificates must be configured in your Crossbar.io config. For an example see ``crossbar.config.tls.json`` in the `testing` namespace. Also see ``test.test_transports.py``.
+
 
 Thank you.
+
+
+Testing
+~~~~~~~
+
+wampy provides some ``pytest`` fixtures and helpers for you to run a crossbar server. These are ``router``, ``tls_router`` and ``session_maker``.
+
+
+Running the tests
+~~~~~~~~~~~~~~~~~
+
+::
+
+    $ pip install --editable .[dev]
+    $ py.test ./test -v
+
 
 Build the docs
 ~~~~~~~~~~~~~~

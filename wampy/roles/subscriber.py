@@ -63,7 +63,7 @@ class TopicSubscriber(object):
 
     def __init__(
             self, router, realm, topics, message_handler,
-            roles=None, transport="websocket",
+            roles=None, transport="ws",
     ):
         """ Subscribe to a single topic.
 
