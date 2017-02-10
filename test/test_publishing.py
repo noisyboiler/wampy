@@ -153,6 +153,10 @@ def test_subscribing_client_will_not_get_old_messages(router):
 
             def check_call_count():
                 logger.info("call count: %s", subscriber.call_count)
-                assert subscriber.call_count == 1
+                print(
+                    "call count: {}".format(subscriber.call_count)
+                )
+                assert subscriber.call_count == 5
 
+            print("check call count")
             assert_stops_raising(check_call_count)
