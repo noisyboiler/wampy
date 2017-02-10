@@ -94,7 +94,9 @@ Note that the `Client` here is connecting to `localhost` and `8080`, but you cou
 Publishing and Subscribing is equally as simple
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To demonstrate, first of all you need a Publisher. You can either create one yourself in a python module or use the example client in `docs.examples.services`. Here we use the given example service, but all a Publisher is is a standard wampy client - any wampy client can call `publish` and pass in the parameters `topic` and `message`.
+To demonstrate, first of all you need a Subscriber. You can either create one yourself in a python module or use the example client in `docs.examples.services`. Here we use the given example service, but all a Subscriber is is a wampy Client with a method decorated by ``subscribe``.
+
+Let's start up that example service.
 
 ::
     
@@ -114,6 +116,22 @@ In another terminal, with a wampy virtualenv, you can create a Publihser - which
                 client.publish(topic="foo", message="spam")
 
 Hopefully you'll see any message you send printed to the screen where the example service is running. You'll also see the meta data that wampy chooses to send.
+
+TLS Support (alpha)
+~~~~~~~~~~~~~~~~~~
+
+When you instantiate your Client, over-ride the default ``ws`` transport with "wss", e.g.
+
+::
+
+    In [1]: from wampy.peers.clients import Client
+
+    In [2]: from wampy.peers.routers import Crossbar
+
+    In [3]: client = Client(router=Crossbar(), transport="wss")
+
+Your certificates must be configured in your Crossbar.io config. For an example see ``crossbar.config.tls.json`` in the `testing` namespace. Also see ``test.test_transports.py``.
+
 
 Thank you.
 
