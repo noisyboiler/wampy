@@ -47,14 +47,15 @@ Wampy RPC
 
 ::
 
-    from wampy.peers.clients import Client
-    from wampy.roles import register_rpc
+    In [1]: from wampy.peers.clients import Client
 
-    class BinaryNumberService(Client):
+    In [2]: from wampy.roles import register_rpc
 
-        @register_rpc
-        def get_binary_number(self, number):
-            return bin(number)
+    In [3]: class BinaryNumberService(Client):
+
+                @register_rpc
+                def get_binary_number(self, number):
+                    return bin(number)
 
 Save this module somewhere on your Python path and we'll use a ``wampy`` command line interface tool to start the service.
 
@@ -62,23 +63,32 @@ Save this module somewhere on your Python path and we'll use a ``wampy`` command
 
     $ wampy run path.to.your.module.including.module_name:BinaryNumberService
 
-For example, running a ``wampy`` example application.
+For example, running one of the ``wampy`` example applications.
 
 ::
 
     $ wampy run docs.examples.services:DateService --router http://localhost:8080
 
+Okay, no need to write any code: execute this:
+
+::
+
+    $ wampy run docs.examples.services:BinaryNumberService --router http://localhost:8080
+
+
 Now, open a Python console in a new terminal, allowing the ``BinaryNumberService`` to run uninterupted in your original terminal (but once you're done with it ``Ctrl-C`` is required).
 
 ::
 
-    In [1]: from wampy.peers.clients import DefaultClient
+    In [1]: from wampy.peers.clients import Client
 
-    In [2]: with DefaultClient() as client:
+    In [2]: from wampy.peers.routers import Crossbar
+
+    In [3]: with Client(router=Crossbar()) as client:
                 result = client.rpc.get_binary_number(number=100)
 
-    In [3]: result
-    Out[3]: u'0b1100100'
+    In [4]: result
+    Out[4]: u'0b1100100'
 
 Note that the `Client` here is connecting to `localhost` and `8080`, but you could also have done:
 
@@ -91,10 +101,13 @@ Note that the `Client` here is connecting to `localhost` and `8080`, but you cou
     In [3]: with Client(router=Crossbar()) as client:
                 result = client.rpc.get_binary_number(number=100)
 
+
 Publishing and Subscribing is equally as simple
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To demonstrate, first of all you need a Subscriber. You can either create one yourself in a python module or use the example client in `docs.examples.services`. Here we use the given example service, but all a Subscriber is is a wampy Client with a method decorated by ``subscribe``.
+To demonstrate, first of all you need a ``Subscriber``. You can either create one yourself in a Python module (as a subclass of a wampy ``Client``, ready to run using ``wampy run....``) or use the example ``Client`` already for you in ``docs.examples.services``.
+
+Here we use the said example service, but all a Subscriber is is a wampy ``Client`` with a method decorated by ``subscribe``. Take a look and see for yourself in the ``examples``, assuming you're running Crossbar.io on your own machine.
 
 Let's start up that example service.
 
@@ -104,7 +117,7 @@ Let's start up that example service.
 
 Now we have a service running that subscribes to the topic "foo".
 
-In another terminal, with a wampy virtualenv, you can create a Publisher - which is no different to any other Client.
+In another terminal, with a wampy virtualenv, you can create a ``Publisher`` - which is no different to any other Client.
 
 ::
 
