@@ -135,6 +135,7 @@ def test_subscribing_client_will_not_get_old_messages(router):
 
         @subscribe(topic="foo")
         def foo_topic_handler(self, **kwargs):
+            logger.info("message: %s", kwargs)
             self.call_count += 1
 
     # don't start this client yet
@@ -142,8 +143,8 @@ def test_subscribing_client_will_not_get_old_messages(router):
 
     publisher = Client()
     with publisher:
-        publisher.publish(topic="foo", message="foobar")
-        publisher.publish(topic="foo", message="foobar")
+        publisher.publish(topic="foo", message="foo")
+        publisher.publish(topic="foo", message="bar")
         publisher.publish(topic="foo", message="spam")
         publisher.publish(topic="foo", message="ham")
 
@@ -157,10 +158,6 @@ def test_subscribing_client_will_not_get_old_messages(router):
 
             def check_call_count():
                 logger.info("call count: %s", subscriber.call_count)
-                print(
-                    "call count: {}".format(subscriber.call_count)
-                )
                 assert subscriber.call_count == 5
 
-            print("check call count")
             assert_stops_raising(check_call_count)
