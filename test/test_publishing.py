@@ -152,6 +152,7 @@ def test_subscribing_client_will_not_get_old_messages(router):
             publisher.publish(topic="foo", message="more ham")
 
             def check_call_count():
+                logger.info("call count: %s", subscriber.call_count)
                 assert subscriber.call_count == 1
 
             assert_stops_raising(check_call_count)
