@@ -40,21 +40,21 @@ class MetaClient(Client):
 
 @pytest.yield_fixture
 def meta_client(router):
-    client = MetaClient()
+    client = MetaClient(router=router)
     with client:
         yield client
 
 
 class TestMetaEvents:
 
-    def test_on_create(self, meta_client):
+    def test_on_create(self, meta_client, router):
 
         class FooClient(Client):
             @register_rpc
             def foo(self):
                 pass
 
-        callee = FooClient()
+        callee = FooClient(router=router)
 
         assert meta_client.on_create_call_count == 0
 
@@ -64,15 +64,15 @@ class TestMetaEvents:
 
             assert_stops_raising(check_call_count)
 
-    def test_on_register(self, meta_client):
+    def test_on_register(self, meta_client, router):
 
         class FooClient(Client):
             @register_rpc
             def foo(self):
                 pass
 
-        callee = FooClient()
-        caller = Client()
+        callee = FooClient(router=router)
+        caller = Client(router=router)
 
         with callee:
             with caller:
@@ -83,14 +83,14 @@ class TestMetaEvents:
 
             assert_stops_raising(check_call_count)
 
-    def test_on_unregister(self, meta_client):
+    def test_on_unregister(self, meta_client, router):
 
         class FooClient(Client):
             @register_rpc
             def foo(self):
                 pass
 
-        callee = FooClient()
+        callee = FooClient(router=router)
 
         assert meta_client.on_unregister_call_count == 0
 
@@ -106,7 +106,7 @@ class TestMetaEvents:
 class TestMetaProcedures:
 
     def test_get_registration_list(self, router):
-        client = Client()
+        client = Client(router=router)
         with client:
             registrations = client.get_registration_list()
             registered = registrations['exact']
@@ -117,14 +117,14 @@ class TestMetaProcedures:
                 def get_date(self):
                     return "2016-01-01"
 
-            service = DateService()
+            service = DateService(router=router)
             with service:
                 registrations = client.get_registration_list()
                 registered = registrations['exact']
                 assert len(registered) == 1
 
     def test_get_registration_lookup(self, router):
-        client = Client()
+        client = Client(router=router)
         with client:
             registration_id = client.get_registration_lookup(
                 procedure_name="spam")
@@ -135,7 +135,7 @@ class TestMetaProcedures:
                 def spam(self):
                     return "eggs and ham"
 
-            service = SpamService()
+            service = SpamService(router=router)
             with service:
                 registration_id = client.get_registration_lookup(
                     procedure_name="spam")
@@ -143,7 +143,7 @@ class TestMetaProcedures:
                 assert len(service.registration_map.values()) == 1
 
     def test_registration_not_found(self, router):
-        client = Client()
+        client = Client(router=router)
         with client:
             response_msg = client.get_registration(registration_id="spam")
 
@@ -162,10 +162,10 @@ class TestMetaProcedures:
             def spam(self):
                 return "eggs and ham"
 
-        service = SpamService()
+        service = SpamService(router=router)
         with service:
             registration_id = service.registration_map['spam']
-            with Client() as client:
+            with Client(router=router) as client:
                 info = client.get_registration(
                     registration_id=registration_id
                 )
@@ -181,7 +181,7 @@ class TestMetaProcedures:
         assert expected_info == info
 
     def test_registration_match_not_found(self, router):
-        client = Client()
+        client = Client(router=router)
         with client:
             matched_id = client.get_registration_match(
                 procedure_name="spam")
@@ -194,8 +194,8 @@ class TestMetaProcedures:
             def spam(self):
                 return "eggs and ham"
 
-        with SpamService() as service:
-            with Client() as client:
+        with SpamService(router=router) as service:
+            with Client(router=router) as client:
                 matched_id = client.get_registration_match(
                     procedure_name="spam")
 
@@ -217,14 +217,14 @@ class TestMetaProcedures:
             def bar(self):
                 return "bar"
 
-        with SpamService() as spam_service:
+        with SpamService(router=router) as spam_service:
             registration_id = spam_service.registration_map['spam']
 
             # these are new sessions but not part of the same registration
-            with FooService():
-                with BarService():
+            with FooService(router=router):
+                with BarService(router=router):
 
-                    with Client() as client:
+                    with Client(router=router) as client:
                         callees = client.list_callees(registration_id)
 
                         assert len(callees) == 1
@@ -236,8 +236,8 @@ class TestMetaProcedures:
             def spam(self):
                 return "spam"
 
-        with SpamService() as spam_service:
+        with SpamService(router=router) as spam_service:
             registration_id = spam_service.registration_map['spam']
-            with Client() as client:
+            with Client(router=router) as client:
                 count = client.count_callees(registration_id)
                 assert count == 1

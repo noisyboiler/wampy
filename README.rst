@@ -104,7 +104,7 @@ Let's start up that example service.
 
 Now we have a service running that subscribes to the topic "foo".
 
-In another terminal, with a wampy virtualenv, you can create a Publihser - which is no different to any other Client.
+In another terminal, with a wampy virtualenv, you can create a Publisher - which is no different to any other Client.
 
 ::
 
@@ -120,7 +120,9 @@ Hopefully you'll see any message you send printed to the screen where the exampl
 TLS Support (alpha)
 ~~~~~~~~~~~~~~~~~~
 
-When you instantiate your Client, over-ride the default ``ws`` transport with "wss", e.g.
+This feature is only experimental....
+
+When you instantiate your Router, pass in a path to the server certificate along with the host and port that it operates on, e.g.
 
 ::
 
@@ -128,13 +130,16 @@ When you instantiate your Client, over-ride the default ``ws`` transport with "w
 
     In [2]: from wampy.peers.routers import Crossbar
 
-    In [3]: client = Client(router=Crossbar(), transport="wss")
+    In [3]: router = Crossbar(
+                host="example.com", port=8080, certificate="path.to.certificate")
 
-Your certificates must be configured in your Crossbar.io config. For an example see ``crossbar.config.tls.json`` in the `testing` namespace. Also see ``test.test_transports.py``.
+    In [4]: client = Client(router=router)
 
+Your certificate must also be configured in your Crossbar.io config. For an example see ``crossbar.config.tls.json`` in the `testing` namespace. Also see ``test.test_transports.py``.
 
-Thank you.
+There are many undocumented features of this project and lots of new features to add.... Remember, you can help!
 
+If you like this, then Thank You.
 
 Testing
 ~~~~~~~

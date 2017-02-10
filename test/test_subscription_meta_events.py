@@ -35,7 +35,7 @@ class MetaClient(Client):
 
 @pytest.yield_fixture
 def publisher(router):
-    client = Client()
+    client = Client(router=router)
     client.start()
     client.publish(topic="foo", message="bar")
     yield client
@@ -44,21 +44,21 @@ def publisher(router):
 
 @pytest.yield_fixture
 def meta_subscriber(router):
-    client = MetaClient()
+    client = MetaClient(router=router)
     with client:
         yield client
 
 
 class TestMetaEvents:
 
-    def test_on_create(self, publisher, meta_subscriber):
+    def test_on_create(self, publisher, meta_subscriber, router):
 
         class FooClient(Client):
             @subscribe(topic="foo")
             def foo_handler(self, **kwargs):
                 pass
 
-        subscriber = FooClient()
+        subscriber = FooClient(router=router)
 
         assert meta_subscriber.on_create_call_count == 0
 
@@ -71,14 +71,14 @@ class TestMetaEvents:
 
             assert_stops_raising(check_call_count)
 
-    def test_on_subscribe(self, publisher, meta_subscriber):
+    def test_on_subscribe(self, publisher, meta_subscriber, router):
 
         class FooClient(Client):
             @subscribe(topic="foo")
             def foo_handler(self, **kwargs):
                 pass
 
-        subscriber = FooClient()
+        subscriber = FooClient(router=router)
 
         assert meta_subscriber.on_subscribe_call_count == 0
 
@@ -90,14 +90,14 @@ class TestMetaEvents:
 
             assert_stops_raising(check_call_count)
 
-    def test_on_unsubscribe(self, publisher, meta_subscriber):
+    def test_on_unsubscribe(self, publisher, meta_subscriber, router):
 
         class FooClient(Client):
             @subscribe(topic="foo")
             def foo_handler(self, **kwargs):
                 pass
 
-        subscriber = FooClient()
+        subscriber = FooClient(router=router)
 
         assert meta_subscriber.on_unsubscribe_call_count == 0
 
@@ -114,7 +114,7 @@ class TestMetaEvents:
 
 class TestMetaProcedures:
 
-    def test_subscription_list(self, publisher):
+    def test_subscription_list(self, publisher, router):
         class FooClient(Client):
             @subscribe(topic="foo")
             def foo_handler(self, **kwargs):
@@ -123,8 +123,8 @@ class TestMetaProcedures:
         # two clients are the same subscription ID in the router, and so
         # two subscribers to the same topic should give a subscription
         # list with a single item only
-        foo_subscriber = FooClient()
-        another_foo_subscriber = FooClient()
+        foo_subscriber = FooClient(router=router)
+        another_foo_subscriber = FooClient(router=router)
 
         assert len(foo_subscriber.subscription_map) == 0
         assert len(another_foo_subscriber.subscription_map) == 0
@@ -134,7 +134,7 @@ class TestMetaProcedures:
             def spam_handler(self, **kwargs):
                 pass
 
-        spam_subscriber = SpamClientClient()
+        spam_subscriber = SpamClientClient(router=router)
 
         with foo_subscriber:
             for foo_subscription_id, details in \
@@ -211,13 +211,13 @@ class TestMetaProcedures:
                 pass
 
         # two clients are the same subscription ID in the router....
-        foo_subscriber = FooClient()
-        another_foo_subscriber = FooClient()
+        foo_subscriber = FooClient(router=router)
+        another_foo_subscriber = FooClient(router=router)
 
         assert len(foo_subscriber.subscription_map) == 0
         assert len(another_foo_subscriber.subscription_map) == 0
 
-        just_a_client = Client()
+        just_a_client = Client(router=router)
 
         with foo_subscriber:
             with another_foo_subscriber:
@@ -253,7 +253,7 @@ class TestMetaProcedures:
             def foo_handler(self, **kwargs):
                 pass
 
-        foo_subscriber = FooClient()
+        foo_subscriber = FooClient(router=router)
 
         assert len(foo_subscriber.subscription_map) == 0
 
@@ -278,7 +278,7 @@ class TestMetaProcedures:
         class FooClient(Client):
             pass
 
-        client = FooClient()
+        client = FooClient(router=router)
         with client:
             subscription_id = client.get_subscription_lookup(topic="spam")
             assert subscription_id is None
@@ -289,8 +289,8 @@ class TestMetaProcedures:
             def foo_handler(self, **kwargs):
                 pass
 
-        foo_subscriber = FooClient()
-        just_a_client = Client()
+        foo_subscriber = FooClient(router=router)
+        just_a_client = Client(router=router)
 
         with foo_subscriber:
             with just_a_client:
@@ -319,10 +319,10 @@ class TestMetaProcedures:
             def foo_handler(self, **kwargs):
                 pass
 
-        foo_subscriber = FooClient()
-        another_foo_subscriber = FooClient()
+        foo_subscriber = FooClient(router=router)
+        another_foo_subscriber = FooClient(router=router)
 
-        just_a_client = Client()
+        just_a_client = Client(router=router)
 
         with foo_subscriber:
             with another_foo_subscriber:
@@ -347,10 +347,10 @@ class TestMetaProcedures:
             def foo_handler(self, **kwargs):
                 pass
 
-        foo_subscriber = FooClient()
-        another_foo_subscriber = FooClient()
+        foo_subscriber = FooClient(router=router)
+        another_foo_subscriber = FooClient(router=router)
 
-        just_a_client = Client()
+        just_a_client = Client(router=router)
 
         with foo_subscriber:
             with another_foo_subscriber:

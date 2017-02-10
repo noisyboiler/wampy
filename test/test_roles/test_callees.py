@@ -12,7 +12,7 @@ class TestRpcProxy(object):
 
     @pytest.yield_fixture
     def caller(self, router):
-        with Client() as client:
+        with Client(router=router) as client:
             yield client
 
     def test_proxy_multiple_callees(self, router, caller):
