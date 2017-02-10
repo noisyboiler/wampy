@@ -81,7 +81,6 @@ class WebSocket(object):
         headers.append("Sec-WebSocket-Protocol: {}".format(
             WEBSOCKET_SUBPROTOCOLS))
 
-        #logger.info(headers)
         return headers
 
     def _read_handshake_response(self):
@@ -209,7 +208,6 @@ class TLSWebSocket(WebSocket):
 
     def _connect(self):
         _socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        #_socket.settimeout(10)
         _socket.setsockopt(ssl.SOL_SOCKET, socket.SO_RCVBUF, self.buffersize)
         _socket.setsockopt(ssl.SOL_SOCKET, socket.SO_SNDBUF, self.buffersize)
 
@@ -217,7 +215,8 @@ class TLSWebSocket(WebSocket):
         _socket = ssl.wrap_socket(
             _socket,
             ssl_version=self.ssl_version,
-            ciphers="ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AES:RSA+3DES:!ADH:!AECDH:!MD5:!DSS",
+            ciphers="ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:\
+            DH+AES:ECDH+3DES:DH+3DES:RSA+AES:RSA+3DES:!ADH:!AECDH:!MD5:!DSS",
             cert_reqs=ssl.CERT_OPTIONAL,
             ca_certs=self.certificate,
         )
@@ -251,4 +250,3 @@ class TLSWebSocket(WebSocket):
                 break
 
         return received_bytes
-
