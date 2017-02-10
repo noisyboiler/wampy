@@ -1,3 +1,4 @@
+import logging
 import pytest
 from mock import ANY
 
@@ -6,6 +7,9 @@ from wampy.roles.subscriber import subscribe
 from wampy.errors import WampyError
 
 from test.helpers import assert_stops_raising
+
+
+logger = logging.getLogger('wampy.testing')
 
 
 class SubscribingClient(Client):
