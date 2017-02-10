@@ -1,5 +1,6 @@
 import logging
 import socket
+import ssl
 import uuid
 from base64 import encodestring
 from socket import error as socket_error
@@ -21,6 +22,7 @@ class WebSocket(object):
     def __init__(self, host, port, websocket_location="ws"):
         self.host = host
         self.port = port
+        self.protocol = "ws"
         self.websocket_location = websocket_location.lstrip('/')
         self.key = encodestring(uuid.uuid4().bytes).decode('utf-8').strip()
         self.socket = None
@@ -75,11 +77,12 @@ class WebSocket(object):
         # proxy from re-sending a previous WebSocket conversation and does not
         # provide any authentication, privacy or integrity
         headers.append("Sec-WebSocket-Key: {}".format(self.key))
-        headers.append("Origin: http://{}".format(self.host))
+        headers.append("Origin: wss://{}".format(self.host))
         headers.append("Sec-WebSocket-Version: {}".format(WEBSOCKET_VERSION))
         headers.append("Sec-WebSocket-Protocol: {}".format(
             WEBSOCKET_SUBPROTOCOLS))
 
+        #logger.info(headers)
         return headers
 
     def _read_handshake_response(self):
@@ -187,3 +190,99 @@ class WebSocket(object):
     def send_websocket_frame(self, message):
         frame = ClientFrame(message)
         self.socket.sendall(frame.payload)
+
+
+class TLSWebSocket(WebSocket):
+    def __init__(
+            self, host, port, websocket_location, ssl_version=None,
+            certificate="./wampy/testing/keys/server_cert.pem"
+    ):
+        self.host = host
+        self.port = port
+        self.protocol = "wss"
+        self.websocket_location = websocket_location.lstrip('/')
+        self.ssl_version = ssl_version or ssl.PROTOCOL_TLSv1_2
+        self.key = encodestring(uuid.uuid4().bytes).decode('utf-8').strip()
+        self.certificate = certificate
+
+        self.buffersize = 1
+        self.socket = None
+        logger.info("websocket location: %s", websocket_location)
+
+    def _connect(self):
+        _socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        #_socket.settimeout(10)
+        _socket.setsockopt(ssl.SOL_SOCKET, socket.SO_RCVBUF, self.buffersize)
+        _socket.setsockopt(ssl.SOL_SOCKET, socket.SO_SNDBUF, self.buffersize)
+
+        logger.debug("wrapping socker in TLS")
+        _socket = ssl.wrap_socket(
+            _socket,
+            ssl_version=self.ssl_version,
+            ciphers="ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AES:RSA+3DES:!ADH:!AECDH:!MD5:!DSS",
+            cert_reqs=ssl.CERT_OPTIONAL,
+            ca_certs=self.certificate,
+        )
+
+        try:
+            logger.debug("connectiing")
+            _socket.connect((self.host, self.port))
+        except socket_error as exc:
+            if exc.errno == 61:
+                logger.error(
+                    'unable to connect to %s:%s', self.host, self.port
+                )
+
+            raise
+
+        self.socket = _socket
+
+    def _recv_handshake_response_by_line(self):
+        received_bytes = bytearray()
+        while True:
+            bytes = self.socket.recv(self.buffersize)
+
+            if not bytes:
+                break
+
+            received_bytes.append(bytes)
+
+            if bytes == "\n" or bytes == "\r\n":
+                # a complete line has been received
+                break
+
+        return received_bytes
+
+    def read_websocket_frame(self):
+        logger.debug('read a WebSocket frame')
+        frame = None
+        received_bytes = bytearray()
+
+        while True:
+            try:
+                bytes = self.socket.recv()
+            except greenlet.GreenletExit as exc:
+                raise ConnectionError('Connection closed: "{}"'.format(exc))
+            except socket.timeout as e:
+                message = str(e)
+                raise ConnectionError('timeout: "{}"'.format(message))
+            except Exception as exc:
+                raise ConnectionError('error: "{}"'.format(exc))
+
+            if not bytes:
+                break
+
+            received_bytes.extend(bytes)
+
+            try:
+                frame = ServerFrame(received_bytes)
+            except IncompleteFrameError as exc:
+                # this is totallt expecteda and we let it silently pass
+                pass
+            else:
+                break
+
+        if frame is None:
+            raise WampProtocolError("No frame returned")
+        logger.debug('return complete Frame')
+        return frame

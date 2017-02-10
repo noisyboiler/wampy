@@ -7,7 +7,7 @@ from wampy.messages import Message
 from wampy.messages.handlers.default import DefaultMessageHandler
 from wampy.messages.hello import Hello
 from wampy.messages.goodbye import Goodbye
-from wampy.transports.websocket.connection import WebSocket
+from wampy.transports.websocket.connection import WebSocket, TLSWebSocket
 
 from wampy.messages import MESSAGE_TYPE_MAP
 
@@ -20,8 +20,8 @@ def session_builder(client, router, realm, transport="ws"):
         transport = WebSocket(
             host=router.host, port=router.port, websocket_location="ws")
     elif transport == "wss":
-        transport = WebSocket(
-            host=router.host, port=router.port, websocket_location="wss")
+        transport = TLSWebSocket(
+            host=router.host, port=router.port, websocket_location="ws")
     else:
         raise WampError("transport not supported: {}".format(transport))
 
