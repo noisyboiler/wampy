@@ -22,7 +22,6 @@ class WebSocket(object):
     def __init__(self, host, port, websocket_location="ws"):
         self.host = host
         self.port = port
-        self.protocol = "ws"
         self.websocket_location = websocket_location.lstrip('/')
         self.key = encodestring(uuid.uuid4().bytes).decode('utf-8').strip()
         self.socket = None
@@ -199,7 +198,6 @@ class TLSWebSocket(WebSocket):
     ):
         self.host = host
         self.port = port
-        self.protocol = "wss"
         self.websocket_location = websocket_location.lstrip('/')
         self.ssl_version = ssl_version or ssl.PROTOCOL_TLSv1_2
         self.key = encodestring(uuid.uuid4().bytes).decode('utf-8').strip()
@@ -239,8 +237,9 @@ class TLSWebSocket(WebSocket):
 
     def _recv_handshake_response_by_line(self):
         received_bytes = bytearray()
+
         while True:
-            bytes = self.socket.recv(self.buffersize)
+            bytes = self.socket.recv(1)
 
             if not bytes:
                 break
@@ -253,36 +252,3 @@ class TLSWebSocket(WebSocket):
 
         return received_bytes
 
-    def read_websocket_frame(self):
-        logger.debug('read a WebSocket frame')
-        frame = None
-        received_bytes = bytearray()
-
-        while True:
-            try:
-                bytes = self.socket.recv()
-            except greenlet.GreenletExit as exc:
-                raise ConnectionError('Connection closed: "{}"'.format(exc))
-            except socket.timeout as e:
-                message = str(e)
-                raise ConnectionError('timeout: "{}"'.format(message))
-            except Exception as exc:
-                raise ConnectionError('error: "{}"'.format(exc))
-
-            if not bytes:
-                break
-
-            received_bytes.extend(bytes)
-
-            try:
-                frame = ServerFrame(received_bytes)
-            except IncompleteFrameError as exc:
-                # this is totallt expecteda and we let it silently pass
-                pass
-            else:
-                break
-
-        if frame is None:
-            raise WampProtocolError("No frame returned")
-        logger.debug('return complete Frame')
-        return frame
