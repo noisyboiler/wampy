@@ -9,7 +9,7 @@ import os
 import sys
 from urlparse import urlparse
 
-from wampy.peers.routers import Router
+from wampy.peers.routers import Crossbar
 
 
 class CommandError(Exception):
@@ -65,7 +65,7 @@ def run(app, host, port):
     app_class = getattr(mod, app_name)
 
     # TODO: realm and roles should be passed in too
-    router = Router(host=host, port=port)
+    router = Crossbar(host=host, port=port)
     app = app_class(router=router)
 
     runner = AppRunner()

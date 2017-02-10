@@ -40,3 +40,10 @@ class SubscribingService(Client):
     @subscribe(topic="foo")
     def foo_handler(self, **kwargs):
         print("foo message received: {}".format(kwargs))
+
+
+class BinaryNumberService(Client):
+
+    @register_rpc
+    def get_binary_number(self, number):
+        return bin(number)
