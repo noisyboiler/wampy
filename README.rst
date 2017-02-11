@@ -38,7 +38,7 @@ For the quickeststart I suggest that you use Crossbar.io and start it up on the 
 
     $ crossbar start --config ./wampy/testing/configs/crossbar.config.json
 
-By default a **wampy** ``WebClient`` connects to localhost on port 8080, but this is of course configurable, and is done so on client initialisation.
+By default a **wampy** ``Client`` connects to localhost on port 8080, but this is of course configurable, and is done so on client initialisation.
 
 Now open your preferred text editor and we'll write a few lies of Python constructing a simple WAMP service that takes a decimal number and returns the binary representation of it - fantastic stuff!
 
