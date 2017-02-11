@@ -8,7 +8,9 @@ wampy
 .. image:: https://travis-ci.org/noisyboiler/wampy.svg?branch=master
     :target: https://travis-ci.org/noisyboiler/wampy
 
-With **wampy** you can quickly and easily create your own WAMP clients, whether this is in a web app, a microservice, a script or just in a Python shell.
+With **wampy** you can quickly and easily create your own **WAMP** clients, whether this is in a web app, a microservice, a script or just in a Python shell.
+
+**Wampy** tries to provide an intuitive API for your **WAMP** messaging.
 
 WAMP
 ----
@@ -17,20 +19,18 @@ The `WAMP Protocol`_ is a powerful tool for your web applications and microservi
 
 **WAMP** facilitates communication between independent applications over a common "router". An actor in this process is called a **Peer**, and a **Peer** is either a **Client** or the **Router**.
 
-**WAMP** messaging occurs between **Clients** over the **Router** via **Remote Procedure Call (RPC)** or the **Publish/Subscribe** pattern. As long as your **Client** knows how to connect to a **Router** it does not then need to know anything further about other connected **Peers** beyond a shared string name for an endpoint or topic, i.e. it does not care where another **Client** application is, how many of them there might be, how they might be written or how to identify them. This is more simple than other messaging protocols, such as AMQP for example, where you also need to consider exchanges and queues in order to explicitly connect to other actors from your applications.
+**WAMP** messaging occurs between **Clients** over the **Router** via **Remote Procedure Call (RPC)** or the **Publish/Subscribe** pattern. As long as your **Client** knows how to connect to a **Router** it does not then need to know anything further about other connected **Peers** beyond a shared string name for an endpoint or **Topic**, i.e. it does not care where another **Client** application is, how many of them there might be, how they might be written or how to identify them. This is more simple than other messaging protocols, such as AMQP for example, where you also need to consider exchanges and queues in order to explicitly connect to other actors from your applications.
 
 **WAMP** is most commonly a WebSocket subprotocol (runs on top of WebSocket) that uses JSON as message serialization format. However, the protocol can also run with MsgPack as serialization, run over raw TCP or in fact any message based, bidirectional, reliable transport - but **wampy** (currently) runs over websockets only.
-
-At a high level **WAMP** is a very simple and powerful protocol which will allow you to use buzz words like "real time", "de-coupled" and "scaleable" in no time at all. At a lower level you can quickly get bogged down in the complexities of the transports - but hey, that's what **wampy** is here to abstract away from you! **wampy** tries to provide an intuitive API for your **WAMP** messaging.
 
 For further reading please see some of the popular blog posts on WAMP such as http://tavendo.com/blog/post/is-crossbar-the-future-of-python-web-apps/.
 
 Quickstart: wampy from the command line
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Before any messaging can happen you do need that **Router** I mentioned. Messages are then routed between **Clients** over an administritive domain on the **Router** called a **Realm**.
+Before any messaging can happen you do need that **Router** I mentioned. Messages are then routed between **Clients** over an administrative domain on the **Router** called a **Realm**.
 
-For the quickest start I suggest that you use **Crossbar.io** and start it up on the default **host** and **port** with the default **realm** and **roles**. See the `Crossbar.io docs`_ for the instructions of this or alternatively run with **wampy's** testing setup:
+For the quickest of starts I suggest that you use **Crossbar.io** and start it up on the default host and port, and with the default **realm** and **roles**. See the `Crossbar.io docs`_ for the instructions on this or alternatively run with **wampy's** testing setup.
 
 ::
 
@@ -38,18 +38,16 @@ For the quickest start I suggest that you use **Crossbar.io** and start it up on
 
     $ crossbar start --config ./wampy/testing/configs/crossbar.config.json
 
-By default a **wampy** ``Client`` connects to localhost on port 8080, but this is of course configurable, and is done so on client initialisation.
-
-Now open your preferred text editor and we'll write a few lies of Python constructing a simple WAMP service that takes a decimal number and returns the binary representation of it - fantastic stuff!
+By default a **wampy** client connects to localhost on port 8080, but this is of course configurable, and is done so on client initialisation.
 
 The Wampy Client
 ~~~~~~~~~~~~~~~~
 
 **Wampy** was originally written to provide a simple client to send a WAMP message.
 
-When the client starts up it will send the HELLO message for you and start a Session. Once you have the session you can send a WAMP message. Under the hood wampy hides this through the `publish` and `rpc` APIs, but if you wanted to do it yourself, her's an example how.
+When the client starts up it will send the **HELLO** message for you and start a **Session**. Once you have the **Session** you can send a **WAMP** message yourself. Under the hood **wampy** hides this through the ``publish`` and ``rpc`` APIs, but if you wanted to do it yourself, here's an example how to.
 
-Given a Crossbar.io servier running on localhost on port 8080, a realm of "realm1", and a remote procedure "foobar", send a CALL message with *wampy* as follows:
+Given a **Crossbar.io** server running on localhost on port 8080, a **realm** of "realm1", and a remote procedure "foobar", send a **CALL** message with **wampy** as follows:
 
 ::
 
@@ -68,12 +66,22 @@ Given a Crossbar.io servier running on localhost on port 8080, a realm of "realm
     In [7]: with client:
                 client.send_message(message)
 
-Of course, without another Peer having registered "foobar" on the same realm, this will achieve nothing. In this example, as you leave the context managed function call, the client will send a GOODBYE message and your Session will be over.
+This is quite verbose an unnecessary with the core **wampy** API. With **wampy** you don't actually have to manually craft any messages.
 
-With **wampy** you won't actually have to manually craft any messages - just use the APIs. And with these APIs you can do things like create microservices!
+And of course, without another **Peer** having registered "foobar" on the same **realm**, this example will achieve little.
+
+In the example, as you leave the context managed function call, the client will send a **GOODBYE** message and your **Session** will end.
+
+The above can essentially be replaced with:
+
+::
+
+    In [X]: client.rpc.foobar(*args, **kwargs)
 
 Wampy RPC
 ~~~~~~~~~
+
+Now open your preferred text editor and we'll write a few lines of Python constructing a simple **WAMP** service that takes a decimal number and returns the binary representation of it - wowzers!
 
 ::
 
@@ -123,9 +131,9 @@ Now, open a Python console in a new terminal, allowing the ``BinaryNumberService
 Publishing and Subscribing is equally as simple
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To demonstrate, first of all you need a ``Subscriber``. You can either create one yourself in a Python module (as a subclass of a **wampy** ``Client``, ready to run using ``wampy run....``) or use the example ``Client`` already for you in ``docs.examples.services``.
+To demonstrate, first of all you need a **Subscriber**. You can either create one yourself in a Python module (as a subclass of a **wampy** ``Client``, ready to run using ``wampy run....``) or use the example ``Client`` already for you in ``docs.examples.services``.
 
-Here we use the said example service, but all a Subscriber is is a **wampy** ``Client`` with a method decorated by ``subscribe``. Take a look and see for yourself in the ``examples``, assuming you're running Crossbar.io on your own machine.
+Here we use the said example service, but all a **Subscriber** is is a **wampy** ``Client`` with a method decorated by ``subscribe``. Take a look and see for yourself in the examples.
 
 Let's start up that example service.
 
@@ -135,7 +143,7 @@ Let's start up that example service.
 
 Now we have a service running that subscribes to the topic "foo".
 
-In another terminal, with a wampy virtualenv, you can create a ``Publisher`` - which is no different to any other Client.
+In another terminal, with a **wampy** virtualenv, you can create a **Publisher** - which is no different to any other **wampy** Client.
 
 ::
 
@@ -167,7 +175,7 @@ When you instantiate your Router, pass in a path to the server certificate along
 
     In [4]: client = Client(router=router)
 
-Your certificate must also be configured in your Crossbar.io config. For an example see ``crossbar.config.tls.json`` in the `testing` namespace. Also see ``test.test_transports.py``.
+Your certificate must also be configured in your **Crossbar.io** config. For an example see ``crossbar.config.tls.json`` in the *testing* namespace. Also see ``test.test_transports.py``.
 
 There are many undocumented features of this project and lots of new features to add.... Remember, you can help!
 
