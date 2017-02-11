@@ -133,7 +133,7 @@ Publishing and Subscribing is equally as simple
 
 To demonstrate, first of all you need a **Subscriber**. You can either create one yourself in a Python module (as a subclass of a **wampy** ``Client``, ready to run using ``wampy run....``) or use the example ``Client`` already for you in ``docs.examples.services``.
 
-Here we use the said example service, but all a **Subscriber** is is a **wampy** ``Client`` with a method decorated by ``subscribe``. Take a look and see for yourself in the examples.
+Here we use the said example service, but all a **Subscriber** is is a **wampy** ``Client`` with a method decorated by ``subscribe``. Take a look and see for yourself in the examples_.
 
 Let's start up that example service.
 
@@ -207,3 +207,5 @@ If you like this project, then Thank You, and you're welcome to get involved.
 .. _Crossbar.io docs: http://crossbar.io/docs/Quick-Start/
 .. _ReadTheDocs: http://wampy.readthedocs.io/en/latest/
 .. _WAMP Protocol: http://wamp-proto.org/
+.. _examples: https://github.com/noisyboiler/wampy/blob/master/docs/examples/services.py#L26
+
