@@ -28,9 +28,9 @@ For further reading please see some of the popular blog posts on WAMP such as ht
 Quickstart: wampy from the command line
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Before any messaging can happen you do need that **Router** I mentioned. Messages are then routed between **Clients** over an administritive domain on the Router called a **Realm**.
+Before any messaging can happen you do need that **Router** I mentioned. Messages are then routed between **Clients** over an administritive domain on the **Router** called a **Realm**.
 
-For the quickeststart I suggest that you use Crossbar.io and start it up on the default **host** and **port** with the default **realm** and **roles**. See the `Crossbar.io docs`_ for the instructions of this or alternatively run with wampy's testing setup:
+For the quickest start I suggest that you use **Crossbar.io** and start it up on the default **host** and **port** with the default **realm** and **roles**. See the `Crossbar.io docs`_ for the instructions of this or alternatively run with **wampy's** testing setup:
 
 ::
 
@@ -45,9 +45,9 @@ Now open your preferred text editor and we'll write a few lies of Python constru
 The Wampy Client
 ~~~~~~~~~~~~~~~~
 
-Wampy was written first of all to provide a simple client to send a WAMP message.
+**Wampy** was originally written to provide a simple client to send a WAMP message.
 
-WHen the client starts up it will send the HELLO message for you and start a Session. Once you have the session you can send a WAMP message. Under the hood wampy hides this through the `publish` and `rpc` APIs, but if you wanted to do it yourself, her's an example how.
+When the client starts up it will send the HELLO message for you and start a Session. Once you have the session you can send a WAMP message. Under the hood wampy hides this through the `publish` and `rpc` APIs, but if you wanted to do it yourself, her's an example how.
 
 Given a Crossbar.io servier running on localhost on port 8080, a realm of "realm1", and a remote procedure "foobar", send a CALL message with *wampy* as follows:
 
@@ -70,7 +70,7 @@ Given a Crossbar.io servier running on localhost on port 8080, a realm of "realm
 
 Of course, without another Client having Registered "foobar" on the same realm, this will achieve nothing. In this example, as you leave the context managed function call, the client will send a GOODBYE message and your Session will be over.
 
-And with wampy you won't actually have to manually craft any messages - just use the APIs.
+With **wampy** you won't actually have to manually craft any messages - just use the APIs. And with these APIs you can do things like create microservices!
 
 Wampy RPC
 ~~~~~~~~~
@@ -87,13 +87,13 @@ Wampy RPC
                 def get_binary_number(self, number):
                     return bin(number)
 
-Save this module somewhere on your Python path and we'll use a ``wampy`` command line interface tool to start the service.
+Save this module somewhere on your Python path and we'll use a **wampy** command line interface tool to start the service.
 
 ::
 
     $ wampy run path.to.your.module.including.module_name:BinaryNumberService
 
-For example, running one of the ``wampy`` example applications.
+For example, running one of the **wampy** example applications.
 
 ::
 
@@ -123,9 +123,9 @@ Now, open a Python console in a new terminal, allowing the ``BinaryNumberService
 Publishing and Subscribing is equally as simple
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To demonstrate, first of all you need a ``Subscriber``. You can either create one yourself in a Python module (as a subclass of a wampy ``Client``, ready to run using ``wampy run....``) or use the example ``Client`` already for you in ``docs.examples.services``.
+To demonstrate, first of all you need a ``Subscriber``. You can either create one yourself in a Python module (as a subclass of a **wampy** ``Client``, ready to run using ``wampy run....``) or use the example ``Client`` already for you in ``docs.examples.services``.
 
-Here we use the said example service, but all a Subscriber is is a wampy ``Client`` with a method decorated by ``subscribe``. Take a look and see for yourself in the ``examples``, assuming you're running Crossbar.io on your own machine.
+Here we use the said example service, but all a Subscriber is is a **wampy** ``Client`` with a method decorated by ``subscribe``. Take a look and see for yourself in the ``examples``, assuming you're running Crossbar.io on your own machine.
 
 Let's start up that example service.
 
@@ -147,7 +147,7 @@ In another terminal, with a wampy virtualenv, you can create a ``Publisher`` - w
                 result = client.publish(topic="foo", message="spam"
             )
 
-Hopefully you'll see any message you send printed to the screen where the example service is running. You'll also see the meta data that wampy chooses to send.
+Hopefully you'll see any message you send printed to the screen where the example service is running. You'll also see the meta data that **wampy** chooses to send.
 
 TLS Support (alpha)
 ~~~~~~~~~~~~~~~~~~~
@@ -174,7 +174,7 @@ There are many undocumented features of this project and lots of new features to
 Testing
 ~~~~~~~
 
-wampy provides some ``pytest`` fixtures and helpers for you to run a crossbar server. These are ``router``, ``tls_router`` and ``session_maker``.
+**wampy** provides some ``pytest`` fixtures and helpers for you to run a crossbar server. These are ``router``, ``tls_router`` and ``session_maker``.
 
 
 Running the tests
