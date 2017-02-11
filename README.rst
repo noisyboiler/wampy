@@ -68,7 +68,7 @@ Given a Crossbar.io servier running on localhost on port 8080, a realm of "realm
     In [7]: with client:
                 client.send_message(message)
 
-Of course, without another Client having Registered "foobar" on the same realm, this will achieve nothing. In this example, as you leave the context managed function call, the client will send a GOODBYE message and your Session will be over.
+Of course, without another Peer having registered "foobar" on the same realm, this will achieve nothing. In this example, as you leave the context managed function call, the client will send a GOODBYE message and your Session will be over.
 
 With **wampy** you won't actually have to manually craft any messages - just use the APIs. And with these APIs you can do things like create microservices!
 
