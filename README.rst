@@ -42,6 +42,36 @@ By default a **wampy** ``WebClient`` connects to localhost on port 8080, but thi
 
 Now open your preferred text editor and we'll write a few lies of Python constructing a simple WAMP service that takes a decimal number and returns the binary representation of it - fantastic stuff!
 
+The Wampy Client
+~~~~~~~~~~~~~~~~
+
+Wampy was written first of all to provide a simple client to send a WAMP message.
+
+WHen the client starts up it will send the HELLO message for you and start a Session. Once you have the session you can send a WAMP message. Under the hood wampy hides this through the `publish` and `rpc` APIs, but if you wanted to do it yourself, her's an example how.
+
+Given a Crossbar.io servier running on localhost on port 8080, a realm of "realm1", and a remote procedure "foobar", send a CALL message with *wampy* as follows:
+
+::
+
+    In [1]: from wampy.peers.clients import Client
+
+    In [2]: from wampy.peers.routers import Crossbar
+
+    In [3]: from wampy.messages.call import Call
+
+    In [4]: router = Crossbar(host="localhost", port=8080)
+
+    In [5]: client = Client(router=router)
+
+    In [6]: message = Call(procedure="foobar", args=(), kwargs={})
+
+    In [7]: with client:
+                client.send_message(message)
+
+Of course, without another Client having Registered "foobar" on the same realm, this will achieve nothing. In this example, as you leave the context managed function call, the client will send a GOODBYE message and your Session will be over.
+
+And with wampy you won't actually have to manually craft any messages - just use the APIs.
+
 Wampy RPC
 ~~~~~~~~~
 
@@ -120,7 +150,7 @@ In another terminal, with a wampy virtualenv, you can create a ``Publisher`` - w
 Hopefully you'll see any message you send printed to the screen where the example service is running. You'll also see the meta data that wampy chooses to send.
 
 TLS Support (alpha)
-~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 
 This feature is only experimental....
 
@@ -140,8 +170,6 @@ When you instantiate your Router, pass in a path to the server certificate along
 Your certificate must also be configured in your Crossbar.io config. For an example see ``crossbar.config.tls.json`` in the `testing` namespace. Also see ``test.test_transports.py``.
 
 There are many undocumented features of this project and lots of new features to add.... Remember, you can help!
-
-If you like this, then Thank You.
 
 Testing
 ~~~~~~~
@@ -165,6 +193,8 @@ Build the docs
 
     $ pip install -r docs_requirements.txt
     $ sphinx-build -E -b html ./docs/ ./docs/_build/
+
+If you like this project, then Thank You, and you're welcome to get involved.
 
 .. _Crossbar.io docs: http://crossbar.io/docs/Quick-Start/
 .. _ReadTheDocs: http://wampy.readthedocs.io/en/latest/

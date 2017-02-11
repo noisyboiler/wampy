@@ -63,6 +63,13 @@ class Client(object):
     def send_message(self, message):
         self.session.send_message(message)
 
+    def recv_message(self):
+        return self.session.recv_message()
+
+    def send_message_and_wait_for_response(self, message):
+        self.session.send_message(message)
+        return self.session.recv_message()
+
     def register_roles(self):
         logger.info("registering roles for: %s", self.__class__.__name__)
 
@@ -87,10 +94,6 @@ class Client(object):
                 topic = maybe_role.topic
                 handler = maybe_role.handler
                 subscribe_to_topic(self.session, topic, handler)
-
-    def send_message_and_wait_for_response(self, message):
-        self.session.send_message(message)
-        return self.session.recv_message()
 
     @property
     def call(self):
