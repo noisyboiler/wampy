@@ -101,6 +101,9 @@ Note that the `Client` here is connecting to `localhost` and `8080`, but you cou
     In [3]: with Client(router=Crossbar()) as client:
                 result = client.rpc.get_binary_number(number=100)
 
+    In [4]: result
+    Out[4]: u'0b1100100'
+
 
 Publishing and Subscribing is equally as simple
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -126,7 +129,8 @@ In another terminal, with a wampy virtualenv, you can create a ``Publisher`` - w
     In [2]: from wampy.peers.routers import Crossbar
 
     In [3]: with Client(router=Crossbar()) as client:
-                client.publish(topic="foo", message="spam")
+                result = client.publish(topic="foo", message="spam"
+            )
 
 Hopefully you'll see any message you send printed to the screen where the example service is running. You'll also see the meta data that wampy chooses to send.
 
@@ -144,7 +148,7 @@ When you instantiate your Router, pass in a path to the server certificate along
     In [2]: from wampy.peers.routers import Crossbar
 
     In [3]: router = Crossbar(
-                host="example.com", port=8080, certificate="path.to.certificate")
+                host="localhost", port=8080, certificate="path.to.certificate")
 
     In [4]: client = Client(router=router)
 
