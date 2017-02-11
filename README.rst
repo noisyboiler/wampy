@@ -90,21 +90,6 @@ Now, open a Python console in a new terminal, allowing the ``BinaryNumberService
     In [4]: result
     Out[4]: u'0b1100100'
 
-Note that the `Client` here is connecting to `localhost` and `8080`, but you could also have done:
-
-::
-
-    In [1]: from wampy.peers.clients import Client
-
-    In [2]: from wampy.peers.routers import Crossbar
-
-    In [3]: with Client(router=Crossbar()) as client:
-                result = client.rpc.get_binary_number(number=100)
-
-    In [4]: result
-    Out[4]: u'0b1100100'
-
-
 Publishing and Subscribing is equally as simple
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
