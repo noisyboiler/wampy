@@ -10,7 +10,7 @@ wampy
 
 With **wampy** you can quickly and easily create your own **WAMP** clients, whether this is in a web app, a microservice, a script or just in a Python shell.
 
-**Wampy** tries to provide an intuitive API for your **WAMP** messaging.
+**wampy** tries to provide an intuitive API for your **WAMP** messaging.
 
 WAMP
 ----
@@ -40,12 +40,14 @@ For the quickest of starts I suggest that you use **Crossbar.io** and start it u
 
 By default a **wampy** client connects to localhost on port 8080, but this is of course configurable, and is done so on client initialisation.
 
-The Wampy Client
+The wampy Client
 ~~~~~~~~~~~~~~~~
 
-**Wampy** was originally written to provide a simple client to send a WAMP message.
+**wampy** was originally written to provide a simple client to send a WAMP message.
 
-When the client starts up it will send the **HELLO** message for you and start a **Session**. Once you have the **Session** you can send a **WAMP** message yourself. Under the hood **wampy** hides this through the ``publish`` and ``rpc`` APIs, but if you wanted to do it yourself, here's an example how to.
+When a **wampy** client starts up it will send the **HELLO** message for you and begin a **Session**. Once you have the **Session** you can construct and send a **WAMP** message yourself, if you so choose. But **wampy** has the ``publish`` and ``rpc`` APIs so you don't have to.
+
+But if you did want to do it yourself, here's an example how to...
 
 Given a **Crossbar.io** server running on localhost on port 8080, a **realm** of "realm1", and a remote procedure "foobar", send a **CALL** message with **wampy** as follows:
 
@@ -66,9 +68,7 @@ Given a **Crossbar.io** server running on localhost on port 8080, a **realm** of
     In [7]: with client:
                 client.send_message(message)
 
-This is quite verbose an unnecessary with the core **wampy** API. With **wampy** you don't actually have to manually craft any messages.
-
-And of course, without another **Peer** having registered "foobar" on the same **realm**, this example will achieve little.
+This is quite verbose an unnecessary with the core **wampy** API. With **wampy** you don't actually have to manually craft any messages. And of course, without another **Peer** having registered "foobar" on the same **realm**, this example will achieve little.
 
 In the example, as you leave the context managed function call, the client will send a **GOODBYE** message and your **Session** will end.
 
@@ -78,7 +78,7 @@ The above can essentially be replaced with:
 
     In [X]: client.rpc.foobar(*args, **kwargs)
 
-Wampy RPC
+wampy RPC
 ~~~~~~~~~
 
 Now open your preferred text editor and we'll write a few lines of Python constructing a simple **WAMP** service that takes a decimal number and returns the binary representation of it - wowzers!
