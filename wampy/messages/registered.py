@@ -4,7 +4,6 @@ from wampy.messages.message import Message
 class Registered(Message):
     """ [REGISTERED, REGISTER.Request|id, Registration|id]
     """
-
     WAMP_CODE = 65
 
     def __init__(self, wamp_code, request_id, registration_id):
@@ -16,6 +15,3 @@ class Registered(Message):
         self.message = [
             self.WAMP_CODE, self.request_id, self.registration_id,
         ]
-
-    def process(self, message):
-    	pass

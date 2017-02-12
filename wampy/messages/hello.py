@@ -25,6 +25,5 @@ class Hello(Message):
             Message.HELLO, self.realm, self.roles
         ]
 
-
     def process(self, message):
         pass

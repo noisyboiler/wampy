@@ -152,19 +152,35 @@ class MessageHandler(object):
             self.message_queue.put(message)
 
         elif wamp_code == Message.WELCOME:  # 2
+            message_class = self.messages[wamp_code]
+            message_obj = message_class(*message)
+            message_obj.process(message)
+
             _, session_id, _ = message
             self.session_id = session_id
             self.message_queue.put(message)
 
         elif wamp_code == Message.ERROR:
+            message_class = self.messages[wamp_code]
+            message_obj = message_class(*message)
+            message_obj.process(message)
+
             _, _, _, _, _, errors = message
             logger.error(errors)
             self.message_queue.put(message)
 
         elif wamp_code == Message.SUBSCRIBED:
+            message_class = self.messages[wamp_code]
+            message_obj = message_class(*message)
+            message_obj.process(message)
+
             self.message_queue.put(message)
 
         elif wamp_code == Message.EVENT:
+            message_class = self.messages[wamp_code]
+            message_obj = message_class(*message)
+            message_obj.process(message)
+
             payload_list = []
             payload_dict = {}
 
