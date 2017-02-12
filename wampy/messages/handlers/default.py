@@ -79,8 +79,6 @@ class MessageHandler(object):
             message_obj = message_class(*message)
             message_obj.process(message)
 
-            self.message_queue.put(message)
-
         elif wamp_code == Message.INVOCATION:  # 68
             message_class = self.messages[wamp_code]
             message_obj = message_class(*message)
@@ -129,27 +127,23 @@ class MessageHandler(object):
 
             result_args = [resp]
 
-            message = Yield(
+            yield_message = Yield(
                 request_id,
                 result_args=result_args,
                 result_kwargs=result_kwargs,
             )
-            logger.info("yielding response: %s", message)
-            self.session.send_message(message)
+            logger.info("yielding response: %s", yield_message)
+            self.session.send_message(yield_message)
 
         elif wamp_code == Message.GOODBYE:  # 6
             message_class = self.messages[wamp_code]
             message_obj = message_class(*message)
             message_obj.process(message)
 
-            self.message_queue.put(message)
-
         elif wamp_code == Message.RESULT:  # 50
             message_class = self.messages[wamp_code]
             message_obj = message_class(*message)
             message_obj.process(message)
-
-            self.message_queue.put(message)
 
         elif wamp_code == Message.WELCOME:  # 2
             message_class = self.messages[wamp_code]
@@ -158,7 +152,6 @@ class MessageHandler(object):
 
             _, session_id, _ = message
             self.session_id = session_id
-            self.message_queue.put(message)
 
         elif wamp_code == Message.ERROR:
             message_class = self.messages[wamp_code]
@@ -167,14 +160,11 @@ class MessageHandler(object):
 
             _, _, _, _, _, errors = message
             logger.error(errors)
-            self.message_queue.put(message)
 
         elif wamp_code == Message.SUBSCRIBED:
             message_class = self.messages[wamp_code]
             message_obj = message_class(*message)
             message_obj.process(message)
-
-            self.message_queue.put(message)
 
         elif wamp_code == Message.EVENT:
             message_class = self.messages[wamp_code]
@@ -233,3 +223,5 @@ class MessageHandler(object):
             logger.warning(
                 'unhandled message: "%s"', message
             )
+
+        self.message_queue.put(message)
