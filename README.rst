@@ -157,8 +157,8 @@ In another terminal, with a **wampy** virtualenv, you can create a **Publisher**
 
 Hopefully you'll see any message you send printed to the screen where the example service is running. You'll also see the meta data that **wampy** chooses to send.
 
-TLS Support (alpha)
-~~~~~~~~~~~~~~~~~~~
+TLS/WSS Support (alpha)
+~~~~~~~~~~~~~~~~~~~~~~~
 
 This feature is only experimental....
 
@@ -175,9 +175,7 @@ When you instantiate your Router, pass in a path to the server certificate along
 
     In [4]: client = Client(router=router)
 
-Your certificate must also be configured in your **Crossbar.io** config. For an example see ``crossbar.config.tls.json`` in the *testing* namespace. Also see ``test.test_transports.py``.
-
-There are many undocumented features of this project and lots of new features to add.... Remember, you can help!
+Your certificate must also be configured in your **Crossbar.io** config. For an example see the `config`_ used by the test runner along with the `TLS Router`_ setup.
 
 Testing
 ~~~~~~~
@@ -208,4 +206,5 @@ If you like this project, then Thank You, and you're welcome to get involved.
 .. _ReadTheDocs: http://wampy.readthedocs.io/en/latest/
 .. _WAMP Protocol: http://wamp-proto.org/
 .. _examples: https://github.com/noisyboiler/wampy/blob/master/docs/examples/services.py#L26
-
+.. _config: https://github.com/noisyboiler/wampy/blob/master/wampy/testing/configs/crossbar.config.tls.json
+.. _TLS Router: https://github.com/noisyboiler/wampy/blob/master/wampy/testing/pytest_plugin.py#L49
