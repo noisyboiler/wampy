@@ -20,6 +20,11 @@ class Hello(Message):
 
         self.realm = realm
         self.roles = roles
+
         self.message = [
             Message.HELLO, self.realm, self.roles
         ]
+
+
+    def process(self, message):
+        pass

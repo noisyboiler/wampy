@@ -176,7 +176,7 @@ class Session(object):
         return response
 
     def _say_goodbye(self):
-        message = Goodbye()
+        message = Goodbye(wamp_code=6)
         try:
             self.send_message(message)
         except Exception as exc:

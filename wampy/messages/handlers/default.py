@@ -4,7 +4,7 @@ from wampy.messages import Message, MESSAGE_TYPE_MAP
 from wampy.messages import (
     Goodbye, Error, Event, Invocation, Registered, Result, Subscribed,
     Welcome, Yield)
-from wampy.errors import WampError
+from wampy.errors import WampError, WampyError
 
 logger = logging.getLogger('wampy.messagehandler')
 
@@ -21,10 +21,8 @@ class MessageHandler(object):
                 The wampy client receiving the messages.
 
             messages_to_handle : list
-                A list of Message classes.
-
-                If a Message is received that is not included in this list,
-                then it is handled by ``default_handler``.
+                A list of Message classes. Only Messages described in
+                this list will be accepted.
 
         """
         self.client = client
@@ -53,30 +51,41 @@ class MessageHandler(object):
 
             self.messages_to_handle = messages_to_handle
 
-        self.message_handlers = {}
-        self.configure_handlers()
+        self.messages = {}
+        self._configure_messages()
 
     def __call__(self, *args, **kwargs):
         return self.handle_message(*args, **kwargs)
 
-    def configure_handlers(self):
-        handlers = self.message_handlers
+    def _configure_messages(self):
+        messages = self.messages
         for message in self.messages_to_handle:
-            handlers[message.WAMP_CODE] = message
-
-    def default_handler(self, message):
-        self.message_queue.put(message)
+            messages[message.WAMP_CODE] = message
 
     def handle_message(self, message):
+        wamp_code = message[0]
+        if wamp_code not in self.messages:
+            raise WampyError(
+                "No message handler is configured for: {}".format(
+                    MESSAGE_TYPE_MAP[wamp_code])
+            )
+
         logger.info(
-            "received message: %s", MESSAGE_TYPE_MAP[message[0]]
+            "received message: %s", MESSAGE_TYPE_MAP[wamp_code]
         )
 
-        wamp_code = message[0]
         if wamp_code == Message.REGISTERED:  # 64
+            message_class = self.messages[wamp_code]
+            message_obj = message_class(*message)
+            message_obj.process(message)
+
             self.message_queue.put(message)
 
         elif wamp_code == Message.INVOCATION:  # 68
+            message_class = self.messages[wamp_code]
+            message_obj = message_class(*message)
+            message_obj.process(message)
+
             args = []
             kwargs = {}
 
@@ -129,10 +138,17 @@ class MessageHandler(object):
             self.session.send_message(message)
 
         elif wamp_code == Message.GOODBYE:  # 6
-            _, _, response_message = message
+            message_class = self.messages[wamp_code]
+            message_obj = message_class(*message)
+            message_obj.process(message)
+
             self.message_queue.put(message)
 
         elif wamp_code == Message.RESULT:  # 50
+            message_class = self.messages[wamp_code]
+            message_obj = message_class(*message)
+            message_obj.process(message)
+
             self.message_queue.put(message)
 
         elif wamp_code == Message.WELCOME:  # 2
