@@ -17,7 +17,7 @@ class DateService(Client):
         $ crossbar start --config ./wampy/testing/configs/crossbar.config.json
         $ wampy run docs.examples.services:SubscribingService --router http://localhost:8080
 
-    """
+    """  # NOQA
     @register_rpc
     def get_todays_date(self):
         return datetime.date.today().isoformat()
@@ -35,8 +35,7 @@ class SubscribingService(Client):
         $ crossbar start --config ./wampy/testing/configs/crossbar.config.json
         $ wampy run docs.examples.services:SubscribingService --router http://localhost:8080
 
-    """
-
+    """  # NOQA
     @subscribe(topic="foo")
     def foo_handler(self, **kwargs):
         print("foo message received: {}".format(kwargs))
