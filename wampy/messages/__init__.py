@@ -1,26 +1,24 @@
-import json
-import logging
+from . call import Call
+from . error import Error
+from . event import Event
+from . hello import Hello
+from . invocation import Invocation
+from . goodbye import Goodbye
+from . message import Message
+from . publish import Publish
+from . register import Register
+from . registered import Registered
+from . result import Result
+from . subscribe import Subscribe
+from . subscribed import Subscribed
+from . yield_ import Yield
+from . welcome import Welcome
 
-from wampy.errors import WampProtocolError
 
-
-logger = logging.getLogger(__name__)
-
-
-class MessageError(Exception):
-    pass
-
-
-def is_a_wamp_message(message):
-    try:
-        wamp_code = message[0]
-    except:
-        return False
-
-    if wamp_code not in MESSAGE_TYPE_MAP:
-        return False
-
-    return True
+__all__ = [
+    Call, Error, Event, Goodbye, Hello, Invocation, Message, Publish,
+    Register, Registered, Result, Subscribe, Subscribed, Welcome, Yield
+]
 
 
 MESSAGE_TYPE_MAP = {
@@ -42,49 +40,3 @@ MESSAGE_TYPE_MAP = {
     68: 'INVOCATION',
     70: 'YIELD',
 }
-
-
-class Message(object):
-    HELLO = 1
-    WELCOME = 2
-    ABORT = 3
-    GOODBYE = 6
-
-    ERROR = 8
-
-    PUBLISH = 16
-    SUBSCRIBE = 32
-    SUBSCRIBED = 33
-    EVENT = 36
-
-    REGISTER = 64
-    REGISTERED = 65
-    UNREGISTER = 66
-    UNREGISTERED = 67
-    INVOCATION = 68
-
-    RESULT = 50
-
-    CALL = 48
-    YIELD = 70
-
-    def __init__(self):
-        self.serialized = False
-
-    def serialize(self):
-        if self.message is None:
-            raise MessageError(
-                'cannot serialise unconstructed message'
-            )
-
-        self.serialized = True
-
-        try:
-            return json.dumps(
-                self.message, separators=(',', ':'), ensure_ascii=False,
-            )
-        except TypeError:
-            logger.exception(
-                "failed to serialise message: %s", self.message)
-            raise WampProtocolError(
-                "Message not serialized: {}".format(self.message))

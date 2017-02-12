@@ -1,22 +1,71 @@
 import logging
 
-from wampy.messages import Message
-from wampy.messages import MESSAGE_TYPE_MAP
-from wampy.messages.yield_ import Yield
+from wampy.messages import Message, MESSAGE_TYPE_MAP
+from wampy.messages import (
+    Goodbye, Error, Event, Invocation, Registered, Result, Subscribed,
+    Welcome, Yield)
 from wampy.errors import WampError
 
 logger = logging.getLogger('wampy.messagehandler')
 
 
-class DefaultMessageHandler(object):
+class MessageHandler(object):
 
-    def __init__(self, client, session, message_queue):
+    def __init__(
+        self, client, session, message_queue, messages_to_handle=None,
+    ):
+        """ Responsible for processing incoming WAMP messages.
+
+        :Parameters:
+            client : instance of `wampy.peers.clients.Client`
+                The wampy client receiving the messages.
+
+            messages_to_handle : list
+                A list of Message classes.
+
+                If a Message is received that is not included in this list,
+                then it is handled by ``default_handler``.
+
+        """
         self.client = client
         self.session = session
         self.message_queue = message_queue
 
+        if messages_to_handle is None:
+            # the rationale here is as follows:-
+            # Welcome: mandatory for Session establishment
+            # Goodbye: mandatory because GOODBYE is echoed by the Router
+            # Registered: a client is likely to be a Callee
+            # Invocation: same as above
+            # Yield: and again
+            # Result: a client is likely to be a Caller
+            # Error: for debugging clients
+            # Subscribed: because a client is likely to be a Subscriber
+            # Event: sames as above
+            self.messages_to_handle = [
+                Welcome, Goodbye, Registered, Invocation, Yield, Result,
+                Error, Subscribed, Event
+            ]
+        else:
+            for message in messages_to_handle:
+                # validation here
+                pass
+
+            self.messages_to_handle = messages_to_handle
+
+        self.message_handlers = {}
+        self.configure_handlers()
+
     def __call__(self, *args, **kwargs):
         return self.handle_message(*args, **kwargs)
+
+    def configure_handlers(self):
+        handlers = self.message_handlers
+        for message in self.messages_to_handle:
+            handlers[message.WAMP_CODE] = message
+
+    def default_handler(self, message):
+        self.message_queue.put(message)
 
     def handle_message(self, message):
         logger.info(

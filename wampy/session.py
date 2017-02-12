@@ -4,7 +4,7 @@ import eventlet
 
 from wampy.errors import ConnectionError, WampError, WampProtocolError
 from wampy.messages import Message
-from wampy.messages.handlers.default import DefaultMessageHandler
+from wampy.messages.handlers.default import MessageHandler
 from wampy.messages.hello import Hello
 from wampy.messages.goodbye import Goodbye
 from wampy.transports.websocket.connection import WebSocket, TLSWebSocket
@@ -82,7 +82,7 @@ class Session(object):
         self._message_queue = eventlet.Queue()
 
         if message_handler is None:
-            self.message_handler = DefaultMessageHandler(
+            self.message_handler = MessageHandler(
                 client=self.client,
                 session=self,
                 message_queue=self._message_queue)

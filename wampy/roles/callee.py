@@ -61,19 +61,16 @@ class RegisterProcedureDecorator(object):
             return partial(registering_decorator, args=args, kwargs=kwargs)
 
 
-class ProcedureRegistrationFactory(object):
+class RpcProxy(object):
 
     def __init__(
             self, router, realm, procedure_names, callback, roles=None,
     ):
-        """ Register a list of functions names as "remote procedures" and
-        pipe all invocations of these into the single given proxy ``callback``.
+        """ Begin a Session that manages RPC registration and invocations
+        only.
 
-        The callback can then YIELD from the actual Callee method,
-        and do anything else that it wants to in between.
-
-        .. note::
-            The only invocation policy supported is "single".
+        Provide a list of functions names to register, and a single callback
+        function to handle INVOCATION and YIELD messages.
 
         :Parameters:
             router: instance

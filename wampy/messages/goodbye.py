@@ -1,4 +1,4 @@
-from wampy.messages import Message
+from wampy.messages.message import Message
 
 
 class Goodbye(Message):
