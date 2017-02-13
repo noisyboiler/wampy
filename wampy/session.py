@@ -15,7 +15,9 @@ from wampy.messages import MESSAGE_TYPE_MAP
 logger = logging.getLogger('wampy.session')
 
 
-def session_builder(client, router, realm, transport="ws", message_handler=None):
+def session_builder(
+        client, router, realm, transport="ws", message_handler=None
+):
     if transport == "ws":
         use_tls = router.can_use_tls
         if use_tls:
