@@ -1,6 +1,6 @@
 import random
 
-from wampy.messages import Message
+from wampy.messages.message import Message
 
 
 class Publish(Message):

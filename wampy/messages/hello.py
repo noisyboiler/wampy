@@ -1,4 +1,4 @@
-from wampy.messages import Message
+from wampy.messages.message import Message
 
 
 class Hello(Message):
@@ -20,6 +20,7 @@ class Hello(Message):
 
         self.realm = realm
         self.roles = roles
+
         self.message = [
             Message.HELLO, self.realm, self.roles
         ]

@@ -1,4 +1,4 @@
-from wampy.messages import Message
+from wampy.messages.message import Message
 
 
 class Goodbye(Message):
@@ -14,15 +14,14 @@ class Goodbye(Message):
     WAMP_CODE = 6
     DEFAULT_REASON = "wamp.close.normal"
 
-    def __init__(self, reason=DEFAULT_REASON, message=None):
-        super(Goodbye, self).__init__()
+    def __init__(
+            self, wamp_code, details=None, reason=DEFAULT_REASON,
+    ):
+        assert wamp_code == self.WAMP_CODE
 
+        self.details = details or {}
         self.reason = reason
-        self.message = message
-        details = {}
-        if self.message:
-            details['message'] = self.message
 
         self.message = [
-            Message.GOODBYE, details, self.reason
+            Message.GOODBYE, self.details, self.reason
         ]

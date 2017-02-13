@@ -3,7 +3,7 @@ from mock import Mock, call
 
 from wampy.constants import DEFAULT_REALM
 from wampy.peers.clients import Client
-from wampy.roles.callee import ProcedureRegistrationFactory
+from wampy.roles.callee import RpcProxy
 
 from test.helpers import assert_stops_raising
 
@@ -22,7 +22,7 @@ class TestRpcProxy(object):
         ]
         callback.return_value = procedure_names
 
-        factory = ProcedureRegistrationFactory(
+        factory = RpcProxy(
             router=router,
             realm=DEFAULT_REALM,
             procedure_names=procedure_names,
