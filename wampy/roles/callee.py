@@ -64,7 +64,8 @@ class RegisterProcedureDecorator(object):
 class RpcProxy(object):
 
     def __init__(
-            self, router, realm, procedure_names, callback, roles=None,
+            self, router, realm, procedure_names, callback,
+            roles=None, message_handler=None,
     ):
         """ Begin a Session that manages RPC registration and invocations
         only.
@@ -95,7 +96,8 @@ class RpcProxy(object):
         }
 
         self.session = session_builder(
-            client=self, router=self.router, realm=self.realm
+            client=self, router=self.router, realm=self.realm,
+            message_handler=message_handler,
         )
 
         logger.debug("%s ready", self.__class__.__name__)
