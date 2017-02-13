@@ -152,8 +152,7 @@ In another terminal, with a **wampy** virtualenv, you can create a **Publisher**
     In [2]: from wampy.peers.routers import Crossbar
 
     In [3]: with Client(router=Crossbar()) as client:
-                result = client.publish(topic="foo", message="spam"
-            )
+                result = client.publish(topic="foo", message="spam")
 
 Hopefully you'll see any message you send printed to the screen where the example service is running. You'll also see the meta data that **wampy** chooses to send.
 
