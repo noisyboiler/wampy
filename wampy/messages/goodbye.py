@@ -25,6 +25,3 @@ class Goodbye(Message):
         self.message = [
             Message.GOODBYE, self.details, self.reason
         ]
-
-    def process(self, message):
-        pass

@@ -24,6 +24,3 @@ class Hello(Message):
         self.message = [
             Message.HELLO, self.realm, self.roles
         ]
-
-    def process(self, message):
-        pass
