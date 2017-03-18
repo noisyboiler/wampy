@@ -3,15 +3,9 @@ import pytest
 
 from wampy.peers.clients import Client
 from wampy.roles.subscriber import TopicSubscriber
+from wampy.testing import wait_for_subscriptions
 
 from test.helpers import assert_stops_raising
-
-
-def wait_for_subscriptions(client, number_of_subscriptions):
-    while (
-        len(client.session.subscription_map.keys()) < number_of_subscriptions
-    ):
-        eventlet.sleep()
 
 
 class TestTopicSubscriber(object):

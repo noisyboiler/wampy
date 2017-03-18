@@ -3,7 +3,8 @@ from mock import Mock, call
 
 from wampy.constants import DEFAULT_REALM
 from wampy.peers.clients import Client
-from wampy.roles.callee import RpcProxy
+from wampy.roles.callee import CalleeProxy
+from wampy.testing import wait_for_registrations
 
 from test.helpers import assert_stops_raising
 
@@ -22,12 +23,13 @@ class TestRpcProxy(object):
         ]
         callback.return_value = procedure_names
 
-        factory = RpcProxy(
+        factory = CalleeProxy(
             router=router,
             realm=DEFAULT_REALM,
             procedure_names=procedure_names,
             callback=callback,
         )
+
 
         def wait_for_message():
             assert callback.call_count == len(procedure_names)
@@ -38,6 +40,8 @@ class TestRpcProxy(object):
 
         with factory:
             with caller:
+                wait_for_registrations(factory, 5)
+
                 caller.rpc.moon("moon")
                 caller.rpc.sun("sun")
                 caller.rpc.fire("fire")

@@ -60,9 +60,7 @@ class Invocation(Message):
             v: k for k, v in session.registration_map.items()
         }
 
-        procedure_name = registration_id_procedure_name_map[
-            registration_id]
-
+        procedure_name = client.request_ids[request_id]
         entrypoint = getattr(client, procedure_name)
 
         try:

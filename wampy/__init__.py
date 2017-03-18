@@ -11,7 +11,7 @@ except ImportError:
         def emit(self, record):
             pass
 
-from . peers.clients import Client  # noqa
+from wampy.peers.clients import Client  # noqa
 
 
 root = logging.getLogger(__name__)

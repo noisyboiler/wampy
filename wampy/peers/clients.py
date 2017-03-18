@@ -4,11 +4,10 @@ import inspect
 from wampy.errors import WampProtocolError
 from wampy.session import session_builder
 from wampy.messages.handlers import MessageHandler
+from wampy.messages.register import Register
 from wampy.messages.subscribe import Subscribe
-from wampy.roles.callee import register_procedure
 from wampy.roles.caller import CallProxy, RpcProxy
 from wampy.roles.publisher import PublishProxy
-
 
 logger = logging.getLogger("wampy.clients")
 
@@ -186,30 +185,52 @@ class Client(object):
             if hasattr(maybe_role, 'callee'):
                 procedure_name = maybe_role.func_name
                 invocation_policy = maybe_role.invocation_policy
-                register_procedure(
-                    self.session, procedure_name, invocation_policy)
+                self._register_procedure(procedure_name, invocation_policy)
 
             if hasattr(maybe_role, 'subscriber'):
                 topic = maybe_role.topic
                 handler = maybe_role.handler
-                self._subscribe_to_topic(self.session, topic, handler)
+                self._subscribe_to_topic(topic, handler)
 
-    def _subscribe_to_topic(self, session, topic, handler):
-        procedure_name = handler.func_name
+    def _subscribe_to_topic(self, topic, handler):
+        subscriber_name = handler.func_name
         message = Subscribe(topic=topic)
-
         request_id = message.request_id
 
         try:
-            session.send_message(message)
+            self.session.send_message(message)
         except Exception as exc:
             raise WampProtocolError(
                 "failed to subscribe to {}: \"{}\"".format(
                     topic, exc)
             )
 
-        self.request_ids[request_id] = message, procedure_name
+        self.request_ids[request_id] = message, subscriber_name
 
         logger.info(
-            'registered handler "%s" for topic "%s"', procedure_name, topic
+            'registered handler "%s" for topic "%s"',
+            subscriber_name, topic
+        )
+
+    def _register_procedure(self, procedure_name, invocation_policy="single"):
+        logger.info(
+            "registering %s with invocation policy %s",
+            procedure_name, invocation_policy
+        )
+
+        options = {"invoke": invocation_policy}
+        message = Register(procedure=procedure_name, options=options)
+        request_id = message.request_id
+
+        try:
+            self.session.send_message(message)
+        except ValueError:
+            raise WampProtocolError(
+                "failed to register callee: %s", procedure_name
+            )
+
+        self.request_ids[request_id] = procedure_name
+
+        logger.info(
+            'registered procedure name "%s"', procedure_name,
         )
