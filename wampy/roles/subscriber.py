@@ -70,7 +70,7 @@ class TopicSubscriber(Client):
         self.session.begin()
         for topic in self.topics:
             self._subscribe_to_topic(
-                session=self.session, topic=topic, handler=self.topic_handler
+                topic=topic, handler=self.topic_handler
             )
 
         logger.info("subscribed to %s", ", ".join(self.topics))

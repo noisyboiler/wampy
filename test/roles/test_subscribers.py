@@ -3,7 +3,7 @@ import pytest
 
 from wampy.peers.clients import Client
 from wampy.roles.subscriber import TopicSubscriber
-from wampy.testing import wait_for_subscriptions
+from wampy.testing.helpers import wait_for_subscriptions
 
 from test.helpers import assert_stops_raising
 

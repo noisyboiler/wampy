@@ -15,3 +15,9 @@ class Registered(Message):
         self.message = [
             self.WAMP_CODE, self.request_id, self.registration_id,
         ]
+
+    def process(self, message, client):
+        session = client.session
+        wamp_code, request_id, registration_id = message
+        procedure_name = client.request_ids[request_id]
+        session.registration_map[registration_id] = procedure_name

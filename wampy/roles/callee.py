@@ -72,7 +72,6 @@ class CalleeProxy(Client):
         self.stop()
 
     def __getattr__(self, name):
-        # implemented to proxy invocation calls
         if name in self.procedure_names:
             return self.callback
 
