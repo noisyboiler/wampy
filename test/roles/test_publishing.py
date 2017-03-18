@@ -118,7 +118,7 @@ def test_kwargs_are_received(router):
                 assert SubscribingClient.received_kwargs == {
                     'message': 'foobar',
                     'spam': 'eggs',
-                    '_meta': {
+                    'meta': {
                         'topic': 'foo',
                         'subscription_id': ANY,
                     },

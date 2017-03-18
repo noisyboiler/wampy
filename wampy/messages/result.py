@@ -1,4 +1,8 @@
+import logging
+
 from wampy.messages.message import Message
+
+logger = logging.getLogger(__name__)
 
 
 class Result(Message):
@@ -35,3 +39,7 @@ class Result(Message):
             self.WAMP_CODE, self.request_id, self.details, self.yield_args,
             self.yield_kwargs
         ]
+
+    def process(self, message, client):
+        logger.info("RESULT received: %s", message)
+        client.session._message_queue.put(message)

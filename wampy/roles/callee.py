@@ -1,42 +1,10 @@
 import logging
 import types
 from functools import partial
-from uuid import uuid4
 
-from wampy.messages.register import Register
-from wampy.session import session_builder
-
+from wampy.peers.clients import Client
 
 logger = logging.getLogger(__name__)
-
-
-def register_procedure(
-        session, procedure_name, invocation_policy="single"):
-
-    logger.info(
-        "registering %s with invocation policy %s",
-        procedure_name, invocation_policy
-    )
-
-    options = {"invoke": invocation_policy}
-    message = Register(procedure=procedure_name, options=options)
-
-    session.send_message(message)
-    response_msg = session.recv_message()
-
-    try:
-        _, _, registration_id = response_msg
-    except ValueError:
-        logger.error(
-            "failed to register callee: %s", response_msg
-        )
-        return
-
-    session.registration_map[procedure_name] = registration_id
-
-    logger.info(
-        'registered procedure name "%s"', procedure_name,
-    )
 
 
 class RegisterProcedureDecorator(object):
@@ -61,11 +29,17 @@ class RegisterProcedureDecorator(object):
             return partial(registering_decorator, args=args, kwargs=kwargs)
 
 
-class RpcProxy(object):
+class CalleeProxy(Client):
+    DEFAULT_ROLES = {
+        'roles': {
+            'callee': {
+                'shared_registration': True,
+            },
+        },
+    }
 
     def __init__(
-            self, router, realm, procedure_names, callback,
-            roles=None, message_handler=None,
+        self, procedure_names, callback, router, roles=None, realm=None,
     ):
         """ Begin a Session that manages RPC registration and invocations
         only.
@@ -82,25 +56,12 @@ class RpcProxy(object):
             roles: dictionary
 
         """
-        self.id = str(uuid4())
-        self.router = router
-        self.realm = realm
-        self.procedure_names = procedure_names
-        self.callback = callback
-        self.roles = roles or {
-            'roles': {
-                'callee': {
-                    'shared_registration': True,
-                },
-            },
-        }
-
-        self.session = session_builder(
-            client=self, router=self.router, realm=self.realm,
-            message_handler=message_handler,
+        super(CalleeProxy, self).__init__(
+            router, roles or self.DEFAULT_ROLES, realm
         )
 
-        logger.debug("%s ready", self.__class__.__name__)
+        self.procedure_names = procedure_names
+        self.callback = callback
 
     def __enter__(self):
         self.start()
@@ -110,7 +71,6 @@ class RpcProxy(object):
         self.stop()
 
     def __getattr__(self, name):
-        # implemented to proxy invocation calls
         if name in self.procedure_names:
             return self.callback
 
@@ -119,7 +79,7 @@ class RpcProxy(object):
     def start(self):
         self.session.begin()
         for procedure_name in self.procedure_names:
-            register_procedure(self.session, procedure_name)
+            self._register_procedure(procedure_name)
 
         logger.info("registered to %s", ", ".join(self.procedure_names))
 

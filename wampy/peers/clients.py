@@ -1,15 +1,13 @@
 import logging
 import inspect
-from uuid import uuid4
 
-
-from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
+from wampy.errors import WampProtocolError
 from wampy.session import session_builder
-from wampy.roles.callee import register_rpc, register_procedure
+from wampy.messages.handlers import MessageHandler
+from wampy.messages.register import Register
+from wampy.messages.subscribe import Subscribe
 from wampy.roles.caller import CallProxy, RpcProxy
 from wampy.roles.publisher import PublishProxy
-from wampy.roles.subscriber import subscribe_to_topic
-
 
 logger = logging.getLogger("wampy.clients")
 
@@ -17,20 +15,36 @@ logger = logging.getLogger("wampy.clients")
 class Client(object):
     """ A WAMP Client for use in Python applications, scripts and shells.
     """
+    DEFAULT_REALM = "realm1"
+    DEFAULT_ROLES = {
+        'roles': {
+            'subscriber': {},
+            'publisher': {},
+            'callee': {
+                'shared_registration': True,
+            },
+            'caller': {},
+        },
+    }
 
     def __init__(
-            self, router, roles=DEFAULT_ROLES, realm=DEFAULT_REALM,
-            transport="ws", message_handler=None, id=None,
+            self, router, roles=None, realm=None, transport=None,
+            message_handler=None,
     ):
-        self.roles = roles
-        self.realm = realm
-        self.router = router
-        self.transport = transport
-        self.session = session_builder(
-            client=self, router=self.router, realm=self.realm,
-            transport=self.transport, message_handler=message_handler)
 
-        self.id = id or str(uuid4())
+        self.router = router
+
+        self.roles = roles or self.DEFAULT_ROLES
+        self.realm = realm or self.DEFAULT_REALM
+
+        self.transport = transport or "ws"
+        self.message_handler = message_handler or MessageHandler(client=self)
+
+        self.session = session_builder(
+            client=self, router=self.router, transport=self.transport
+        )
+
+        self.request_ids = {}
 
     def __enter__(self):
         self.start()
@@ -55,7 +69,7 @@ class Client(object):
 
     def start(self):
         self.begin_session()
-        self.register_roles()
+        self._register_roles()
 
     def stop(self):
         self.end_session()
@@ -70,7 +84,23 @@ class Client(object):
         self.session.send_message(message)
         return self.session.recv_message()
 
-    def register_roles(self):
+    def process_message(self, message):
+        logger.info("client processing message: %s", message)
+        self.message_handler(message)
+
+    @property
+    def call(self):
+        return CallProxy(client=self)
+
+    @property
+    def rpc(self):
+        return RpcProxy(client=self)
+
+    @property
+    def publish(self):
+        return PublishProxy(client=self)
+
+    def _register_roles(self):
         logger.info("registering roles for: %s", self.__class__.__name__)
 
         maybe_roles = []
@@ -87,105 +117,52 @@ class Client(object):
             if hasattr(maybe_role, 'callee'):
                 procedure_name = maybe_role.func_name
                 invocation_policy = maybe_role.invocation_policy
-                register_procedure(
-                    self.session, procedure_name, invocation_policy)
+                self._register_procedure(procedure_name, invocation_policy)
 
             if hasattr(maybe_role, 'subscriber'):
                 topic = maybe_role.topic
                 handler = maybe_role.handler
-                subscribe_to_topic(self.session, topic, handler)
+                self._subscribe_to_topic(topic, handler)
 
-    @property
-    def call(self):
-        return CallProxy(client=self)
+    def _subscribe_to_topic(self, topic, handler):
+        subscriber_name = handler.func_name
+        message = Subscribe(topic=topic)
+        request_id = message.request_id
 
-    @property
-    def rpc(self):
-        return RpcProxy(client=self)
+        try:
+            self.session.send_message(message)
+        except Exception as exc:
+            raise WampProtocolError(
+                "failed to subscribe to {}: \"{}\"".format(
+                    topic, exc)
+            )
 
-    @property
-    def publish(self):
-        return PublishProxy(client=self)
+        self.request_ids[request_id] = message, subscriber_name
 
-    def get_subscription_handler_names(self):
-        handler_names = []
-        for handler, topic in self.subscription_map.values():
-            handler_names.append(handler)
-        return handler_names
+        logger.info(
+            'registered handler "%s" for topic "%s"',
+            subscriber_name, topic
+        )
 
-    def get_subscription_info(self, subscription_id):
-        """ Retrieves information on a particular subscription. """
-        return self.call("wamp.subscription.get", subscription_id)
+    def _register_procedure(self, procedure_name, invocation_policy="single"):
+        logger.info(
+            "registering %s with invocation policy %s",
+            procedure_name, invocation_policy
+        )
 
-    def get_subscription_list(self):
-        """ Retrieves subscription IDs listed according to match
-        policies."""
-        return self.call("wamp.subscription.list")
+        options = {"invoke": invocation_policy}
+        message = Register(procedure=procedure_name, options=options)
+        request_id = message.request_id
 
-    def get_subscription_lookup(self, topic):
-        """ Obtains the subscription (if any) managing a topic,
-        according to some match policy. """
-        return self.call("wamp.subscription.lookup", topic)
+        try:
+            self.session.send_message(message)
+        except ValueError:
+            raise WampProtocolError(
+                "failed to register callee: %s", procedure_name
+            )
 
-    def get_subscription_match(self, topic):
-        """ Retrieves a list of IDs of subscriptions matching a topic
-        URI, irrespective of match policy. """
-        return self.call("wamp.subscription.match", topic)
+        self.request_ids[request_id] = procedure_name
 
-    def list_subscribers(self, subscription_id):
-        """ Retrieves a list of session IDs for sessions currently
-        attached to the subscription. """
-        return self.call(
-            "wamp.subscription.list_subscribers", subscription_id)
-
-    def count_subscribers(self, subscription_id):
-        """ Obtains the number of sessions currently attached to the
-        subscription. """
-        return self.call(
-            "wamp.subscription.count_subscribers", subscription_id)
-
-    def get_registration_list(self):
-        """ Retrieves registration IDs listed according to match
-        policies."""
-        return self.call("wamp.registration.list")
-
-    def get_registration_lookup(self, procedure_name):
-        """ Obtains the registration (if any) managing a procedure,
-        according to some match policy."""
-        return self.call("wamp.registration.lookup", procedure_name)
-
-    def get_registration_match(self, procedure_name):
-        """ Obtains the registration best matching a given procedure
-        URI."""
-        return self.call("wamp.registration.match", procedure_name)
-
-    def get_registration(self, registration_id):
-        """ Retrieves information on a particular registration. """
-        return self.call("wamp.registration.get", registration_id)
-
-    def list_callees(self, registration_id):
-        """ Retrieves a list of session IDs for sessions currently
-        attached to the registration. """
-        return self.call(
-            "wamp.registration.list_callees", registration_id)
-
-    def count_callees(self, registration_id):
-        """ Obtains the number of sessions currently attached to a
-        registration. """
-        return self.call(
-            "wamp.registration.count_callees", registration_id)
-
-
-class ServiceClient(Client):
-    """ Designed to be used as part of a cluster of clients.
-    """
-
-    @register_rpc(invocation_policy="roundrobin")
-    def get_meta(self):
-        meta = {
-            'id': self.id,
-            'subscriptions': self.session.subscription_map.keys(),
-            'registrations': self.session.registration_map.keys(),
-        }
-
-        return meta
+        logger.info(
+            'registered procedure name "%s"', procedure_name,
+        )

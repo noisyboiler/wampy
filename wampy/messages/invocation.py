@@ -56,13 +56,7 @@ class Invocation(Message):
                 _, request_id, registration_id, details, args, kwargs = (
                     message)
 
-        registration_id_procedure_name_map = {
-            v: k for k, v in session.registration_map.items()
-        }
-
-        procedure_name = registration_id_procedure_name_map[
-            registration_id]
-
+        procedure_name = client.registration_map[registration_id]
         entrypoint = getattr(client, procedure_name)
 
         try:
@@ -77,10 +71,9 @@ class Invocation(Message):
 
         result_kwargs['error'] = error
         result_kwargs['message'] = resp
-        result_kwargs['_meta'] = {}
-        result_kwargs['_meta']['procedure_name'] = procedure_name
-        result_kwargs['_meta']['session_id'] = session.id
-        result_kwargs['_meta']['client_id'] = client.id
+        result_kwargs['meta'] = {}
+        result_kwargs['meta']['procedure_name'] = procedure_name
+        result_kwargs['meta']['session_id'] = session.id
 
         result_args = [resp]
 

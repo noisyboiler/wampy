@@ -1,3 +1,4 @@
+from wampy.errors import WampProtocolError
 from wampy.messages.message import Message
 
 
@@ -19,3 +20,17 @@ class Subscribed(Message):
         self.message = [
             self.WAMP_CODE, self.request_id, self.subscription_id,
         ]
+
+    def process(self, message, client):
+        session = client.session
+
+        wamp_code, request_id, subscription_id = message
+        if wamp_code != Message.SUBSCRIBED:
+            raise WampProtocolError(
+                'failed to subscribe to topic: "{}"'.format(message)
+            )
+
+        original_message, procedure_name = client.request_ids[request_id]
+        topic = original_message.topic
+
+        session.subscription_map[subscription_id] = procedure_name, topic

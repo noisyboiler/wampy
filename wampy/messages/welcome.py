@@ -1,3 +1,4 @@
+from wampy.errors import WampError
 from wampy.messages.message import Message
 
 
@@ -19,3 +20,16 @@ class Welcome(Message):
         self.message = [
             self.WAMP_CODE, self.session_id, self.details,
         ]
+
+    def process(self, message, client):
+        session = client.session
+        # response message must be either WELCOME or ABORT
+        wamp_code, session_id, _ = message
+        if wamp_code not in [Message.WELCOME, Message.ABORT]:
+            raise WampError(
+                'unexpected response from HELLO message: {}'.format(
+                    message
+                )
+            )
+
+        session.session_id = session_id

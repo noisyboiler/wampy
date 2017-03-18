@@ -16,11 +16,11 @@ class Subscribe(Message):
     """
     WAMP_CODE = 32
 
-    def __init__(self, topic):
+    def __init__(self, topic, options=None):
         super(Subscribe, self).__init__()
 
         self.topic = topic
-        self.options = {}
+        self.options = options or {}
         self.request_id = random.getrandbits(32)
         self.message = [
             self.WAMP_CODE, self.request_id, self.options, self.topic

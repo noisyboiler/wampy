@@ -4,7 +4,6 @@ import eventlet
 
 from wampy.errors import ConnectionError, WampError, WampProtocolError
 from wampy.messages import Message
-from wampy.messages.handlers.default import MessageHandler
 from wampy.messages.hello import Hello
 from wampy.messages.goodbye import Goodbye
 from wampy.transports.websocket.connection import WebSocket, TLSWebSocket
@@ -15,9 +14,7 @@ from wampy.messages import MESSAGE_TYPE_MAP
 logger = logging.getLogger('wampy.session')
 
 
-def session_builder(
-        client, router, realm, transport="ws", message_handler=None
-):
+def session_builder(client, router, transport="ws"):
     if transport == "ws":
         use_tls = router.can_use_tls
         if use_tls:
@@ -31,8 +28,7 @@ def session_builder(
         raise WampError("transport not supported: {}".format(transport))
 
     return Session(
-        client=client, router=router, realm=realm, transport=transport,
-        message_handler=message_handler,
+        client=client, router=router, transport=transport,
     )
 
 
@@ -55,7 +51,7 @@ class Session(object):
 
     """
 
-    def __init__(self, client, router, realm, transport, message_handler=None):
+    def __init__(self, client, router, transport="ws"):
         """ A Session between a Client and a Router.
 
         :Parameters:
@@ -63,15 +59,10 @@ class Session(object):
                 An instance of :class:`peers.Client`.
             router : instance
                 An instance of :class:`peers.Router`.
-            realm : str
-                The name of the Realm on the ``router`` to join.
-            transport : instance
-                An instance of :class:`transports.Transport`.
 
         """
         self.client = client
         self.router = router
-        self.realm = realm
         self.transport = transport
 
         self.subscription_map = {}
@@ -84,14 +75,6 @@ class Session(object):
         self._managed_thread = None
         self._message_queue = eventlet.Queue()
 
-        if message_handler is None:
-            self.message_handler = MessageHandler(
-                client=self.client,
-                session=self,
-                message_queue=self._message_queue)
-        else:
-            self.message_handler = message_handler
-
     @property
     def host(self):
         return self.router.host
@@ -103,6 +86,10 @@ class Session(object):
     @property
     def roles(self):
         return self.client.roles
+
+    @property
+    def realm(self):
+        return self.router.realm['name']
 
     @property
     def id(self):
@@ -164,19 +151,6 @@ class Session(object):
     def _say_hello(self):
         message = Hello(self.realm, self.roles)
         self.send_message(message)
-        response = self.recv_message()
-
-        # response message must be either WELCOME or ABORT
-        wamp_code, session_id, _ = response
-        if wamp_code not in [Message.WELCOME, Message.ABORT]:
-            raise WampError(
-                'unexpected response from HELLO message: {}'.format(
-                    response
-                )
-            )
-
-        self.session_id = session_id
-        return response
 
     def _say_goodbye(self):
         message = Goodbye(wamp_code=6)
@@ -206,7 +180,7 @@ class Session(object):
                     frame = connection.read_websocket_frame()
                     if frame:
                         message = frame.payload
-                        self.message_handler(message)
+                        self.client.process_message(message)
                 except (
                         SystemExit, KeyboardInterrupt, ConnectionError,
                         WampProtocolError,
