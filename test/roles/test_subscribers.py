@@ -1,4 +1,3 @@
-import eventlet
 import pytest
 
 from wampy.peers.clients import Client

@@ -3,7 +3,6 @@ import types
 from functools import partial
 
 from wampy.peers.clients import Client
-from wampy.session import session_builder
 
 logger = logging.getLogger(__name__)
 

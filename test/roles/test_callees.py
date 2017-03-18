@@ -1,5 +1,4 @@
 import pytest
-from mock import Mock, call
 
 from wampy.constants import DEFAULT_REALM
 from wampy.peers.clients import Client

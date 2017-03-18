@@ -4,7 +4,7 @@ from contextlib import closing
 
 import pytest
 
-from wampy.constants import DEFAULT_HOST, DEFAULT_PORT, DEFAULT_REALM
+from wampy.constants import DEFAULT_HOST, DEFAULT_PORT
 from wampy.peers.routers import Crossbar
 from wampy.session import Session
 from wampy.transports.websocket.connection import WebSocket
@@ -78,10 +78,9 @@ def connection(router):
 @pytest.fixture
 def session_maker(router, connection):
 
-    def maker(client, realm=DEFAULT_REALM, transport=connection):
+    def maker(client, transport=connection):
         return Session(
-            client=client, router=router,
-            realm=realm, transport=transport,
+            client=client, router=router, transport=transport,
         )
 
     return maker
