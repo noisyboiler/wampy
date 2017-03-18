@@ -1,14 +1,13 @@
 import logging
 import inspect
-from uuid import uuid4
 
-
-from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
+from wampy.errors import WampProtocolError
 from wampy.session import session_builder
-from wampy.roles.callee import register_rpc, register_procedure
+from wampy.messages.handlers import MessageHandler
+from wampy.messages.subscribe import Subscribe
+from wampy.roles.callee import register_procedure
 from wampy.roles.caller import CallProxy, RpcProxy
 from wampy.roles.publisher import PublishProxy
-from wampy.roles.subscriber import subscribe_to_topic
 
 
 logger = logging.getLogger("wampy.clients")
@@ -17,20 +16,36 @@ logger = logging.getLogger("wampy.clients")
 class Client(object):
     """ A WAMP Client for use in Python applications, scripts and shells.
     """
+    DEFAULT_REALM = "realm1"
+    DEFAULT_ROLES = {
+        'roles': {
+            'subscriber': {},
+            'publisher': {},
+            'callee': {
+                'shared_registration': True,
+            },
+            'caller': {},
+        },
+    }
 
     def __init__(
-            self, router, roles=DEFAULT_ROLES, realm=DEFAULT_REALM,
-            transport="ws", message_handler=None, id=None,
+            self, router, roles=None, realm=None, transport=None,
+            message_handler=None,
     ):
-        self.roles = roles
-        self.realm = realm
-        self.router = router
-        self.transport = transport
-        self.session = session_builder(
-            client=self, router=self.router, realm=self.realm,
-            transport=self.transport, message_handler=message_handler)
 
-        self.id = id or str(uuid4())
+        self.router = router
+
+        self.roles = roles or self.DEFAULT_ROLES
+        self.realm = realm or self.DEFAULT_REALM
+
+        self.transport = transport or "ws"
+        self.message_handler = message_handler or MessageHandler(client=self)
+
+        self.session = session_builder(
+            client=self, router=self.router, transport=self.transport
+        )
+
+        self.request_ids = {}
 
     def __enter__(self):
         self.start()
@@ -55,7 +70,7 @@ class Client(object):
 
     def start(self):
         self.begin_session()
-        self.register_roles()
+        self._register_roles()
 
     def stop(self):
         self.end_session()
@@ -70,30 +85,9 @@ class Client(object):
         self.session.send_message(message)
         return self.session.recv_message()
 
-    def register_roles(self):
-        logger.info("registering roles for: %s", self.__class__.__name__)
-
-        maybe_roles = []
-        bases = [b for b in inspect.getmro(self.__class__) if b is not object]
-
-        for base in bases:
-            maybe_roles.extend(
-                v for v in base.__dict__.values() if
-                inspect.isclass(base) and callable(v)
-            )
-
-        for maybe_role in maybe_roles:
-
-            if hasattr(maybe_role, 'callee'):
-                procedure_name = maybe_role.func_name
-                invocation_policy = maybe_role.invocation_policy
-                register_procedure(
-                    self.session, procedure_name, invocation_policy)
-
-            if hasattr(maybe_role, 'subscriber'):
-                topic = maybe_role.topic
-                handler = maybe_role.handler
-                subscribe_to_topic(self.session, topic, handler)
+    def process_message(self, message):
+        logger.info("client processing message: %s", message)
+        self.message_handler(message)
 
     @property
     def call(self):
@@ -175,17 +169,47 @@ class Client(object):
         return self.call(
             "wamp.registration.count_callees", registration_id)
 
+    def _register_roles(self):
+        logger.info("registering roles for: %s", self.__class__.__name__)
 
-class ServiceClient(Client):
-    """ Designed to be used as part of a cluster of clients.
-    """
+        maybe_roles = []
+        bases = [b for b in inspect.getmro(self.__class__) if b is not object]
 
-    @register_rpc(invocation_policy="roundrobin")
-    def get_meta(self):
-        meta = {
-            'id': self.id,
-            'subscriptions': self.session.subscription_map.keys(),
-            'registrations': self.session.registration_map.keys(),
-        }
+        for base in bases:
+            maybe_roles.extend(
+                v for v in base.__dict__.values() if
+                inspect.isclass(base) and callable(v)
+            )
 
-        return meta
+        for maybe_role in maybe_roles:
+
+            if hasattr(maybe_role, 'callee'):
+                procedure_name = maybe_role.func_name
+                invocation_policy = maybe_role.invocation_policy
+                register_procedure(
+                    self.session, procedure_name, invocation_policy)
+
+            if hasattr(maybe_role, 'subscriber'):
+                topic = maybe_role.topic
+                handler = maybe_role.handler
+                self._subscribe_to_topic(self.session, topic, handler)
+
+    def _subscribe_to_topic(self, session, topic, handler):
+        procedure_name = handler.func_name
+        message = Subscribe(topic=topic)
+
+        request_id = message.request_id
+
+        try:
+            session.send_message(message)
+        except Exception as exc:
+            raise WampProtocolError(
+                "failed to subscribe to {}: \"{}\"".format(
+                    topic, exc)
+            )
+
+        self.request_ids[request_id] = message, procedure_name
+
+        logger.info(
+            'registered handler "%s" for topic "%s"', procedure_name, topic
+        )

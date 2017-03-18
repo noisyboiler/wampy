@@ -11,23 +11,16 @@ logger = logging.getLogger('wampy.messagehandler')
 
 class MessageHandler(object):
 
-    def __init__(
-        self, client, session, message_queue, messages_to_handle=None,
-    ):
+    def __init__(self, client, messages_to_handle=None):
         """ Responsible for processing incoming WAMP messages.
 
         :Parameters:
-            client : instance of `wampy.peers.clients.Client`
-                The wampy client receiving the messages.
-
             messages_to_handle : list
                 A list of Message classes. Only Messages described in
                 this list will be accepted.
 
         """
         self.client = client
-        self.session = session
-        self.message_queue = message_queue
 
         if messages_to_handle is None:
             # the rationale here is as follows:-
@@ -62,7 +55,7 @@ class MessageHandler(object):
         for message in self.messages_to_handle:
             messages[message.WAMP_CODE] = message
 
-    def handle_message(self, message):
+    def handle_message(self, message, context=None, meta=None):
         wamp_code = message[0]
         if wamp_code not in self.messages:
             raise WampyError(
@@ -77,5 +70,3 @@ class MessageHandler(object):
         message_class = self.messages[wamp_code]
         message_obj = message_class(*message)
         message_obj.process(message=message, client=self.client)
-
-        self.message_queue.put(message)

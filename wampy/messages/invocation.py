@@ -77,10 +77,10 @@ class Invocation(Message):
 
         result_kwargs['error'] = error
         result_kwargs['message'] = resp
-        result_kwargs['_meta'] = {}
-        result_kwargs['_meta']['procedure_name'] = procedure_name
-        result_kwargs['_meta']['session_id'] = session.id
-        result_kwargs['_meta']['client_id'] = client.id
+        result_kwargs['meta'] = {}
+        result_kwargs['meta']['procedure_name'] = procedure_name
+        result_kwargs['meta']['session_id'] = session.id
+        result_kwargs['meta']['client_id'] = client.id
 
         result_args = [resp]
 

@@ -85,8 +85,8 @@ class Event(Message):
                 "Event handler not found: {}".format(func_name)
             )
 
-        payload_dict['_meta'] = {}
-        payload_dict['_meta']['topic'] = topic
-        payload_dict['_meta']['subscription_id'] = subscription_id
+        payload_dict['meta'] = {}
+        payload_dict['meta']['topic'] = topic
+        payload_dict['meta']['subscription_id'] = subscription_id
 
         func(*payload_list, **payload_dict)

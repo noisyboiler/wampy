@@ -1,39 +1,9 @@
 import logging
-from uuid import uuid4
 
-from wampy.errors import WampyError, WampProtocolError
-from wampy.messages import Message
-from wampy.messages.subscribe import Subscribe
-from wampy.session import session_builder
+from wampy.errors import WampyError
+from wampy.peers.clients import Client
 
 logger = logging.getLogger(__name__)
-
-
-def subscribe_to_topic(session, topic, handler):
-    procedure_name = handler.func_name
-    message = Subscribe(topic=topic)
-
-    try:
-        session.send_message(message)
-        response_msg = session.recv_message()
-    except Exception as exc:
-        raise WampProtocolError(
-            "failed to subscribe to {}: \"{}\"".format(
-                topic, exc)
-        )
-
-    wamp_code, _, subscription_id = response_msg
-    if wamp_code != Message.SUBSCRIBED:
-        raise WampProtocolError(
-            "failed to subscribe to {}: \"{}\"".format(
-                topic, wamp_code)
-        )
-
-    session.subscription_map[subscription_id] = procedure_name, topic
-
-    logger.info(
-        'registered handler "%s" for topic "%s"', procedure_name, topic
-    )
 
 
 class RegisterSubscriptionDecorator(object):
@@ -58,42 +28,36 @@ class RegisterSubscriptionDecorator(object):
 subscribe = RegisterSubscriptionDecorator
 
 
-class TopicSubscriber(object):
+class TopicSubscriber(Client):
     """ Stand alone websocket topic subscriber """
 
-    def __init__(
-            self, router, realm, topics, message_handler,
-            roles=None, transport="ws",
-    ):
-        """ Subscribe to a single topic.
+    DEFAULT_ROLES = {
+        'roles': {
+            'subscriber': {},
+        },
+    }
 
-        All messages receieved are appended to a ``message_queue`` which
-        should behave like a standard Python list.
+    def __init__(
+        self, topics, callback, router, roles=None, realm=None,
+    ):
+        """ Subscribe to a one or more topics.
 
         :Parameters:
+            topics : list of strings
+            callback : func
+                a callable that will do something with topic events
             router: instance
                 subclass of :cls:`wampy.peers.routers.Router`
-            realm : string
-            topics : list of strings
-            message_handler : func
             roles: dictionary
+            realm : string
 
         """
-        self.id = str(uuid4())
-        self.router = router
-        self.realm = realm
-        self.topics = topics
-        self.message_handler = message_handler
-        self.roles = roles or {
-            'roles': {
-                'subscriber': {},
-            },
-        }
-        self.transport = transport
+        super(TopicSubscriber, self).__init__(
+            router, roles or self.DEFAULT_ROLES, realm
+        )
 
-        self.session = session_builder(
-            client=self, router=self.router, realm=self.realm,
-            transport=self.transport)
+        self.topics = topics
+        self.callback = callback
 
     def __enter__(self):
         self.start()
@@ -105,7 +69,7 @@ class TopicSubscriber(object):
     def start(self):
         self.session.begin()
         for topic in self.topics:
-            subscribe_to_topic(
+            self._subscribe_to_topic(
                 session=self.session, topic=topic, handler=self.topic_handler
             )
 
@@ -117,4 +81,4 @@ class TopicSubscriber(object):
 
     def topic_handler(self, *args, **kwargs):
         logger.info("handling message: (%s, %s)", args, kwargs)
-        self.message_handler(*args, **kwargs)
+        self.callback(*args, **kwargs)
