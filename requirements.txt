@@ -1,2 +1,2 @@
 eventlet==0.18.4
-psutil
+psutil==4.3.1
