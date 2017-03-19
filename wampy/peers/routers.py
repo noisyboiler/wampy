@@ -1,17 +1,46 @@
+import atexit
 import json
 import logging
 import os
 import signal
 import socket
 import subprocess
-import sys
 from time import time as now, sleep
+
+import psutil
 
 from wampy.constants import DEFAULT_HOST, DEFAULT_PORT
 from wampy.constants import DEFAULT_REALM, DEFAULT_ROLES
-from wampy.errors import ConnectionError
+from wampy.errors import ConnectionError, WampyError
 
 logger = logging.getLogger('wampy.peers.routers')
+
+
+def find_processes(process_name):
+    ps = subprocess.Popen(
+        "ps -eaf | pgrep " + process_name, shell=True, stdout=subprocess.PIPE)
+    output = ps.stdout.read()
+    ps.stdout.close()
+    ps.wait()
+
+    return output
+
+
+def kill_crossbar():
+    output = find_processes("crossbar")
+    pids = [o for o in output.split('\n') if o]
+    for pid in pids:
+        try:
+            os.killpg(os.getpgid(int(pid)), signal.SIGTERM)
+        except Exception:
+            logger.exception(
+                'Failed to kill process: %s (%s)',
+                pid,
+                psutil.Process(int(pid))
+            )
+
+
+atexit.register(kill_crossbar)
 
 
 class TCPConnection(object):
@@ -104,22 +133,11 @@ class Crossbar(object):
         self._wait_until_ready()
 
     def stop(self):
-        logger.info('sending SIGTERM to %s', self.proc.pid)
-
-        try:
-            os.killpg(os.getpgid(self.proc.pid), signal.SIGTERM)
-        except Exception as exc:
-            logger.exception(exc)
-            logger.warning('could not kill process group')
-
-            try:
-                self.proc.kill()
-            except:
-                logger.execption('Failed to kill parent')
-                sys.exit()
-            else:
-                logger.info('killed parent process instead')
-
+        kill_crossbar()
         # let the shutdown happen
         sleep(2)
         logger.info('crossbar shut down')
+
+        output = find_processes("crossbar")
+        if output:
+            raise WampyError("Crossbar is still running.")
