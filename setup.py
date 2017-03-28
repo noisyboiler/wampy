@@ -35,6 +35,7 @@ setup(
     extras_require={
         'dev': [
             "crossbar==0.15.0",
+            "autobahn==0.17.2",
             "pytest==2.9.1",
             "mock==1.3.0",
             "pytest-capturelog",
