@@ -31,17 +31,31 @@ def kill_crossbar():
     output = find_processes("crossbar")
     pids = [o for o in output.split('\n') if o]
     for pid in pids:
+        logger.warning("sending SIGTERM")
         try:
             os.killpg(os.getpgid(int(pid)), signal.SIGTERM)
-        except Exception:
+        except:
             logger.exception(
                 'Failed to kill process: %s (%s)',
                 pid,
                 psutil.Process(int(pid))
             )
+        else:
+            break
 
 
-atexit.register(kill_crossbar)
+def finally_kill_crossbar():
+    output = find_processes("crossbar")
+    if output:
+        logger.warning("test run ended: sending SIGTERM")
+        # give any other threads another chance to finish
+        sleep(1)
+        try:
+            kill_crossbar()
+        except:
+            pass
+
+atexit.register(finally_kill_crossbar)
 
 
 class TCPConnection(object):
