@@ -33,6 +33,10 @@ def kill_crossbar():
     for pid in pids:
         logger.warning("sending SIGTERM")
         try:
+            os.killpg(os.getpid(int(pid)), signal.SIGTERM)
+        except:
+            pass
+        try:
             os.killpg(os.getpgid(int(pid)), signal.SIGTERM)
         except:
             logger.exception(
@@ -265,6 +269,6 @@ class Crossbar(object):
 
         output = find_processes("crossbar")
         if output:
-            logger.warning("Crossbar is still running.")
+            logger.error("Crossbar is still running.")
         else:
             logger.info('crossbar shut down')
