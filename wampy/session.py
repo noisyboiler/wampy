@@ -1,4 +1,5 @@
 import logging
+import socket
 
 import eventlet
 
@@ -6,7 +7,7 @@ from wampy.errors import ConnectionError, WampError, WampProtocolError
 from wampy.messages import Message
 from wampy.messages.hello import Hello
 from wampy.messages.goodbye import Goodbye
-from wampy.transports.websocket.connection import WebSocket, TLSWebSocket
+from wampy.transports.websocket.connection import WampWebSocket, TLSWebSocket
 
 from wampy.messages import MESSAGE_TYPE_MAP
 
@@ -14,16 +15,16 @@ from wampy.messages import MESSAGE_TYPE_MAP
 logger = logging.getLogger('wampy.session')
 
 
-def session_builder(client, router, transport="ws"):
-    if transport == "ws":
-        use_tls = router.can_use_tls
+def session_builder(
+        client, router, transport="websocket", use_tls=False, ipv=4
+):
+    if transport == "websocket":
         if use_tls:
-            transport = TLSWebSocket(
-                host=router.host, port=router.port, websocket_location="ws",
-                certificate=router.certificate)
+            logger.info("Secure Websocket Transport")
+            transport = TLSWebSocket(router)
         else:
-            transport = WebSocket(
-                host=router.host, port=router.port, websocket_location="ws")
+            logger.info("Websocket Transport")
+            transport = WampWebSocket(router)
     else:
         raise WampError("transport not supported: {}".format(transport))
 
@@ -51,7 +52,7 @@ class Session(object):
 
     """
 
-    def __init__(self, client, router, transport="ws"):
+    def __init__(self, client, router, transport):
         """ A Session between a Client and a Router.
 
         :Parameters:
@@ -136,12 +137,18 @@ class Session(object):
         try:
             connection.connect()
         except Exception as exc:
-            raise ConnectionError(exc)
+            raise ConnectionError(
+                'cannot connect to: "{}": {}'.format(self.transport.url, exc)
+            )
 
         self._listen_on_connection(connection, self._message_queue)
         self._connection = connection
 
     def _disconnet(self):
+        _socket = self.transport.socket
+        _socket.shutdown(socket.SHUT_RDWR)
+        _socket.close()
+
         self._managed_thread.kill()
         self._connection = None
         self.session = None

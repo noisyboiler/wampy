@@ -28,20 +28,19 @@ class Client(object):
     }
 
     def __init__(
-            self, router, roles=None, realm=None, transport=None,
-            message_handler=None,
+            self, router, roles=None, realm=None, message_handler=None,
+            transport="websocket", use_tls=False,
     ):
-
-        self.router = router
 
         self.roles = roles or self.DEFAULT_ROLES
         self.realm = realm or self.DEFAULT_REALM
-
-        self.transport = transport or "ws"
         self.message_handler = message_handler or MessageHandler(client=self)
 
         self.session = session_builder(
-            client=self, router=self.router, transport=self.transport
+            client=self,
+            router=router,
+            transport=transport,  # TODO transport should wrap tls an ipv
+            use_tls=use_tls,
         )
 
         self.request_ids = {}
@@ -164,5 +163,5 @@ class Client(object):
         self.request_ids[request_id] = procedure_name
 
         logger.info(
-            'registered procedure name "%s"', procedure_name,
+            'Register request sent for procedure name "%s"', procedure_name,
         )

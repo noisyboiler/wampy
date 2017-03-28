@@ -7,7 +7,8 @@ class ConnectionError(Exception):
 
 
 class IncompleteFrameError(Exception):
-    pass
+    def __init__(self, required_bytes):
+        self.required_bytes = required_bytes
 
 
 class MessageRouterConnectionError(Exception):
