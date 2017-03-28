@@ -7,7 +7,8 @@ from wampy.errors import ConnectionError, WampError, WampProtocolError
 from wampy.messages import Message
 from wampy.messages.hello import Hello
 from wampy.messages.goodbye import Goodbye
-from wampy.transports.websocket.connection import WampWebSocket, TLSWampWebSocket
+from wampy.transports.websocket.connection import (
+    WampWebSocket, TLSWampWebSocket)
 
 from wampy.messages import MESSAGE_TYPE_MAP
 
