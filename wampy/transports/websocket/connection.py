@@ -285,9 +285,9 @@ class WampWebSocket(object):
         self.socket.sendall(frame.payload)
 
 
-class TLSWebSocket(WampWebSocket):
+class TLSWampWebSocket(WampWebSocket):
     def __init__(self, router):
-        super(TLSWebSocket, self).__init__(router)
+        super(TLSWampWebSocket, self).__init__(router)
 
         self.ipv = router.ipv
         self.ssl_version = ssl.PROTOCOL_TLSv1_2

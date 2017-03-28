@@ -1,7 +1,7 @@
 import datetime
 
 from wampy.peers.clients import Client
-from wampy.roles.callee import register_rpc
+from wampy.roles.callee import callee
 from wampy.roles.subscriber import subscribe
 
 
@@ -18,7 +18,7 @@ class DateService(Client):
         $ wampy run docs.examples.services:SubscribingService --router http://localhost:8080
 
     """  # NOQA
-    @register_rpc
+    @callee
     def get_todays_date(self):
         return datetime.date.today().isoformat()
 
@@ -43,6 +43,6 @@ class SubscribingService(Client):
 
 class BinaryNumberService(Client):
 
-    @register_rpc
+    @callee
     def get_binary_number(self, number):
         return bin(number)

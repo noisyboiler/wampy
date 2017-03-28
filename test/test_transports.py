@@ -3,13 +3,13 @@ from datetime import date
 
 from wampy.peers.clients import Client
 from wampy.peers.routers import Crossbar
-from wampy.roles.callee import rpc
+from wampy.roles.callee import callee
 from wampy.testing.helpers import wait_for_session, wait_for_registrations
 
 
 class DateService(Client):
 
-    @rpc
+    @callee
     def get_todays_date(self):
         return datetime.date.today().isoformat()
 

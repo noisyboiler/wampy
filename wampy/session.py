@@ -7,7 +7,7 @@ from wampy.errors import ConnectionError, WampError, WampProtocolError
 from wampy.messages import Message
 from wampy.messages.hello import Hello
 from wampy.messages.goodbye import Goodbye
-from wampy.transports.websocket.connection import WampWebSocket, TLSWebSocket
+from wampy.transports.websocket.connection import WampWebSocket, TLSWampWebSocket
 
 from wampy.messages import MESSAGE_TYPE_MAP
 
@@ -20,10 +20,8 @@ def session_builder(
 ):
     if transport == "websocket":
         if use_tls:
-            logger.info("Secure Websocket Transport")
-            transport = TLSWebSocket(router)
+            transport = TLSWampWebSocket(router)
         else:
-            logger.info("Websocket Transport")
             transport = WampWebSocket(router)
     else:
         raise WampError("transport not supported: {}".format(transport))

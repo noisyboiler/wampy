@@ -87,5 +87,4 @@ class CalleeProxy(Client):
         self.session.end()
 
 
-rpc = RegisterProcedureDecorator.decorator
-register_rpc = RegisterProcedureDecorator.decorator
+callee = RegisterProcedureDecorator.decorator
