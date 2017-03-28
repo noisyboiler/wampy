@@ -30,10 +30,11 @@ setup(
     packages=find_packages(),
     install_requires=[
         "eventlet==0.18.4",
+        "psutil==4.3.1",
     ],
     extras_require={
         'dev': [
-            "crossbar==0.15.0",
+            "crossbar==17.2.1",
             "pytest==2.9.1",
             "mock==1.3.0",
             "pytest-capturelog",
