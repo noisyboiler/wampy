@@ -156,10 +156,8 @@ In another terminal, with a **wampy** virtualenv, you can create a **Publisher**
 
 Hopefully you'll see any message you send printed to the screen where the example service is running. You'll also see the meta data that **wampy** chooses to send.
 
-TLS/WSS Support (alpha)
-~~~~~~~~~~~~~~~~~~~~~~~
-
-This feature is only experimental....
+TLS/WSS Support
+~~~~~~~~~~~~~~~
 
 When you instantiate your Router, pass in a path to the server certificate along with the host and port that it operates on, e.g.
 
@@ -172,9 +170,13 @@ When you instantiate your Router, pass in a path to the server certificate along
     In [3]: router = Crossbar(
                 host="localhost", port=8080, certificate="path.to.certificate")
 
+Your Router must be configured to use TLS. For an example see the `config`_ used by the test runner along with the `TLS Router`_ setup.
+
+To connect a Client over TLS pass the ``use_tls=True`` parameter on initialisation.
+
     In [4]: client = Client(router=router)
 
-Your certificate must also be configured in your **Crossbar.io** config. For an example see the `config`_ used by the test runner along with the `TLS Router`_ setup.
+Note that Crossbar.io does not support TLS over IPV6.
 
 Testing
 ~~~~~~~
