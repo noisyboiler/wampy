@@ -33,7 +33,7 @@ def kill_crossbar():
     for pid in pids:
         logger.warning("sending SIGTERM to crossbar pid: %s", pid)
         try:
-            os.killpg(os.getpid(int(pid)), signal.SIGTERM)
+            os.kill(int(pid), signal.SIGTERM)
         except Exception:
             logger.exception("SIGTERM failed")
             try:
@@ -53,7 +53,7 @@ def finally_kill_crossbar():
     if output:
         logger.warning("test run ended: sending SIGTERM")
         # give any other threads another chance to finish
-        sleep(1)
+        sleep(2)
         try:
             kill_crossbar()
         except:
