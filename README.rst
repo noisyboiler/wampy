@@ -171,15 +171,17 @@ When you instantiate your Router, pass in a path to the server certificate along
     In [2]: from wampy.peers.routers import Crossbar
 
     In [3]: router = Crossbar(
-                host="localhost", port=8080, certificate="path.to.certificate")
+                host="localhost", port=443, certificate="path.to.certificate")
 
 Your Router must be configured to use TLS. For an example see the `config`_ used by the test runner along with the `TLS Router`_ setup.
 
 To connect a Client over TLS pass the ``use_tls=True`` parameter on initialisation.
 
-    In [4]: client = Client(router=router)
+::
 
-Note that Crossbar.io does not support TLS over IPV6.
+    In [4]: client = Client(router=router, use_tls=True)
+
+Note that Crossbar.io does not support TLS over IPV6 and you'll need to be executing as root for port 443. All of these choices are made in the Crossbar.io config.
 
 Testing
 ~~~~~~~
