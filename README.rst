@@ -8,9 +8,12 @@ wampy
 .. image:: https://travis-ci.org/noisyboiler/wampy.svg?branch=master
     :target: https://travis-ci.org/noisyboiler/wampy
 
+This is a Python implementation of WAMP not requiring Twisted or asyncio, enabling use within classic blocking Python applications. Currently Python 2.x only, but there is no reason why it cannot be ported to 3.x. It is a light-weight alternative to `autobahn`_.
+
 With **wampy** you can quickly and easily create your own **WAMP** clients, whether this is in a web app, a microservice, a script or just in a Python shell.
 
 **wampy** tries to provide an intuitive API for your **WAMP** messaging.
+
 
 WAMP
 ----
@@ -87,11 +90,11 @@ Now open your preferred text editor and we'll write a few lines of Python constr
 
     In [1]: from wampy.peers.clients import Client
 
-    In [2]: from wampy.roles import register_rpc
+    In [2]: from wampy.roles import callee
 
     In [3]: class BinaryNumberService(Client):
 
-                @register_rpc
+                @callee
                 def get_binary_number(self, number):
                     return bin(number)
 
@@ -156,10 +159,8 @@ In another terminal, with a **wampy** virtualenv, you can create a **Publisher**
 
 Hopefully you'll see any message you send printed to the screen where the example service is running. You'll also see the meta data that **wampy** chooses to send.
 
-TLS/WSS Support (alpha)
-~~~~~~~~~~~~~~~~~~~~~~~
-
-This feature is only experimental....
+TLS/WSS Support
+~~~~~~~~~~~~~~~
 
 When you instantiate your Router, pass in a path to the server certificate along with the host and port that it operates on, e.g.
 
@@ -170,11 +171,17 @@ When you instantiate your Router, pass in a path to the server certificate along
     In [2]: from wampy.peers.routers import Crossbar
 
     In [3]: router = Crossbar(
-                host="localhost", port=8080, certificate="path.to.certificate")
+                host="localhost", port=443, certificate="path.to.certificate")
 
-    In [4]: client = Client(router=router)
+Your Router must be configured to use TLS. For an example see the `config`_ used by the test runner along with the `TLS Router`_ setup.
 
-Your certificate must also be configured in your **Crossbar.io** config. For an example see the `config`_ used by the test runner along with the `TLS Router`_ setup.
+To connect a Client over TLS pass the ``use_tls=True`` parameter on initialisation.
+
+::
+
+    In [4]: client = Client(router=router, use_tls=True)
+
+Note that Crossbar.io does not support TLS over IPV6 and you'll need to be executing as root for port 443. All of these choices are made in the Crossbar.io config.
 
 Testing
 ~~~~~~~
@@ -207,3 +214,4 @@ If you like this project, then Thank You, and you're welcome to get involved.
 .. _examples: https://github.com/noisyboiler/wampy/blob/master/docs/examples/services.py#L26
 .. _config: https://github.com/noisyboiler/wampy/blob/master/wampy/testing/configs/crossbar.config.tls.json
 .. _TLS Router: https://github.com/noisyboiler/wampy/blob/master/wampy/testing/pytest_plugin.py#L49
+.. _autobahn: http://autobahn.ws/python/

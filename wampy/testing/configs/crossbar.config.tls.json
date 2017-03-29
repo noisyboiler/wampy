@@ -32,10 +32,12 @@
          ],
          "transports":[
             {
-               "type":"web",
+               "type":"websocket",
                "endpoint":{
                   "type":"tcp",
-                  "port":8080,
+                  "port":9443,
+                  "version": 4,
+                  "interface": "localhost",
                   "tls":{
                      "key":"./wampy/testing/keys/server_key.pem",
                      "certificate":"./wampy/testing/keys/server_cert.pem",
@@ -43,15 +45,7 @@
                      "ciphers":"ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AES:RSA+3DES:!ADH:!AECDH:!MD5:!DSS"
                   }
                },
-               "paths":{
-                  "/":{
-                     "type":"static",
-                     "directory":"./wampy/testing/"
-                  },
-                  "ws":{
-                     "type":"websocket"
-                  }
-               }
+               "url": "ws://localhost:9443"
             }
          ]
       }

@@ -133,7 +133,6 @@ class ClientFrame(Frame):
 
     def generate_payload(self):
         """ Format data to string (bytes) to send to server.
-
         """
         # the first byte contains the FIN bit, the 3 RSV bits and the
         # 4 opcode bits and for a client will *always* be 1000 0001 (or 129).
@@ -210,7 +209,7 @@ class ServerFrame(Frame):
         try:
             self.payload_length_indicator = bytes[1] & 0b1111111
         except Exception:
-            raise IncompleteFrameError(bytes)
+            raise IncompleteFrameError(required_bytes=1)
 
         # if this doesn't raise, all the above will receive a value
         self.ensure_complete_frame(bytes)
@@ -244,7 +243,7 @@ class ServerFrame(Frame):
         # hence whether this is a complete frame or not.
         if len(buffered_bytes) < 2:
             # there are more bytes to receive.
-            raise IncompleteFrameError("bytes not enough for a frame")
+            raise IncompleteFrameError(required_bytes=1)
 
         payload_length_indicator = buffered_bytes[1] & 0b1111111
         available_bytes_for_body = buffered_bytes[2:]
@@ -252,7 +251,7 @@ class ServerFrame(Frame):
         try:
             available_bytes_for_body[1]
         except IndexError:
-            raise IncompleteFrameError("not enough bytes for a body section")
+            raise IncompleteFrameError(required_bytes=payload_length_indicator)
 
         # unpack the buffered bytes into an integer
         body_length = unpack_from(">h", available_bytes_for_body)[0]
@@ -279,8 +278,7 @@ class ServerFrame(Frame):
 
         if len(body_candidate) < body_length:
             raise IncompleteFrameError(
-                'incorrect length for "%s": %s != %s',
-                body_candidate, len(body_candidate), body_length
+                required_bytes=body_length - len(body_candidate)
             )
 
         self.body = body_candidate

@@ -4,25 +4,25 @@ from datetime import date
 import pytest
 
 from wampy.peers.clients import Client
-from wampy.roles.callee import register_rpc
+from wampy.roles.callee import callee
 from wampy.testing.helpers import wait_for_session
 
 
 class DateService(Client):
 
-    @register_rpc
+    @callee
     def get_todays_date(self):
         return datetime.date.today().isoformat()
 
 
 class HelloService(Client):
 
-    @register_rpc
+    @callee
     def say_hello(self, name):
         message = "Hello {}".format(name)
         return message
 
-    @register_rpc
+    @callee
     def say_greeting(self, name, greeting="hola"):
         message = "{greeting} to {name}".format(
             greeting=greeting, name=name)
@@ -31,7 +31,7 @@ class HelloService(Client):
 
 class BinaryNumberService(Client):
 
-    @register_rpc
+    @callee
     def get_binary(self, integer):
         """ Return the binary format for a given base ten integer.
         """

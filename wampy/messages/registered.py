@@ -1,4 +1,8 @@
+import logging
+
 from wampy.messages.message import Message
+
+logger = logging.getLogger(__name__)
 
 
 class Registered(Message):
@@ -21,3 +25,7 @@ class Registered(Message):
         wamp_code, request_id, registration_id = message
         procedure_name = client.request_ids[request_id]
         session.registration_map[registration_id] = procedure_name
+
+        logger.info(
+            'Registered procedure name "%s"', procedure_name,
+        )

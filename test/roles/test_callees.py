@@ -41,11 +41,10 @@ class TestRpcProxy(object):
 
             wait_for_registrations(factory, 5)
 
-            with caller:
-                caller.rpc.moon("moon")
-                caller.rpc.sun("sun")
-                caller.rpc.fire("fire")
-                caller.rpc.water("water")
-                caller.rpc.dandelions("dandelions")
+            caller.rpc.moon("moon")
+            caller.rpc.sun("sun")
+            caller.rpc.fire("fire")
+            caller.rpc.water("water")
+            caller.rpc.dandelions("dandelions")
 
-            assert_stops_raising(wait_for_message)
+        assert_stops_raising(wait_for_message)

@@ -1,5 +1,9 @@
+import logging
+
 from wampy.errors import WampError
 from wampy.messages.message import Message
+
+logger = logging.getLogger(__name__)
 
 
 class Welcome(Message):
@@ -33,3 +37,4 @@ class Welcome(Message):
             )
 
         session.session_id = session_id
+        logger.info("WELCOME message recieved")
