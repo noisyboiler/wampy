@@ -34,7 +34,7 @@ def kill_crossbar():
         logger.warning("sending SIGTERM to crossbar pid: %s", pid)
         try:
             os.killpg(os.getpid(int(pid)), signal.SIGTERM)
-        except as Exception:
+        except Exception:
             logger.exception("SIGTERM failed")
             try:
                 os.killpg(os.getpgid(int(pid)), signal.SIGTERM)
