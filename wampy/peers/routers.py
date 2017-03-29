@@ -31,21 +31,21 @@ def kill_crossbar():
     output = find_processes("crossbar")
     pids = [o for o in output.split('\n') if o]
     for pid in pids:
-        logger.warning("sending SIGTERM")
+        logger.warning("sending SIGTERM to crossbar pid: %s", pid)
         try:
             os.killpg(os.getpid(int(pid)), signal.SIGTERM)
-        except:
-            pass
-        try:
-            os.killpg(os.getpgid(int(pid)), signal.SIGTERM)
-        except:
-            logger.exception(
-                'Failed to kill process: %s (%s)',
-                pid,
-                psutil.Process(int(pid))
-            )
-        else:
-            break
+        except as Exception:
+            logger.exception("SIGTERM failed")
+            try:
+                os.killpg(os.getpgid(int(pid)), signal.SIGTERM)
+            except:
+                logger.exception(
+                    'Failed to kill process: %s (%s)',
+                    pid,
+                    psutil.Process(int(pid))
+                )
+            else:
+                break
 
 
 def finally_kill_crossbar():
@@ -57,7 +57,9 @@ def finally_kill_crossbar():
         try:
             kill_crossbar()
         except:
-            pass
+            logger.warning(
+                "failed to kill crossbar at end of test run"
+            )
 
 atexit.register(finally_kill_crossbar)
 
@@ -225,8 +227,8 @@ class Crossbar(object):
             if timeout < 0:
                 if raise_if_not_ready:
                     raise ConnectionError(
-                        'Failed to connect to CrossBar: {}:{}'.format(
-                            self.host, self.port)
+                        'Failed to connect to CrossBar over {}: {}:{}'.format(
+                            self.ipv, self.host, self.port)
                     )
                 else:
                     return ready
@@ -269,6 +271,6 @@ class Crossbar(object):
 
         output = find_processes("crossbar")
         if output:
-            logger.error("Crossbar is still running.")
+            logger.error("Crossbar is still running: %s", output)
         else:
             logger.info('crossbar shut down')
