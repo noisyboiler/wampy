@@ -30,7 +30,6 @@ setup(
     packages=find_packages(),
     install_requires=[
         "eventlet==0.18.4",
-        "psutil==4.3.1",
     ],
     extras_require={
         'dev': [

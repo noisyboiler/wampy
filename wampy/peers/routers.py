@@ -9,9 +9,6 @@ from socket import error as socket_error
 from time import time as now, sleep
 from urlparse import urlsplit
 
-
-import psutil
-
 from wampy.errors import ConnectionError, WampyError
 
 logger = logging.getLogger('wampy.peers.routers')
@@ -35,17 +32,11 @@ def kill_crossbar():
         try:
             os.kill(int(pid), signal.SIGTERM)
         except Exception:
-            logger.exception("SIGTERM failed")
+            logger.exception("SIGTERM failed - try and kill process group")
             try:
                 os.killpg(os.getpgid(int(pid)), signal.SIGTERM)
             except:
-                logger.exception(
-                    'Failed to kill process: %s (%s)',
-                    pid,
-                    psutil.Process(int(pid))
-                )
-            else:
-                break
+                logger.exception('Failed to kill process: %s', pid)
 
 
 def finally_kill_crossbar():
@@ -269,7 +260,7 @@ class Crossbar(object):
         # let the shutdown happen
         sleep(2)
 
-        output = find_processes("crossbar")
+        output = find_processes("crossbar").strip()
         if output:
             logger.error("Crossbar is still running: %s", output)
         else:
