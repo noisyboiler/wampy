@@ -1,7 +1,7 @@
 from urlparse import urlsplit
 
 
-class ParseUrlMixin:
+class ParseUrlMixin(object):
     def parse_url(self):
         """ Parses a URL of the form:
 
