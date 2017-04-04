@@ -10,11 +10,7 @@ class ParseUrlMixin:
         - ws+unix:///path/to/my.socket
 
         """
-        # Python 2.6.1 and below don't parse ws or wss urls properly.
-        # netloc is empty.
-        # See: https://github.com/Lawouach/WebSocket-for-Python/issues/59
         scheme, url = self.url.split(":", 1)
-
         parsed = urlsplit(url, scheme="http")
         if parsed.hostname:
             self.host = parsed.hostname
