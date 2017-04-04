@@ -37,11 +37,11 @@ def kill_crossbar():
             logger.exception("SIGTERM failed - try and kill process group")
             try:
                 os.killpg(os.getpgid(int(pid)), signal.SIGTERM)
-            except:
+            except Exception as exc:
+                if "No such process" in str(exc):
+                    return
+
                 logger.exception('Failed to kill process: %s', pid)
-
-
-atexit.register(kill_crossbar)
 
 
 class ConfigurationError(Exception):
@@ -83,3 +83,6 @@ def session_maker(router, connection):
         )
 
     return maker
+
+
+atexit.register(kill_crossbar)
