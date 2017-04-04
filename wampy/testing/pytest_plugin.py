@@ -1,4 +1,9 @@
+import atexit
 import logging
+import os
+import signal
+
+import subprocess
 
 import pytest
 
@@ -9,6 +14,34 @@ from wampy.transports.websocket.connection import WampWebSocket as WebSocket
 
 
 logger = logging.getLogger('wampy.testing')
+
+
+def find_processes(process_name):
+    ps = subprocess.Popen(
+        "ps -eaf | pgrep " + process_name, shell=True, stdout=subprocess.PIPE)
+    output = ps.stdout.read()
+    ps.stdout.close()
+    ps.wait()
+
+    return output
+
+
+def kill_crossbar():
+    output = find_processes("crossbar")
+    pids = [o for o in output.split('\n') if o]
+    for pid in pids:
+        logger.warning("sending SIGTERM to crossbar pid: %s", pid)
+        try:
+            os.kill(int(pid), signal.SIGTERM)
+        except Exception:
+            logger.exception("SIGTERM failed - try and kill process group")
+            try:
+                os.killpg(os.getpgid(int(pid)), signal.SIGTERM)
+            except:
+                logger.exception('Failed to kill process: %s', pid)
+
+
+atexit.register(kill_crossbar)
 
 
 class ConfigurationError(Exception):
@@ -27,6 +60,7 @@ def router():
     yield crossbar
 
     crossbar.stop()
+    kill_crossbar()
 
 
 @pytest.fixture

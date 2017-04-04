@@ -1,4 +1,3 @@
-import atexit
 import json
 import logging
 import os
@@ -6,85 +5,12 @@ import signal
 import socket
 import subprocess
 from socket import error as socket_error
-from time import time as now, sleep
+from time import time as now
 from urlparse import urlsplit
 
 from wampy.errors import ConnectionError, WampyError
 
 logger = logging.getLogger('wampy.peers.routers')
-
-
-def find_processes(process_name):
-    ps = subprocess.Popen(
-        "ps -eaf | pgrep " + process_name, shell=True, stdout=subprocess.PIPE)
-    output = ps.stdout.read()
-    ps.stdout.close()
-    ps.wait()
-
-    return output
-
-
-def kill_crossbar():
-    output = find_processes("crossbar")
-    pids = [o for o in output.split('\n') if o]
-    for pid in pids:
-        logger.warning("sending SIGTERM to crossbar pid: %s", pid)
-        try:
-            os.kill(int(pid), signal.SIGTERM)
-        except Exception:
-            logger.exception("SIGTERM failed - try and kill process group")
-            try:
-                os.killpg(os.getpgid(int(pid)), signal.SIGTERM)
-            except:
-                logger.exception('Failed to kill process: %s', pid)
-
-
-def finally_kill_crossbar():
-    output = find_processes("crossbar")
-    if output:
-        logger.warning("test run ended: sending SIGTERM")
-        # give any other threads another chance to finish
-        sleep(2)
-        try:
-            kill_crossbar()
-        except:
-            logger.warning(
-                "failed to kill crossbar at end of test run"
-            )
-
-atexit.register(finally_kill_crossbar)
-
-
-class TCPConnection(object):
-    def __init__(self, host, port, ipv):
-        self.host = host
-        self.port = port
-        self.ipv = ipv
-
-    def connect(self):
-        if self.ipv == 4:
-            _socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-            try:
-                _socket.connect((self.host, self.port))
-            except socket_error:
-                pass
-
-        elif self.ipv == 6:
-            _socket = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
-
-            try:
-                _socket.connect(("::", self.port))
-            except socket_error:
-                pass
-
-        else:
-            raise WampyError(
-                "unknown IPV: {}".format(self.ipv)
-            )
-
-        _socket.shutdown(socket.SHUT_RDWR)
-        _socket.close()
 
 
 class Crossbar(object):
@@ -204,13 +130,10 @@ class Crossbar(object):
         self.scheme = scheme
         self.resource = resource
 
-    def _wait_until_ready(self, timeout=7, raise_if_not_ready=True):
+    def _wait_until_ready(self, timeout=5, raise_if_not_ready=True):
         # we're only ready when it's possible to connect to the CrossBar
         # over TCP - so let's just try it.
-        connection = TCPConnection(
-            host=self.host, port=self.port, ipv=self.ipv)
         end = now() + timeout
-
         ready = False
 
         while not ready:
@@ -225,7 +148,7 @@ class Crossbar(object):
                     return ready
 
             try:
-                connection.connect()
+                self.try_connection()
             except socket.error:
                 pass
             else:
@@ -256,12 +179,33 @@ class Crossbar(object):
         )
 
     def stop(self):
-        kill_crossbar()
-        # let the shutdown happen
-        sleep(2)
+        logger.warning("stopping crossbar")
+        try:
+            os.killpg(os.getpgid(self.proc.pid), signal.SIGTERM)
+        except:
+            logger.exception("failed to stop crossbar")
 
-        output = find_processes("crossbar").strip()
-        if output:
-            logger.error("Crossbar is still running: %s", output)
+    def try_connection(self):
+        if self.ipv == 4:
+            _socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+            try:
+                _socket.connect((self.host, self.port))
+            except socket_error:
+                pass
+
+        elif self.ipv == 6:
+            _socket = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+
+            try:
+                _socket.connect(("::", self.port))
+            except socket_error:
+                pass
+
         else:
-            logger.info('crossbar shut down')
+            raise WampyError(
+                "unknown IPV: {}".format(self.ipv)
+            )
+
+        _socket.shutdown(socket.SHUT_RDWR)
+        _socket.close()
