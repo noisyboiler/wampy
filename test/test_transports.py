@@ -60,9 +60,9 @@ def test_ipv4_secure_websocket_connection():
     # note that TLS not supported by crossbar on ipv6
 
     crossbar = Crossbar(
-        certificate="./wampy/testing/keys/server_cert.pem",
-        config_path='./wampy/testing/configs/crossbar.config.tls.json',
+        config_path='./wampy/testing/configs/crossbar.config.ipv4.tls.json',
         crossbar_directory='./',
+        certificate="./wampy/testing/keys/server_cert.pem",
     )
 
     with crossbar as router:
