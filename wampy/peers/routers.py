@@ -6,14 +6,14 @@ import socket
 import subprocess
 from socket import error as socket_error
 from time import time as now
-from urlparse import urlsplit
 
 from wampy.errors import ConnectionError, WampyError
+from wampy.mixins import ParseUrlMixin
 
 logger = logging.getLogger('wampy.peers.routers')
 
 
-class Crossbar(object):
+class Crossbar(ParseUrlMixin):
 
     def __init__(
         self, config_path, crossbar_directory=None, certificate=None,
@@ -49,7 +49,7 @@ class Crossbar(object):
             )
             self.ipv = 4
 
-        self._parse_url()
+        self.parse_url()
 
         self.websocket_location = self.resource
 
@@ -68,67 +68,6 @@ class Crossbar(object):
 
     def __exit__(self, exception_type, exception_value, traceback):
         self.stop()
-
-    def _parse_url(self):
-        """
-        Parses a URL which must have one of the following forms:
-
-        - ws://host[:port][path]
-        - wss://host[:port][path]
-        - ws+unix:///path/to/my.socket
-
-        In the first two cases, the ``host`` and ``port``
-        attributes will be set to the parsed values. If no port
-        is explicitely provided, it will be either 80 or 443
-        based on the scheme. Also, the ``resource`` attribute is
-        set to the path segment of the URL (alongside any querystring).
-
-        In addition, if the scheme is ``ws+unix``, the
-        ``unix_socket_path`` attribute is set to the path to
-        the Unix socket while the ``resource`` attribute is
-        set to ``/``.
-        """
-        # Python 2.6.1 and below don't parse ws or wss urls properly.
-        # netloc is empty.
-        # See: https://github.com/Lawouach/WebSocket-for-Python/issues/59
-        scheme, url = self.url.split(":", 1)
-
-        parsed = urlsplit(url, scheme="http")
-        if parsed.hostname:
-            self.host = parsed.hostname
-        elif '+unix' in scheme:
-            self.host = 'localhost'
-        else:
-            raise ValueError("Invalid hostname from: %s", self.url)
-
-        if parsed.port:
-            self.port = parsed.port
-
-        if scheme == "ws":
-            if not self.port:
-                self.port = 80
-        elif scheme == "wss":
-            if not self.port:
-                self.port = 443
-        elif scheme in ('ws+unix', 'wss+unix'):
-            pass
-        else:
-            raise ValueError("Invalid scheme: %s" % scheme)
-
-        if parsed.path:
-            resource = parsed.path
-        else:
-            resource = "/"
-
-        if '+unix' in scheme:
-            self.unix_socket_path = resource
-            resource = '/'
-
-        if parsed.query:
-            resource += "?" + parsed.query
-
-        self.scheme = scheme
-        self.resource = resource
 
     def _wait_until_ready(self, timeout=5, raise_if_not_ready=True):
         # we're only ready when it's possible to connect to the CrossBar
