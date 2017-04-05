@@ -63,7 +63,7 @@ class MessageHandler(object):
                     MESSAGE_TYPE_MAP[wamp_code])
             )
 
-        logger.info(
+        logger.debug(
             "received message: %s", MESSAGE_TYPE_MAP[wamp_code]
         )
 
