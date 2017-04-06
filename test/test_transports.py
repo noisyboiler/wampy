@@ -1,6 +1,8 @@
 import datetime
 from datetime import date
 
+import pytest
+
 from wampy.peers.clients import Client
 from wampy.peers.routers import Crossbar
 from wampy.roles.callee import callee
@@ -14,51 +16,52 @@ class DateService(Client):
         return datetime.date.today().isoformat()
 
 
-def test_ipv4_websocket_connection():
-    crossbar = Crossbar(
-        config_path='./wampy/testing/configs/crossbar.config.ipv4.json',
-        crossbar_directory='./',
-    )
+class TestIP4(object):
 
-    with crossbar as router:
-        service = DateService(router=router)
-        with service:
-            wait_for_registrations(service, 1)
+    @pytest.fixture(scope="function")
+    def config_path(self):
+        return './wampy/testing/configs/crossbar.config.ipv4.json'
 
-            client = Client(router=router)
+    def test_ipv4_websocket_connection(self, config_path, router):
+        with router:
+            service = DateService(router=router)
+            with service:
+                wait_for_registrations(service, 1)
 
-            with client:
-                result = client.rpc.get_todays_date()
+                client = Client(router=router)
 
-        today = date.today()
+                with client:
+                    result = client.rpc.get_todays_date()
 
-        assert result == today.isoformat()
+            today = date.today()
+
+            assert result == today.isoformat()
 
 
-def test_ipv6_websocket_connection():
-    crossbar = Crossbar(
-        config_path='./wampy/testing/configs/crossbar.config.ipv6.json',
-        crossbar_directory='./',
-    )
+class TestIP6(object):
 
-    with crossbar as router:
-        service = DateService(router=router)
-        with service:
-            wait_for_registrations(service, 1)
+    @pytest.fixture(scope="function")
+    def config_path(self):
+        return './wampy/testing/configs/crossbar.config.ipv6.json'
 
-            client = Client(router=router)
+    def test_ipv6_websocket_connection(self, config_path, router):
+        with router:
+            service = DateService(router=router)
+            with service:
+                wait_for_registrations(service, 1)
 
-            with client:
-                result = client.rpc.get_todays_date()
+                client = Client(router=router)
 
-        today = date.today()
+                with client:
+                    result = client.rpc.get_todays_date()
 
-        assert result == today.isoformat()
+            today = date.today()
+
+            assert result == today.isoformat()
 
 
 def test_ipv4_secure_websocket_connection():
     # note that TLS not supported by crossbar on ipv6
-
     crossbar = Crossbar(
         config_path='./wampy/testing/configs/crossbar.config.ipv4.tls.json',
         crossbar_directory='./',

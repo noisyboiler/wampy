@@ -1,12 +1,17 @@
 import logging
 
 import colorlog
-
+import pytest
 
 logging_level_map = {
     'DEBUG': logging.DEBUG,
     'INFO': logging.INFO,
 }
+
+
+@pytest.fixture(autouse=True)
+def config_path():
+    return './wampy/testing/configs/crossbar.config.ipv4.json'
 
 
 class PytestConfigurationError(Exception):

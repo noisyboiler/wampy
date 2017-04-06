@@ -186,7 +186,9 @@ Note that Crossbar.io does not support TLS over IPV6 and you'll need to be execu
 Testing
 ~~~~~~~
 
-**wampy** provides some ``pytest`` fixtures and helpers for you to run a crossbar server. These are ``router`` and ``session_maker``. The router is Crossbar and will be started and shutdown between each test.
+**wampy** provides some ``pytest`` fixtures and helpers for you to run a crossbar server. These are ``router`` and ``session_maker``. 
+
+The router is Crossbar and will be started and shutdown between each test. It has a default configuration which you can override in your tests by creating a ``config_path`` fixture in your own ``conftest`` - see *wampy's* ``conftest`` for an example. If you require even more control you can import the router itself from ``wampy.peers.routers`` and setup your tests however you need to.
 
 
 Running the tests

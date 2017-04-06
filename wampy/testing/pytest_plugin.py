@@ -49,9 +49,9 @@ class ConfigurationError(Exception):
 
 
 @pytest.yield_fixture
-def router():
+def router(config_path):
     crossbar = Crossbar(
-        config_path='./wampy/testing/configs/crossbar.config.ipv4.json',
+        config_path=config_path,
         crossbar_directory='./',
     )
 
