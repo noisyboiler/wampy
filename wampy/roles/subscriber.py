@@ -38,7 +38,7 @@ class TopicSubscriber(Client):
     }
 
     def __init__(
-        self, topics, callback, router, roles=None, realm=None,
+        self, topics, callback, router, roles=None,
     ):
         """ Subscribe to a one or more topics.
 
@@ -49,11 +49,10 @@ class TopicSubscriber(Client):
             router: instance
                 subclass of :cls:`wampy.peers.routers.Router`
             roles: dictionary
-            realm : string
 
         """
         super(TopicSubscriber, self).__init__(
-            router, roles or self.DEFAULT_ROLES, realm
+            router, roles or self.DEFAULT_ROLES
         )
 
         self.topics = topics

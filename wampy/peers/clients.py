@@ -28,12 +28,15 @@ class Client(object):
     }
 
     def __init__(
-            self, router, roles=None, realm=None, message_handler=None,
+            self, router, roles=None, message_handler=None,
             transport="websocket", use_tls=False,
     ):
 
         self.roles = roles or self.DEFAULT_ROLES
-        self.realm = realm or self.DEFAULT_REALM
+        # only support one realm per Router, and we implicitly assume that
+        # is the one a client is interested in here. this possibly could be
+        # improved....
+        self.realm = router.realm
         self.message_handler = message_handler or MessageHandler(client=self)
 
         self.session = session_builder(
