@@ -38,8 +38,14 @@ class Invocation(Message):
             self.details, self.call_args, self.call_kwargs,
         ]
 
+        self.session = None
+        self.procedure_name = None
+
+    def update_kwargs(self, kwargs):
+        pass
+
     def process(self, message, client):
-        session = client.session
+        self.session = client.session
 
         args = []
         kwargs = {}
@@ -56,13 +62,15 @@ class Invocation(Message):
                 _, request_id, registration_id, details, args, kwargs = (
                     message)
 
-        procedure_name = client.registration_map[registration_id]
-        entrypoint = getattr(client, procedure_name)
+        self.procedure_name = client.registration_map[registration_id]
+        entrypoint = getattr(client, self.procedure_name)
+
+        self.update_kwargs(kwargs)
 
         try:
             resp = entrypoint(*args, **kwargs)
         except Exception as exc:
-            logger.exception("error calling: %s", procedure_name)
+            logger.exception("error calling: %s", self.procedure_name)
             resp = None
             error = str(exc)
         else:
@@ -73,8 +81,8 @@ class Invocation(Message):
         result_kwargs['error'] = error
         result_kwargs['message'] = resp
         result_kwargs['meta'] = {}
-        result_kwargs['meta']['procedure_name'] = procedure_name
-        result_kwargs['meta']['session_id'] = session.id
+        result_kwargs['meta']['procedure_name'] = self.procedure_name
+        result_kwargs['meta']['session_id'] = self.session.id
 
         result_args = [resp]
 
@@ -85,60 +93,12 @@ class Invocation(Message):
             result_kwargs=result_kwargs,
         )
         logger.info("yielding response: %s", yield_message)
-        session.send_message(yield_message)
+        self.session.send_message(yield_message)
 
 
 class InvocationWithMeta(Invocation):
 
-    def process(self, message, client):
-        session = client.session
-
-        args = []
-        kwargs = {}
-
-        try:
-            # no args, no kwargs
-            _, request_id, registration_id, details = message
-        except ValueError:
-            # args, no kwargs
-            try:
-                _, request_id, registration_id, details, args = message
-            except ValueError:
-                # args and kwargs
-                _, request_id, registration_id, details, args, kwargs = (
-                    message)
-
-        procedure_name = client.registration_map[registration_id]
-        entrypoint = getattr(client, procedure_name)
-
+    def update_kwargs(self, kwargs):
         kwargs['meta'] = {}
-        kwargs['meta']['procedure_name'] = procedure_name
-        kwargs['meta']['session_id'] = session.id
-
-        try:
-            resp = entrypoint(*args, **kwargs)
-        except Exception as exc:
-            logger.exception("error calling: %s", procedure_name)
-            resp = None
-            error = str(exc)
-        else:
-            error = None
-
-        result_kwargs = {}
-
-        result_kwargs['error'] = error
-        result_kwargs['message'] = resp
-        result_kwargs['meta'] = {}
-        result_kwargs['meta']['procedure_name'] = procedure_name
-        result_kwargs['meta']['session_id'] = session.id
-
-        result_args = [resp]
-
-        from wampy.messages import Yield
-        yield_message = Yield(
-            request_id,
-            result_args=result_args,
-            result_kwargs=result_kwargs,
-        )
-        logger.info("yielding response: %s", yield_message)
-        session.send_message(yield_message)
+        kwargs['meta']['procedure_name'] = self.procedure_name
+        kwargs['meta']['session_id'] = self.session.id

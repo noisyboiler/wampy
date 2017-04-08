@@ -1,8 +1,8 @@
 import logging
 
+from wampy.messages.invocation import InvocationWithMeta
 from wampy.messages import MESSAGE_TYPE_MAP
-from wampy.messages import (
-    Goodbye, Error, InvocationWithMeta, Registered, Welcome)
+from wampy.messages import Goodbye, Error, Registered, Welcome
 from wampy.errors import WampyError
 
 from . default import MessageHandler
