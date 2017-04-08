@@ -206,6 +206,10 @@ To help you setup your test there are also some helpers that you can execute to 
     from wampy.testing import wait_for_subscriptions
     # e.g. ``wait_for_subscriptions(client, number_of_subscriptions=7)
 
+    # provied a function that raises until the test passes
+    from test.helpers import assert_stops_raising
+    # e.g. assert_stops_raising(my_func_that_raises_until_condition_met)
+
 
 Running the tests
 ~~~~~~~~~~~~~~~~~
