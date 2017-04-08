@@ -37,4 +37,3 @@ class Welcome(Message):
             )
 
         session.session_id = session_id
-        logger.info("WELCOME message recieved")
