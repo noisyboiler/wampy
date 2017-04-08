@@ -58,10 +58,15 @@ class CalleeProxy(Client):
             roles: dictionary
 
         """
+        if message_handler:
+            message_handler = message_handler(client=self)
+        else:
+            message_handler = MessageHandler(client=self)
+
         super(CalleeProxy, self).__init__(
             router,
             roles or self.DEFAULT_ROLES,
-            message_handler=message_handler or MessageHandler(client=self),
+            message_handler=message_handler,
         )
 
         self.procedure_names = procedure_names

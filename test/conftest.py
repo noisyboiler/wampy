@@ -3,6 +3,8 @@ import logging
 import colorlog
 import pytest
 
+from wampy.peers.clients import Client
+
 logging_level_map = {
     'DEBUG': logging.DEBUG,
     'INFO': logging.INFO,
@@ -83,3 +85,9 @@ def add_file_logging():
     fhandler.setFormatter(formatter)
     root.addHandler(fhandler)
     root.setLevel(logging.DEBUG)
+
+
+@pytest.yield_fixture
+def client(router):
+    with Client(router=router) as client:
+        yield client
