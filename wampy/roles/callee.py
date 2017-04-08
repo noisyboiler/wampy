@@ -47,7 +47,7 @@ class CalleeProxy(Client):
         only.
 
         Provide a list of functions names to register, and a single callback
-        function to handle INVOCATION and YIELD messages.
+        function to handle INVOCATION
 
         :Parameters:
             router: instance
@@ -81,6 +81,9 @@ class CalleeProxy(Client):
 
     def __getattr__(self, name):
         if name in self.procedure_names:
+            # normally an explicit app or service client would handle this,
+            # but with this client, many procedures are handled by one
+            # callback.
             return self.callback
 
         return getattr(self, name)

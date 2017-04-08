@@ -71,6 +71,7 @@ class RpcProxy:
 
             results = response[3]
             result = results[0]
+            logger.debug("RpcProxy got result: %s", result)
             return result
 
         return wrapper

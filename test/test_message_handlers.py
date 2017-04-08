@@ -14,23 +14,25 @@ class TestInvokeWithMeta(object):
         def callback(*args, **kwarsg):
             global call_count
             call_count += 1
+            return "spam"
 
-        proxy = CalleeProxy(
+        with CalleeProxy(
             router=router,
             procedure_names=procedure_names,
             callback=callback,
             message_handler=InvokeWithMetaMessageHandler,
-        )
+        ) as proxy:
 
-        with proxy:
             global call_count
             wait_for_registrations(proxy, 3)
 
             def wait_for_calls():
                 assert call_count == 3
 
-            client.rpc.foo()
-            client.rpc.bar()
-            client.rpc.spam()
+            result1 = client.rpc.foo()
+            result2 = client.rpc.bar()
+            result3 = client.rpc.spam()
 
             assert_stops_raising(wait_for_calls)
+
+            assert result1 == result2 == result3 == "spam"
