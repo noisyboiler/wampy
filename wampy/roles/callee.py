@@ -2,6 +2,7 @@ import logging
 import types
 from functools import partial
 
+from wampy.messages.handlers import MessageHandler
 from wampy.peers.clients import Client
 
 logger = logging.getLogger(__name__)
@@ -39,7 +40,8 @@ class CalleeProxy(Client):
     }
 
     def __init__(
-        self, procedure_names, callback, router, roles=None, realm=None,
+        self, procedure_names, callback, router,
+        roles=None, message_handler=None,
     ):
         """ Begin a Session that manages RPC registration and invocations
         only.
@@ -56,8 +58,15 @@ class CalleeProxy(Client):
             roles: dictionary
 
         """
+        if message_handler:
+            message_handler = message_handler(client=self)
+        else:
+            message_handler = MessageHandler(client=self)
+
         super(CalleeProxy, self).__init__(
-            router, roles or self.DEFAULT_ROLES, realm
+            router,
+            roles or self.DEFAULT_ROLES,
+            message_handler=message_handler,
         )
 
         self.procedure_names = procedure_names

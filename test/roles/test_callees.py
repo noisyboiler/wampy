@@ -1,6 +1,5 @@
 import pytest
 
-from wampy.constants import DEFAULT_REALM
 from wampy.peers.clients import Client
 from wampy.roles.callee import CalleeProxy
 from wampy.testing.helpers import wait_for_registrations
@@ -28,7 +27,6 @@ class TestRpcProxy(object):
 
         factory = CalleeProxy(
             router=router,
-            realm=DEFAULT_REALM,
             procedure_names=procedure_names,
             callback=my_callback,
         )

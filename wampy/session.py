@@ -145,7 +145,12 @@ class Session(object):
 
     def _disconnet(self):
         _socket = self.transport.socket
-        _socket.shutdown(socket.SHUT_RDWR)
+
+        try:
+            _socket.shutdown(socket.SHUT_RDWR)
+        except socket.error:
+            pass
+
         _socket.close()
 
         self._managed_thread.kill()

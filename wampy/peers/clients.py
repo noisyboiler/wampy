@@ -3,6 +3,7 @@ import inspect
 
 from wampy.errors import WampProtocolError
 from wampy.session import session_builder
+from wampy.messages import MESSAGE_TYPE_MAP
 from wampy.messages.handlers import MessageHandler
 from wampy.messages.register import Register
 from wampy.messages.subscribe import Subscribe
@@ -28,12 +29,15 @@ class Client(object):
     }
 
     def __init__(
-            self, router, roles=None, realm=None, message_handler=None,
+            self, router, roles=None, message_handler=None,
             transport="websocket", use_tls=False,
     ):
 
         self.roles = roles or self.DEFAULT_ROLES
-        self.realm = realm or self.DEFAULT_REALM
+        # only support one realm per Router, and we implicitly assume that
+        # is the one a client is interested in here. this possibly could be
+        # improved....
+        self.realm = router.realm
         self.message_handler = message_handler or MessageHandler(client=self)
 
         self.session = session_builder(
@@ -84,7 +88,7 @@ class Client(object):
         return self.session.recv_message()
 
     def process_message(self, message):
-        logger.info("client processing message: %s", message)
+        logger.info("client processing %s", MESSAGE_TYPE_MAP[message[0]])
         self.message_handler(message)
 
     @property

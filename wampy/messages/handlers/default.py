@@ -63,8 +63,9 @@ class MessageHandler(object):
                     MESSAGE_TYPE_MAP[wamp_code])
             )
 
-        logger.debug(
-            "received message: %s", MESSAGE_TYPE_MAP[wamp_code]
+        logger.info(
+            "received message: %s (%s)",
+            MESSAGE_TYPE_MAP[wamp_code], wamp_code
         )
 
         message_class = self.messages[wamp_code]
