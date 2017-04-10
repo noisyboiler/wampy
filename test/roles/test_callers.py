@@ -56,14 +56,6 @@ def binary_number_service(router):
         yield
 
 
-def make_service_clients(router, ids):
-    clients = []
-    for id_ in ids:
-        clients.append(Client(router=router, id=id_))
-
-    return clients
-
-
 def test_call_with_no_args_or_kwargs(date_service, router):
     client = Client(router=router)
     with client:
