@@ -56,23 +56,27 @@ class Invocation(Message):
         self.update_kwargs(kwargs)
 
         try:
-            resp = entrypoint(*args, **kwargs)
+            result = entrypoint(*args, **kwargs)
         except Exception as exc:
             logger.exception("error calling: %s", self.procedure_name)
-            resp = None
+            result = None
             error = str(exc)
         else:
             error = None
 
+        if result is not None:
+            self.handle_result(result, error)
+
+    def handle_result(self, result, error=None):
         result_kwargs = {}
 
         result_kwargs['error'] = error
-        result_kwargs['message'] = resp
+        result_kwargs['message'] = result
         result_kwargs['meta'] = {}
         result_kwargs['meta']['procedure_name'] = self.procedure_name
         result_kwargs['meta']['session_id'] = self.session.id
 
-        result_args = [resp]
+        result_args = [result]
 
         from wampy.messages import Yield
         yield_message = Yield(
