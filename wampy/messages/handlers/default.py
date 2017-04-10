@@ -65,9 +65,9 @@ class MessageHandler(object):
 
         logger.info(
             "received message: %s (%s)",
-            MESSAGE_TYPE_MAP[wamp_code], wamp_code
+            MESSAGE_TYPE_MAP[wamp_code], message
         )
 
         message_class = self.messages[wamp_code]
         message_obj = message_class(*message)
-        message_obj.process(message=message, client=self.client)
+        message_obj.process(client=self.client)

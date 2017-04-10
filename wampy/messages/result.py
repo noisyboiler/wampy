@@ -40,6 +40,7 @@ class Result(Message):
             self.yield_kwargs
         ]
 
-    def process(self, message, client):
-        logger.info("RESULT received: %s", message)
+    def process(self, client):
+        message = self.message
+        logger.debug("RESULT received: %s", message)
         client.session._message_queue.put(message)

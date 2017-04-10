@@ -13,6 +13,7 @@ class Registered(Message):
     def __init__(self, wamp_code, request_id, registration_id):
         assert wamp_code == self.WAMP_CODE
 
+        self.wamp_code = wamp_code
         self.request_id = request_id
         self.registration_id = registration_id
 
@@ -20,11 +21,10 @@ class Registered(Message):
             self.WAMP_CODE, self.request_id, self.registration_id,
         ]
 
-    def process(self, message, client):
+    def process(self, client):
         session = client.session
-        wamp_code, request_id, registration_id = message
-        procedure_name = client.request_ids[request_id]
-        session.registration_map[registration_id] = procedure_name
+        procedure_name = client.request_ids[self.request_id]
+        session.registration_map[self.registration_id] = procedure_name
 
         logger.info(
             'Registered procedure name "%s"', procedure_name,

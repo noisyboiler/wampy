@@ -40,44 +40,13 @@ class Event(Message):
             self.details, self.publish_args, self.publish_kwargs,
         ]
 
-    def process(self, message, client):
+    def process(self, client):
         session = client.session
 
-        payload_list = []
-        payload_dict = {}
+        payload_list = self.publish_args
+        payload_dict = self.publish_kwargs
 
-        try:
-            # [
-            #   EVENT,
-            #   SUBSCRIBED.Subscription|id,
-            #   PUBLISHED.Publication|id,
-            #   Details|dict,
-            #   PUBLISH.Arguments|list,
-            #   PUBLISH.ArgumentKw|dict]
-            # ]
-            _, subscription_id, _, details, payload_list, payload_dict = (
-                message)
-        except ValueError:
-
-            try:
-                # [
-                #   EVENT,
-                #   SUBSCRIBED.Subscription|id,
-                #   PUBLISHED.Publication|id,
-                #   Details|dict,
-                #   PUBLISH.Arguments|list,
-                # ]
-                _, subscription_id, _, details, payload_list = message
-            except ValueError:
-                # [
-                #   EVENT,
-                #   SUBSCRIBED.Subscription|id,
-                #   PUBLISHED.Publication|id,
-                #   Details|dict,
-                # ]
-                _, subscription_id, _, details = message
-
-        func_name, topic = session.subscription_map[subscription_id]
+        func_name, topic = session.subscription_map[self.subscription_id]
         try:
             func = getattr(client, func_name)
         except AttributeError:
@@ -87,6 +56,6 @@ class Event(Message):
 
         payload_dict['meta'] = {}
         payload_dict['meta']['topic'] = topic
-        payload_dict['meta']['subscription_id'] = subscription_id
+        payload_dict['meta']['subscription_id'] = self.subscription_id
 
         func(*payload_list, **payload_dict)
