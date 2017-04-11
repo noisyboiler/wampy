@@ -93,7 +93,11 @@ class CalleeProxy(Client):
         for procedure_name in self.procedure_names:
             self._register_procedure(procedure_name)
 
-        logger.info("registered to %s", ", ".join(self.procedure_names))
+        logger.info(
+            "Register message sent for %s", ", ".join(
+                self.procedure_names
+            )
+        )
 
     def stop(self):
         self.session.end()

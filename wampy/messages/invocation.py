@@ -64,8 +64,7 @@ class Invocation(Message):
         else:
             error = None
 
-        if result is not None:
-            self.handle_result(result, error)
+        self.handle_result(result, error)
 
     def handle_result(self, result, error=None):
         result_kwargs = {}
