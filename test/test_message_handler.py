@@ -23,7 +23,12 @@ class TestInvokeWithMeta(object):
         call_count = 0
         procedure_names = ["foo", "bar", "spam"]
 
-        def callback(*args, **kwarsg):
+        def callback(*args, **kwargs):
+            assert "meta" in kwargs
+            assert kwargs['meta']['procedure_name'] in procedure_names
+            assert kwargs['meta']['session_id']
+            assert kwargs['meta']['request_id']
+
             global call_count
             call_count += 1
             return "spam"
