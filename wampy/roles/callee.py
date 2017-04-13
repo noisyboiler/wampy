@@ -2,7 +2,7 @@ import logging
 import types
 from functools import partial
 
-from wampy.messages.handlers import MessageHandler
+from wampy.messages.handler import MessageHandler
 from wampy.peers.clients import Client
 
 logger = logging.getLogger(__name__)

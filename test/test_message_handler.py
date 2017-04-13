@@ -1,8 +1,20 @@
-from wampy.messages.handlers.invocation import InvokeWithMetaMessageHandler
+from wampy.messages.handler import MessageHandler
+from wampy.messages.invocation import InvocationWithMeta
+from wampy.messages import Goodbye, Error, Registered, Welcome
 from wampy.roles.callee import CalleeProxy
 from wampy.testing.helpers import wait_for_registrations
 
 from test.helpers import assert_stops_raising
+
+
+class InvokeWithMetaMessageHandler(MessageHandler):
+
+    def __init__(self, client):
+        super(InvokeWithMetaMessageHandler, self).__init__(
+            client=client, messages_to_handle=[
+                InvocationWithMeta, Welcome, Registered, Goodbye, Error
+            ]
+        )
 
 
 class TestInvokeWithMeta(object):
