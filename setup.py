@@ -30,6 +30,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         "eventlet==0.18.4",
+        "six==1.10.0",
     ],
     extras_require={
         'dev': [
