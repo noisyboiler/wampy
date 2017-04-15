@@ -1,4 +1,4 @@
-from urlparse import urlsplit
+from six.moves.urllib.parse import urlsplit
 
 
 class ParseUrlMixin(object):
