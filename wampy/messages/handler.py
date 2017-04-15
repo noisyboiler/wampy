@@ -11,6 +11,12 @@ logger = logging.getLogger('wampy.messagehandler')
 
 class MessageHandler(object):
 
+    # the minimum messages to perform WAMP RPC and PubSub
+    DEFAULT_MESSAGES_TO_HANDLE = [
+        Welcome, Goodbye, Registered, Invocation, Yield, Result,
+        Error, Subscribed, Event
+    ]
+
     def __init__(self, client, messages_to_handle=None):
         """ Responsible for processing incoming WAMP messages.
 
@@ -21,28 +27,9 @@ class MessageHandler(object):
 
         """
         self.client = client
-
-        if messages_to_handle is None:
-            # the rationale here is as follows:-
-            # Welcome: mandatory for Session establishment
-            # Goodbye: mandatory because GOODBYE is echoed by the Router
-            # Registered: a client is likely to be a Callee
-            # Invocation: same as above
-            # Yield: and again
-            # Result: a client is likely to be a Caller
-            # Error: for debugging clients
-            # Subscribed: because a client is likely to be a Subscriber
-            # Event: sames as above
-            self.messages_to_handle = [
-                Welcome, Goodbye, Registered, Invocation, Yield, Result,
-                Error, Subscribed, Event
-            ]
-        else:
-            for message in messages_to_handle:
-                # validation here
-                pass
-
-            self.messages_to_handle = messages_to_handle
+        self.messages_to_handle = (
+            messages_to_handle or self.DEFAULT_MESSAGES_TO_HANDLE
+        )
 
         self.messages = {}
         self._configure_messages()
@@ -65,9 +52,9 @@ class MessageHandler(object):
 
         logger.info(
             "received message: %s (%s)",
-            MESSAGE_TYPE_MAP[wamp_code], wamp_code
+            MESSAGE_TYPE_MAP[wamp_code], message
         )
 
         message_class = self.messages[wamp_code]
         message_obj = message_class(*message)
-        message_obj.process(message=message, client=self.client)
+        message_obj.process(client=self.client)

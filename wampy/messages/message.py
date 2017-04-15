@@ -38,7 +38,7 @@ class Message(object):
     def __init__(self):
         self.serialized = False
 
-    def process(self, message, client):
+    def process(self, client):
         pass
 
     def serialize(self):

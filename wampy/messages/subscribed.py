@@ -12,25 +12,25 @@ class Subscribed(Message):
     WAMP_CODE = 33
 
     def __init__(self, wamp_code, request_id, subscription_id):
-        assert wamp_code == self.WAMP_CODE
-
+        self.wamp_code = wamp_code
         self.request_id = request_id
         self.subscription_id = subscription_id
 
-        self.message = [
-            self.WAMP_CODE, self.request_id, self.subscription_id,
+    @property
+    def message(self):
+        return [
+            self.wamp_code, self.request_id, self.subscription_id,
         ]
 
-    def process(self, message, client):
+    def process(self, client):
         session = client.session
 
-        wamp_code, request_id, subscription_id = message
-        if wamp_code != Message.SUBSCRIBED:
+        if self.wamp_code != Message.SUBSCRIBED:
             raise WampProtocolError(
-                'failed to subscribe to topic: "{}"'.format(message)
+                'failed to subscribe to topic: "{}"'.format(self.message)
             )
 
-        original_message, procedure_name = client.request_ids[request_id]
+        original_message, procedure_name = client.request_ids[self.request_id]
         topic = original_message.topic
 
-        session.subscription_map[subscription_id] = procedure_name, topic
+        session.subscription_map[self.subscription_id] = procedure_name, topic

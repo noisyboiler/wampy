@@ -33,15 +33,13 @@ def kill_crossbar():
         logger.warning("sending SIGTERM to crossbar pid: %s", pid)
         try:
             os.kill(int(pid), signal.SIGTERM)
-        except Exception:
+        except OSError:
             logger.exception("SIGTERM failed - try and kill process group")
             try:
                 os.killpg(os.getpgid(int(pid)), signal.SIGTERM)
-            except Exception as exc:
-                if "No such process" in str(exc):
-                    return
-
-                logger.exception('Failed to kill process: %s', pid)
+            except OSError as exc:
+                if "No such process" not in str(exc):
+                    logger.exception('Failed to kill process: %s', pid)
 
 
 class ConfigurationError(Exception):

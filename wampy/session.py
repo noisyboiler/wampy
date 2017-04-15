@@ -114,6 +114,9 @@ class Session(object):
             'sending "%s" message: %s', message_type, message
         )
 
+        if self._connection is None:
+            raise WampError("WAMP Connection Not Established")
+
         self._connection.send_websocket_frame(str(message))
 
     def recv_message(self, timeout=5):

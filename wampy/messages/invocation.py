@@ -30,8 +30,8 @@ class Invocation(Message):
         self.request_id = request_id
         self.registration_id = registration_id
         self.details = details
-        self.call_args = call_args
-        self.call_kwargs = call_kwargs
+        self.call_args = call_args or tuple()
+        self.call_kwargs = call_kwargs or {}
 
         self.message = [
             self.WAMP_CODE, self.request_id, self.registration_id,
@@ -44,51 +44,42 @@ class Invocation(Message):
     def update_kwargs(self, kwargs):
         pass
 
-    def process(self, message, client):
+    def process(self, client):
         self.session = client.session
 
-        args = []
-        kwargs = {}
+        args = self.call_args
+        kwargs = self.call_kwargs
 
-        try:
-            # no args, no kwargs
-            _, request_id, registration_id, details = message
-        except ValueError:
-            # args, no kwargs
-            try:
-                _, request_id, registration_id, details, args = message
-            except ValueError:
-                # args and kwargs
-                _, request_id, registration_id, details, args, kwargs = (
-                    message)
-
-        self.procedure_name = client.registration_map[registration_id]
+        self.procedure_name = client.registration_map[self.registration_id]
         entrypoint = getattr(client, self.procedure_name)
 
         self.update_kwargs(kwargs)
 
         try:
-            resp = entrypoint(*args, **kwargs)
+            result = entrypoint(*args, **kwargs)
         except Exception as exc:
             logger.exception("error calling: %s", self.procedure_name)
-            resp = None
+            result = None
             error = str(exc)
         else:
             error = None
 
+        self.handle_result(result, error)
+
+    def handle_result(self, result, error=None):
         result_kwargs = {}
 
         result_kwargs['error'] = error
-        result_kwargs['message'] = resp
+        result_kwargs['message'] = result
         result_kwargs['meta'] = {}
         result_kwargs['meta']['procedure_name'] = self.procedure_name
         result_kwargs['meta']['session_id'] = self.session.id
 
-        result_args = [resp]
+        result_args = [result]
 
         from wampy.messages import Yield
         yield_message = Yield(
-            request_id,
+            self.request_id,
             result_args=result_args,
             result_kwargs=result_kwargs,
         )
@@ -102,3 +93,4 @@ class InvocationWithMeta(Invocation):
         kwargs['meta'] = {}
         kwargs['meta']['procedure_name'] = self.procedure_name
         kwargs['meta']['session_id'] = self.session.id
+        kwargs['meta']['request_id'] = self.request_id

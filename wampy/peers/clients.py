@@ -4,7 +4,7 @@ import inspect
 from wampy.errors import WampProtocolError
 from wampy.session import session_builder
 from wampy.messages import MESSAGE_TYPE_MAP
-from wampy.messages.handlers import MessageHandler
+from wampy.messages.handler import MessageHandler
 from wampy.messages.register import Register
 from wampy.messages.subscribe import Subscribe
 from wampy.roles.caller import CallProxy, RpcProxy
@@ -84,6 +84,7 @@ class Client(object):
         return self.session.recv_message()
 
     def send_message_and_wait_for_response(self, message):
+        logger.debug("sending message: %s", message)
         self.session.send_message(message)
         return self.session.recv_message()
 
@@ -148,7 +149,7 @@ class Client(object):
         )
 
     def _register_procedure(self, procedure_name, invocation_policy="single"):
-        logger.info(
+        logger.debug(
             "registering %s with invocation policy %s",
             procedure_name, invocation_policy
         )
@@ -165,7 +166,3 @@ class Client(object):
             )
 
         self.request_ids[request_id] = procedure_name
-
-        logger.info(
-            'Register request sent for procedure name "%s"', procedure_name,
-        )

@@ -1,10 +1,10 @@
 import datetime
+from datetime import date
 
 import pytest
 
 from wampy.peers.clients import Client
 from wampy.roles.callee import callee
-from wampy.testing.helpers import wait_for_session
 
 
 class DateService(Client):
@@ -56,53 +56,35 @@ def binary_number_service(router):
         yield
 
 
-def make_service_clients(router, ids):
-    clients = []
-    for id_ in ids:
-        clients.append(Client(router=router, id=id_))
+def test_call_with_no_args_or_kwargs(date_service, router):
+    client = Client(router=router)
+    with client:
+        response = client.rpc.get_todays_date()
 
-    return clients
+    today = date.today()
 
-
-def test_client_connects_to_router(router):
-    class MyClient(Client):
-        pass
-
-    client = MyClient(router=router)
-
-    assert client.session.id is None
-
-    client.start()
-    wait_for_session(client)
-
-    session = client.session
-    assert session.id is not None
-    assert session.client is client
-
-    client.stop()
-
-    assert client.session.id is None
+    assert response == today.isoformat()
 
 
-def test_can_start_two_clients(router):
+def test_call_with_args_but_no_kwargs(hello_service, router):
+    caller = Client(router=router)
+    with caller:
+        response = caller.rpc.say_hello("Simon")
 
-    class MyClient(Client):
-        pass
+    assert response == "Hello Simon"
 
-    app_one = MyClient(router=router)
-    app_one.start()
-    wait_for_session(app_one)
 
-    assert app_one.session.id
+def test_call_with_no_args_but_a_default_kwarg(hello_service, router):
+    caller = Client(router=router)
+    with caller:
+        response = caller.rpc.say_greeting("Simon")
 
-    app_two = MyClient(router=router)
-    app_two.start()
-    wait_for_session(app_two)
+    assert response == "hola to Simon"
 
-    assert app_two.session.id
 
-    app_one.stop()
-    app_two.stop()
+def test_call_with_no_args_but_a_kwarg(hello_service, router):
+    caller = Client(router=router)
+    with caller:
+        response = caller.rpc.say_greeting("Simon", greeting="goodbye")
 
-    assert app_one.session.id is None
-    assert app_two.session.id is None
+    assert response == "goodbye to Simon"

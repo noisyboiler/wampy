@@ -1,8 +1,20 @@
-from wampy.messages.handlers.invocation import InvokeWithMetaMessageHandler
+from wampy.messages.handler import MessageHandler
+from wampy.messages.invocation import InvocationWithMeta
+from wampy.messages import Goodbye, Error, Registered, Welcome
 from wampy.roles.callee import CalleeProxy
 from wampy.testing.helpers import wait_for_registrations
 
 from test.helpers import assert_stops_raising
+
+
+class InvokeWithMetaMessageHandler(MessageHandler):
+
+    def __init__(self, client):
+        super(InvokeWithMetaMessageHandler, self).__init__(
+            client=client, messages_to_handle=[
+                InvocationWithMeta, Welcome, Registered, Goodbye, Error
+            ]
+        )
 
 
 class TestInvokeWithMeta(object):
@@ -11,7 +23,12 @@ class TestInvokeWithMeta(object):
         call_count = 0
         procedure_names = ["foo", "bar", "spam"]
 
-        def callback(*args, **kwarsg):
+        def callback(*args, **kwargs):
+            assert "meta" in kwargs
+            assert kwargs['meta']['procedure_name'] in procedure_names
+            assert kwargs['meta']['session_id']
+            assert kwargs['meta']['request_id']
+
             global call_count
             call_count += 1
             return "spam"
