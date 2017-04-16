@@ -112,7 +112,7 @@ class WampWebSocket(ParseUrlMixin):
         headers.append("Sec-WebSocket-Protocol: {}".format(
             WEBSOCKET_SUBPROTOCOLS))
 
-        logger.info("prepared connection headers: %s", headers)
+        logger.info("connection headers: %s", headers)
 
         return headers
 
@@ -124,10 +124,10 @@ class WampWebSocket(ParseUrlMixin):
 
         def read_line():
             bytes_cache = []
-            bytes = None
-            while bytes !=  b'\r\n':
-                bytes = self.socket.recv(2)
-                bytes_cache.append(bytes)
+            received_bytes = None
+            while received_bytes != b'\r\n':
+                received_bytes = self.socket.recv(2)
+                bytes_cache.append(received_bytes)
             return b''.join(bytes_cache)
 
         while True:
@@ -135,13 +135,13 @@ class WampWebSocket(ParseUrlMixin):
             # Timeout.
             eventlet.sleep()
 
-            bytes = read_line()
-            if bytes ==  b'\r\n':
+            received_bytes = read_line()
+            if received_bytes == b'\r\n':
                 # end of the response
                 break
 
             try:
-                bytes_as_str = bytes.decode()
+                bytes_as_str = received_bytes.decode()
             except Exception as exc:
                 logger.exception("could not decode byte")
                 raise RuntimeError("socket connection broken")

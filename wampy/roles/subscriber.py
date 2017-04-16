@@ -26,9 +26,6 @@ class RegisterSubscriptionDecorator(object):
         return wrapped_f
 
 
-subscribe = RegisterSubscriptionDecorator
-
-
 class TopicSubscriber(Client):
     """ Stand alone websocket topic subscriber """
 
@@ -82,3 +79,6 @@ class TopicSubscriber(Client):
     def topic_handler(self, *args, **kwargs):
         logger.info("handling message: (%s, %s)", args, kwargs)
         self.callback(*args, **kwargs)
+
+
+subscribe = RegisterSubscriptionDecorator
