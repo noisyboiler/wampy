@@ -67,6 +67,7 @@ class WampWebSocket(ParseUrlMixin):
             )
 
         self.socket = _socket
+        logger.info("socket connected")
 
     def _upgrade(self):
         handshake_headers = self._get_handshake_headers()
@@ -82,7 +83,7 @@ class WampWebSocket(ParseUrlMixin):
                 'No response after handshake "{}"'.format(handshake)
             )
 
-        logger.debug("WAMP Connection reply: %s", self.headers)
+        logger.info("connection upgraded")
 
     def _get_handshake_headers(self):
         """ Do an HTTP upgrade handshake with the server.
@@ -140,12 +141,7 @@ class WampWebSocket(ParseUrlMixin):
                 # end of the response
                 break
 
-            try:
-                bytes_as_str = received_bytes.decode()
-            except Exception as exc:
-                logger.exception("could not decode byte")
-                raise RuntimeError("socket connection broken")
-
+            bytes_as_str = received_bytes.decode()
             line = bytes_as_str.strip()
 
             if not status:
