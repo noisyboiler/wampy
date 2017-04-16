@@ -37,7 +37,7 @@ class WampWebSocket(ParseUrlMixin):
             _socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
             try:
-                _socket.connect((self.host, self.port))
+                _socket.connect((self.host.encode(), self.port))
             except socket_error as exc:
                 if exc.errno == 61:
                     logger.error(
@@ -72,7 +72,7 @@ class WampWebSocket(ParseUrlMixin):
         handshake_headers = self._get_handshake_headers()
         handshake = '\r\n'.join(handshake_headers) + "\r\n\r\n"
 
-        self.socket.send(handshake)
+        self.socket.send(handshake.encode())
 
         try:
             with eventlet.Timeout(5):
@@ -111,31 +111,42 @@ class WampWebSocket(ParseUrlMixin):
         headers.append("Sec-WebSocket-Version: {}".format(WEBSOCKET_VERSION))
         headers.append("Sec-WebSocket-Protocol: {}".format(
             WEBSOCKET_SUBPROTOCOLS))
-        logger.info(headers)
+
+        logger.info("prepared connection headers: %s", headers)
+
         return headers
 
     def _read_handshake_response(self):
+        # each header ends with \r\n and there's an extra \r\n after the last
+        # one
         status = None
         headers = {}
+
+        def read_line():
+            bytes_cache = []
+            bytes = None
+            while bytes !=  b'\r\n':
+                bytes = self.socket.recv(2)
+                bytes_cache.append(bytes)
+            return b''.join(bytes_cache)
 
         while True:
             # we need this to guarantee we can context switch back to the
             # Timeout.
             eventlet.sleep()
 
-            line = self._recv_handshake_response_by_line()
-
-            try:
-                line = line.decode('utf-8')
-            except:
-                line = u'{}'.format(line)
-
-            if line == "\r\n" or line == "\n":
+            bytes = read_line()
+            if bytes ==  b'\r\n':
+                # end of the response
                 break
 
-            line = line.strip()
-            if line == '':
-                continue
+            try:
+                bytes_as_str = bytes.decode()
+            except Exception as exc:
+                logger.exception("could not decode byte")
+                raise RuntimeError("socket connection broken")
+
+            line = bytes_as_str.strip()
 
             if not status:
                 status_info = line.split(" ", 2)
@@ -162,23 +173,6 @@ class WampWebSocket(ParseUrlMixin):
         logger.info("handshake complete: %s : %s", status, headers)
 
         return status, headers
-
-    def _recv_handshake_response_by_line(self):
-        received_bytes = bytearray()
-
-        while True:
-            bytes = self.socket.recv(1)
-
-            if not bytes:
-                break
-
-            received_bytes.append(bytes)
-
-            if bytes == "\n" or bytes == "\r\n":
-                # a complete line has been received
-                break
-
-        return received_bytes
 
     def connect(self):
         self._connect()

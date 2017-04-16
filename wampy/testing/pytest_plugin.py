@@ -28,7 +28,7 @@ def find_processes(process_name):
 
 def kill_crossbar():
     output = find_processes("crossbar")
-    pids = [o for o in output.split('\n') if o]
+    pids = [o for o in output.decode().split('\n') if o]
     for pid in pids:
         logger.warning("sending SIGTERM to crossbar pid: %s", pid)
         try:

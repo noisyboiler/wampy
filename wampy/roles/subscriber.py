@@ -25,6 +25,7 @@ class RegisterSubscriptionDecorator(object):
         wrapped_f.handler = f
         return wrapped_f
 
+
 subscribe = RegisterSubscriptionDecorator
 
 
