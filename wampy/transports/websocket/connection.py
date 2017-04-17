@@ -67,7 +67,7 @@ class WampWebSocket(ParseUrlMixin):
             )
 
         self.socket = _socket
-        logger.info("socket connected")
+        logger.debug("socket connected")
 
     def _upgrade(self):
         handshake_headers = self._get_handshake_headers()
@@ -83,7 +83,7 @@ class WampWebSocket(ParseUrlMixin):
                 'No response after handshake "{}"'.format(handshake)
             )
 
-        logger.info("connection upgraded")
+        logger.debug("connection upgraded")
 
     def _get_handshake_headers(self):
         """ Do an HTTP upgrade handshake with the server.
@@ -113,7 +113,7 @@ class WampWebSocket(ParseUrlMixin):
         headers.append("Sec-WebSocket-Protocol: {}".format(
             WEBSOCKET_SUBPROTOCOLS))
 
-        logger.info("connection headers: %s", headers)
+        logger.debug("connection headers: %s", headers)
 
         return headers
 
@@ -221,7 +221,7 @@ class TLSWampWebSocket(WampWebSocket):
         self.ipv = router.ipv
 
         # PROTOCOL_TLSv1_1 and PROTOCOL_TLSv1_2 are only available if Python is
-        # inked with OpenSSL 1.0.1 or later
+        # linked with OpenSSL 1.0.1 or later.
         try:
             self.ssl_version = ssl.PROTOCOL_TLSv1_2
         except AttributeError:
