@@ -219,7 +219,14 @@ class TLSWampWebSocket(WampWebSocket):
         super(TLSWampWebSocket, self).__init__(router)
 
         self.ipv = router.ipv
-        self.ssl_version = ssl.PROTOCOL_TLSv1_2
+
+        # PROTOCOL_TLSv1_1 and PROTOCOL_TLSv1_2 are only available if Python is
+        # inked with OpenSSL 1.0.1 or later
+        try:
+            self.ssl_version = ssl.PROTOCOL_TLSv1_2
+        except AttributeError:
+            raise WampyError("Your Python Environment does not support TLS")
+
         self.certificate = router.certificate
 
     def _connect(self):

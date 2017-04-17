@@ -1,4 +1,5 @@
 import datetime
+import ssl
 from datetime import date
 
 import pytest
@@ -61,6 +62,11 @@ class TestIP6(object):
 
 
 def test_ipv4_secure_websocket_connection():
+    try:
+        ssl.PROTOCOL_TLSv1_2
+    except AttributeError:
+        pytest.skip('Python Environment does not support TLS')
+
     # note that TLS not supported by crossbar on ipv6
     crossbar = Crossbar(
         config_path='./wampy/testing/configs/crossbar.config.ipv4.tls.json',
