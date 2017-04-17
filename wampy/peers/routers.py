@@ -119,6 +119,8 @@ class Crossbar(ParseUrlMixin):
     def stop(self):
         logger.warning("stopping crossbar")
 
+        # handles gracefully a user already terminated server, the auto
+        # termination failing and killing the process to ensure has died.
         try:
             self.proc.terminate()
             self.proc.wait()
