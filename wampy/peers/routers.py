@@ -119,8 +119,13 @@ class Crossbar(ParseUrlMixin):
 
     def stop(self):
         logger.warning("stopping crossbar")
-        self.proc.terminate()
-        self.proc.wait()
+
+        try:
+            self.proc.terminate()
+            self.proc.wait()
+            self.proc.kill()
+        except OSError:
+            psas
 
     def try_connection(self):
         if self.ipv == 4:
