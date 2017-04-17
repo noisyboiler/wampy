@@ -119,12 +119,8 @@ class Crossbar(ParseUrlMixin):
 
     def stop(self):
         logger.warning("stopping crossbar")
-        try:
-            os.killpg(os.getpgid(self.proc.pid), signal.SIGTERM)
-        except OSError as exc:
-            if "No such process" in str(exc):
-                return
-            logger.exception("failed to stop crossbar")
+        self.proc.terminate()
+        self.proc.wait()
 
     def try_connection(self):
         if self.ipv == 4:
