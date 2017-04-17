@@ -15,6 +15,7 @@ class TestRpcProxy(object):
             yield client
 
     def test_proxy_multiple_callees(self, router, caller):
+        global call_count
         call_count = 0
 
         def my_callback(*args, **kwargs):
@@ -32,8 +33,6 @@ class TestRpcProxy(object):
         )
 
         with factory:
-            global call_count
-
             def wait_for_message():
                 assert call_count == 5
 

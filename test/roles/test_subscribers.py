@@ -15,6 +15,7 @@ class TestTopicSubscriber(object):
             yield client
 
     def test_subscribe_to_topics(self, router, publisher):
+        global call_count
         call_count = 0
 
         def my_callback(*args, **kwargs):
@@ -26,8 +27,6 @@ class TestTopicSubscriber(object):
         )
 
         with subscriber:
-            global call_count
-
             def wait_for_messages():
                 assert call_count == 2
 
