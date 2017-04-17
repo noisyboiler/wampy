@@ -75,8 +75,7 @@ def test_ipv4_secure_websocket_connection():
     )
 
     with crossbar as router:
-        service = DateService(router=router, use_tls=True)
-        with service:
+        with DateService(router=router, use_tls=True) as service:
             wait_for_registrations(service, 1)
 
             client = Client(router=router, use_tls=True)

@@ -29,7 +29,7 @@ setup(
     keywords='WAMP RPC',
     packages=find_packages(),
     install_requires=[
-        "eventlet==0.18.4",
+        "eventlet==0.21.0",
     ],
     extras_require={
         'dev': [
