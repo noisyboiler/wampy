@@ -119,7 +119,7 @@ class Client(object):
         for maybe_role in maybe_roles:
 
             if hasattr(maybe_role, 'callee'):
-                procedure_name = maybe_role.func_name
+                procedure_name = maybe_role.__name__
                 invocation_policy = maybe_role.invocation_policy
                 self._register_procedure(procedure_name, invocation_policy)
 
@@ -129,7 +129,7 @@ class Client(object):
                 self._subscribe_to_topic(topic, handler)
 
     def _subscribe_to_topic(self, topic, handler):
-        subscriber_name = handler.func_name
+        subscriber_name = handler.__name__
         message = Subscribe(topic=topic)
         request_id = message.request_id
 

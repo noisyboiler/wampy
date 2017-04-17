@@ -20,7 +20,9 @@ class InvokeWithMetaMessageHandler(MessageHandler):
 class TestInvokeWithMeta(object):
 
     def test_handler(self, router, client):
+        global call_count
         call_count = 0
+
         procedure_names = ["foo", "bar", "spam"]
 
         def callback(*args, **kwargs):
@@ -40,7 +42,6 @@ class TestInvokeWithMeta(object):
             message_handler=InvokeWithMetaMessageHandler,
         ) as proxy:
 
-            global call_count
             wait_for_registrations(proxy, 3)
 
             def wait_for_calls():

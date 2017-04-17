@@ -124,7 +124,7 @@ class ClientFrame(Frame):
             data = ""
 
         _m = array.array("B", mask_key)
-        _d = array.array("B", data)
+        _d = array.array("B", data.encode())
 
         for i in range(len(_d)):
             _d[i] ^= _m[i % 4]
@@ -232,7 +232,7 @@ class ServerFrame(Frame):
 
         self.opcode = bytes[0] & 0b1111
         try:
-            self.payload = json.loads(str(self.body))
+            self.payload = json.loads(str(self.body.decode()))
         except Exception:
             raise WebsocktProtocolError(
                 'Failed to load JSON object from: "%s"', self.body

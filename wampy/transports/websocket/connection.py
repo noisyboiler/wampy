@@ -37,7 +37,7 @@ class WampWebSocket(ParseUrlMixin):
             _socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
             try:
-                _socket.connect((self.host, self.port))
+                _socket.connect((self.host.encode(), self.port))
             except socket_error as exc:
                 if exc.errno == 61:
                     logger.error(
@@ -67,12 +67,13 @@ class WampWebSocket(ParseUrlMixin):
             )
 
         self.socket = _socket
+        logger.debug("socket connected")
 
     def _upgrade(self):
         handshake_headers = self._get_handshake_headers()
         handshake = '\r\n'.join(handshake_headers) + "\r\n\r\n"
 
-        self.socket.send(handshake)
+        self.socket.send(handshake.encode())
 
         try:
             with eventlet.Timeout(5):
@@ -82,7 +83,7 @@ class WampWebSocket(ParseUrlMixin):
                 'No response after handshake "{}"'.format(handshake)
             )
 
-        logger.debug("WAMP Connection reply: %s", self.headers)
+        logger.debug("connection upgraded")
 
     def _get_handshake_headers(self):
         """ Do an HTTP upgrade handshake with the server.
@@ -111,31 +112,37 @@ class WampWebSocket(ParseUrlMixin):
         headers.append("Sec-WebSocket-Version: {}".format(WEBSOCKET_VERSION))
         headers.append("Sec-WebSocket-Protocol: {}".format(
             WEBSOCKET_SUBPROTOCOLS))
-        logger.info(headers)
+
+        logger.debug("connection headers: %s", headers)
+
         return headers
 
     def _read_handshake_response(self):
+        # each header ends with \r\n and there's an extra \r\n after the last
+        # one
         status = None
         headers = {}
+
+        def read_line():
+            bytes_cache = []
+            received_bytes = None
+            while received_bytes != b'\r\n':
+                received_bytes = self.socket.recv(2)
+                bytes_cache.append(received_bytes)
+            return b''.join(bytes_cache)
 
         while True:
             # we need this to guarantee we can context switch back to the
             # Timeout.
             eventlet.sleep()
 
-            line = self._recv_handshake_response_by_line()
-
-            try:
-                line = line.decode('utf-8')
-            except:
-                line = u'{}'.format(line)
-
-            if line == "\r\n" or line == "\n":
+            received_bytes = read_line()
+            if received_bytes == b'\r\n':
+                # end of the response
                 break
 
-            line = line.strip()
-            if line == '':
-                continue
+            bytes_as_str = received_bytes.decode()
+            line = bytes_as_str.strip()
 
             if not status:
                 status_info = line.split(" ", 2)
@@ -162,23 +169,6 @@ class WampWebSocket(ParseUrlMixin):
         logger.info("handshake complete: %s : %s", status, headers)
 
         return status, headers
-
-    def _recv_handshake_response_by_line(self):
-        received_bytes = bytearray()
-
-        while True:
-            bytes = self.socket.recv(1)
-
-            if not bytes:
-                break
-
-            received_bytes.append(bytes)
-
-            if bytes == "\n" or bytes == "\r\n":
-                # a complete line has been received
-                break
-
-        return received_bytes
 
     def connect(self):
         self._connect()
@@ -229,7 +219,14 @@ class TLSWampWebSocket(WampWebSocket):
         super(TLSWampWebSocket, self).__init__(router)
 
         self.ipv = router.ipv
-        self.ssl_version = ssl.PROTOCOL_TLSv1_2
+
+        # PROTOCOL_TLSv1_1 and PROTOCOL_TLSv1_2 are only available if Python is
+        # linked with OpenSSL 1.0.1 or later.
+        try:
+            self.ssl_version = ssl.PROTOCOL_TLSv1_2
+        except AttributeError:
+            raise WampyError("Your Python Environment does not support TLS")
+
         self.certificate = router.certificate
 
     def _connect(self):

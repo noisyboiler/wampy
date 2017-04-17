@@ -28,18 +28,25 @@ def find_processes(process_name):
 
 def kill_crossbar():
     output = find_processes("crossbar")
-    pids = [o for o in output.split('\n') if o]
+    pids = [o for o in output.decode().split('\n') if o]
+    if pids:
+        logger.error(
+            "Crossbar.io did not stop when sig term issued!"
+        )
+
     for pid in pids:
-        logger.warning("sending SIGTERM to crossbar pid: %s", pid)
+        logger.warning("OS sending SIGTERM to crossbar pid: %s", pid)
         try:
             os.kill(int(pid), signal.SIGTERM)
         except OSError:
-            logger.exception("SIGTERM failed - try and kill process group")
+            logger.error("Failed to terminate router process again: %s", pid)
             try:
-                os.killpg(os.getpgid(int(pid)), signal.SIGTERM)
-            except OSError as exc:
-                if "No such process" not in str(exc):
-                    logger.exception('Failed to kill process: %s', pid)
+                os.kill(int(pid), signal.SIGKILL)
+            except Exception as exc:
+                if "No such process" in str(exc):
+                    return
+                logger.exception("Failed to shutdown router")
+                raise
 
 
 class ConfigurationError(Exception):

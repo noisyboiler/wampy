@@ -1,4 +1,7 @@
-from urlparse import urlsplit
+try:
+    from urlparse import urlsplit
+except ImportError:
+    from urllib.parse import urlsplit
 
 
 class ParseUrlMixin(object):
