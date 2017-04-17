@@ -34,12 +34,12 @@ def kill_crossbar():
         try:
             os.kill(int(pid), signal.SIGTERM)
         except Exception:
-            logger.exception("SIGTERM failed - try and kill process group")
+            logger.error("Failed to terminate router process: %s", pid)
             try:
-                os.killpg(os.getpgid(int(pid)), signal.SIGTERM)
-            except Exception as exc:
-                if "No such process" not in str(exc):
-                    logger.exception('Failed to kill process: %s', pid)
+                os.kill(int(pid), signal.SIGKILL)
+            except Exception:
+                logger.exception("Failed to shutdown router")
+                raise
 
 
 class ConfigurationError(Exception):
