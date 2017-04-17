@@ -27,7 +27,7 @@ wampy
 
     WAMP RPC and Pub/Sub for your Python apps and microservices
 
-This is a Python implementation of WAMP not requiring Twisted or asyncio, enabling use within classic blocking Python applications. It is a light-weight alternative to `autobahn`_.
+This is a Python implementation of **WAMP** not requiring Twisted or asyncio, enabling use within classic blocking Python applications. It is a light-weight alternative to `autobahn`_.
 
 With **wampy** you can quickly and easily create your own **WAMP** clients, whether this is in a web app, a microservice, a script or just in a Python shell.
 
@@ -177,7 +177,7 @@ In another terminal, with a **wampy** virtualenv, you can create a **Publisher**
 
 Hopefully you'll see any message you send printed to the screen where the example service is running. You'll also see the meta data that **wampy** chooses to send.
 
-TLS/WSS Support
+TLS/wss Support
 ~~~~~~~~~~~~~~~
 
 When you instantiate your Router, pass in a path to the server certificate along with the host and port that it operates on, e.g.
@@ -199,14 +199,14 @@ To connect a Client over TLS pass the ``use_tls=True`` parameter on initialisati
 
     In [4]: client = Client(router=router, use_tls=True)
 
-Note that Crossbar.io does not support TLS over IPV6 and you'll need to be executing as root for port 443. All of these choices are made in the Crossbar.io config.
+Note that **Crossbar.io** does not support TLS over IPV6 and you'll need to be executing as root for port 443. All of these choices are made in the Crossbar.io config.
 
 Testing
 ~~~~~~~
 
 **wampy** provides some ``pytest`` fixtures and helpers for you to run a crossbar server. These are ``router`` and ``session_maker``. 
 
-The router is Crossbar and will be started and shutdown between each test. It has a default configuration which you can override in your tests by creating a ``config_path`` fixture in your own ``conftest`` - see *wampy's* ``conftest`` for an example. If you require even more control you can import the router itself from ``wampy.peers.routers`` and setup your tests however you need to.
+The router is **Crossbar.io** and will be started and shutdown between each test. It has a default configuration which you can override in your tests by creating a ``config_path`` fixture in your own ``conftest`` - see *wampy's* ``conftest`` for an example. If you require even more control you can import the router itself from ``wampy.peers.routers`` and setup your tests however you need to.
 
 To help you setup your test there are also some helpers that you can execute to wait for async certain actions to perform before you start actually running test code. These are:
 
