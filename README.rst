@@ -20,7 +20,6 @@ With **wampy** you can quickly and easily create your own **WAMP** clients, whet
 
 **wampy** tries to provide an intuitive API for your **WAMP** messaging.
 
-
 WAMP
 ----
 

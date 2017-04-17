@@ -1,7 +1,6 @@
 import json
 import logging
 import os
-import signal
 import socket
 import subprocess
 from socket import error as socket_error
@@ -125,7 +124,7 @@ class Crossbar(ParseUrlMixin):
             self.proc.wait()
             self.proc.kill()
         except OSError:
-            psas
+            pass
 
     def try_connection(self):
         if self.ipv == 4:
