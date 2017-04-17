@@ -1,18 +1,31 @@
+.. -*- mode: rst -*-
+
+|Travis|_ |Python27|_ |Python33|_ |Python34|_ |Python35|_ |Python36|_ 
+
+.. |Travis| image:: https://travis-ci.org/noisyboiler/wampy.svg?branch=master
+.. _Travis: https://travis-ci.org/noisyboiler/wampy
+
+.. |Python27| image:: https://img.shields.io/badge/python-2.7-blue.svg
+.. _Python27: https://pypi.python.org/pypi/wampy/
+
+.. |Python33| image:: https://img.shields.io/badge/python-3.3-blue.svg
+.. _Python33: https://pypi.python.org/pypi/wampy/
+
+.. |Python34| image:: https://img.shields.io/badge/python-3.4-blue.svg
+.. _Python34: https://pypi.python.org/pypi/wampy/
+
+.. |Python35| image:: https://img.shields.io/badge/python-3.5-blue.svg
+.. _Python35: https://pypi.python.org/pypi/wampy/
+
+.. |Python36| image:: https://img.shields.io/badge/python-3.6-blue.svg
+.. _Python36: https://pypi.python.org/pypi/wampy/
+
 wampy
 =====
 
 .. pull-quote ::
 
     WAMP RPC and Pub/Sub for your Python apps and microservices
-
-.. image:: https://travis-ci.org/noisyboiler/wampy.svg?branch=master
-    :target: https://travis-ci.org/noisyboiler/wampy
-
-.. image:: https://img.shields.io/badge/python-2.7-blue.svg
-.. image:: https://img.shields.io/badge/python-3.3-blue.svg
-.. image:: https://img.shields.io/badge/python-3.4-blue.svg
-.. image:: https://img.shields.io/badge/python-3.5-blue.svg
-.. image:: https://img.shields.io/badge/python-3.6-blue.svg
 
 This is a Python implementation of WAMP not requiring Twisted or asyncio, enabling use within classic blocking Python applications. It is a light-weight alternative to `autobahn`_.
 
