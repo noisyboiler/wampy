@@ -33,11 +33,13 @@ def kill_crossbar():
         logger.warning("sending SIGTERM to crossbar pid: %s", pid)
         try:
             os.kill(int(pid), signal.SIGTERM)
-        except Exception:
+        except OSError:
             logger.error("Failed to terminate router process: %s", pid)
             try:
                 os.kill(int(pid), signal.SIGKILL)
-            except Exception:
+            except OSError as exc:
+                if "No such process" in str(exc):
+                    return
                 logger.exception("Failed to shutdown router")
                 raise
 
