@@ -59,13 +59,12 @@ class AppRunner(object):
                 app.stop()
 
 
-def run(app, host, port):
+def run(app, config_path):
     module_name, app_name = app[0].split(':')
     mod = import_module(module_name)
     app_class = getattr(mod, app_name)
 
-    # TODO: realm and roles should be passed in too
-    router = Crossbar(host=host, port=port)
+    router = Crossbar(config_path)
     app = app_class(router=router)
 
     runner = AppRunner()
@@ -73,7 +72,7 @@ def run(app, host, port):
     print("starting up service....")
     runner.run()
 
-    print("{} is now running and connected to {}.".format(app_name, host))
+    print("{} is now running and connected.".format(app_name))
 
     while True:
         try:
@@ -97,16 +96,9 @@ def main(args):
         sys.path.insert(0, '.')
 
     app = args.application
-    router_url = args.router
-    parsed_connection_details = urlparse(router_url)
-    host = parsed_connection_details.hostname
-    port = parsed_connection_details.port
+    config_path = args.config
 
-    if host is None:
-        # guess!
-        host, port = router_url.split(':')
-
-    run(app, host, int(port))
+    run(app, config_path)
 
 
 def init_parser(parser):
@@ -116,7 +108,7 @@ def init_parser(parser):
         help='python path to one wampy application class to run')
 
     parser.add_argument(
-        '--router', default='http://localhost:8080',
-        help='WAMP router url')
+        '--config', default='./crossbar/config.json',
+        help='Crossbar config file path')
 
     return parser
