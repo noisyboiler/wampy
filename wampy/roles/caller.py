@@ -54,6 +54,10 @@ class RpcProxy:
     def __init__(self, client):
         self.client = client
 
+
+    def __getitem__(self, name):
+        return self.__getattr__(name)
+
     def __getattr__(self, name):
 
         def wrapper(*args, **kwargs):
