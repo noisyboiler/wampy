@@ -80,7 +80,7 @@ Given a **Crossbar.io** server running on localhost on port 8080, a **realm** of
 
     In [3]: from wampy.messages.call import Call
 
-    In [4]: router = Crossbar(config_path)
+    In [4]: router = Crossbar(config_path="./crossbar/config.json")
 
     In [5]: client = Client(router=router)
 
@@ -143,7 +143,7 @@ Now, open a Python console in a new terminal, allowing the ``BinaryNumberService
 
     In [2]: from wampy.peers.routers import Crossbar
 
-    In [3]: with Client(router=Crossbar()) as client:
+    In [3]: with Client(router=Crossbar(config_path="./crossbar/config.json")) as client:
                 result = client.rpc.get_binary_number(number=100)
 
     In [4]: result
@@ -172,7 +172,7 @@ In another terminal, with a **wampy** virtualenv, you can create a **Publisher**
 
     In [2]: from wampy.peers.routers import Crossbar
 
-    In [3]: with Client(router=Crossbar()) as client:
+    In [3]: with Client(router=Crossbar(config_path="./crossbar/config.json")) as client:
                 result = client.publish(topic="foo", message="spam")
 
 Hopefully you'll see any message you send printed to the screen where the example service is running. You'll also see the meta data that **wampy** chooses to send.
