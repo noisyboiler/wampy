@@ -80,7 +80,7 @@ Given a **Crossbar.io** server running on localhost on port 8080, a **realm** of
 
     In [3]: from wampy.messages.call import Call
 
-    In [4]: router = Crossbar(host="localhost", port=8080)
+    In [4]: router = Crossbar(config_path)
 
     In [5]: client = Client(router=router)
 
@@ -188,8 +188,7 @@ When you instantiate your Router, pass in a path to the server certificate along
 
     In [2]: from wampy.peers.routers import Crossbar
 
-    In [3]: router = Crossbar(
-                host="localhost", port=443, certificate="path.to.certificate")
+    In [3]: router = Crossbar(config_path, certificate="path.to.certificate")
 
 Your Router must be configured to use TLS. For an example see the `config`_ used by the test runner along with the `TLS Router`_ setup.
 
