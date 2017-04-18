@@ -20,7 +20,7 @@ setup(
     author_email='noisyboiler@googlemail.com',
     license='GNU GPLv3',
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'License :: OSI Approved :: GNU General Public License (GPL)',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
