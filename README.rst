@@ -57,7 +57,7 @@ For the quickest of starts I suggest that you use **Crossbar.io** and start it u
 
     $ pip install --editable .[dev]
 
-    $ crossbar start --config ./wampy/testing/configs/crossbar.config.json
+    $ crossbar start --config ./wampy/testing/configs/crossbar.config.ipv4.json
 
 By default a **wampy** client connects to localhost on port 8080, but this is of course configurable, and is done so on client initialisation.
 
@@ -80,7 +80,7 @@ Given a **Crossbar.io** server running on localhost on port 8080, a **realm** of
 
     In [3]: from wampy.messages.call import Call
 
-    In [4]: router = Crossbar(host="localhost", port=8080)
+    In [4]: router = Crossbar(config_path="./crossbar/config.json")
 
     In [5]: client = Client(router=router)
 
@@ -126,13 +126,13 @@ For example, running one of the **wampy** example applications.
 
 ::
 
-    $ wampy run docs.examples.services:DateService --router http://localhost:8080
+    $ wampy run docs.examples.services:DateService --config './path/to/crossbar.config.json'
 
 Okay, no need to write any code: execute this:
 
 ::
 
-    $ wampy run docs.examples.services:BinaryNumberService --router http://localhost:8080
+    $ wampy run docs.examples.services:BinaryNumberService --config './wampy/testing/configs/crossbar.config.ipv4.json'
 
 
 Now, open a Python console in a new terminal, allowing the ``BinaryNumberService`` to run uninterupted in your original terminal (but once you're done with it ``Ctrl-C`` is required).
@@ -143,7 +143,7 @@ Now, open a Python console in a new terminal, allowing the ``BinaryNumberService
 
     In [2]: from wampy.peers.routers import Crossbar
 
-    In [3]: with Client(router=Crossbar()) as client:
+    In [3]: with Client(router=Crossbar("./crossbar/config.json")) as client:
                 result = client.rpc.get_binary_number(number=100)
 
     In [4]: result
@@ -160,7 +160,7 @@ Let's start up that example service.
 
 ::
     
-    $ wampy run docs.examples.services:SubscribingService --router http://localhost:8080
+    $ wampy run docs.examples.services:SubscribingService --config './wampy/testing/configs/crossbar.config.ipv4.json'
 
 Now we have a service running that subscribes to the topic "foo".
 
@@ -172,7 +172,7 @@ In another terminal, with a **wampy** virtualenv, you can create a **Publisher**
 
     In [2]: from wampy.peers.routers import Crossbar
 
-    In [3]: with Client(router=Crossbar()) as client:
+    In [3]: with Client(router=Crossbar("./crossbar/config.json")) as client:
                 result = client.publish(topic="foo", message="spam")
 
 Hopefully you'll see any message you send printed to the screen where the example service is running. You'll also see the meta data that **wampy** chooses to send.
@@ -188,8 +188,7 @@ When you instantiate your Router, pass in a path to the server certificate along
 
     In [2]: from wampy.peers.routers import Crossbar
 
-    In [3]: router = Crossbar(
-                host="localhost", port=443, certificate="path.to.certificate")
+    In [3]: router = Crossbar('./crossbar/config.json', certificate="path.to.certificate")
 
 Your Router must be configured to use TLS. For an example see the `config`_ used by the test runner along with the `TLS Router`_ setup.
 
