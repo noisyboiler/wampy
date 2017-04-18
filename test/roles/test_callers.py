@@ -88,3 +88,11 @@ def test_call_with_no_args_but_a_kwarg(hello_service, router):
         response = caller.rpc.say_greeting("Simon", greeting="goodbye")
 
     assert response == "goodbye to Simon"
+
+
+def test_call_with_getitem_and_args_and_kwargs(hello_service, router):
+    caller = Client(router=router)
+    with caller:
+        response = caller.rpc['say_greeting']("Simon", greeting="goodbye")
+
+    assert response == "goodbye to Simon"
