@@ -57,7 +57,7 @@ For the quickest of starts I suggest that you use **Crossbar.io** and start it u
 
     $ pip install --editable .[dev]
 
-    $ crossbar start --config ./wampy/testing/configs/crossbar.config.json
+    $ crossbar start --config ./wampy/testing/configs/crossbar.config.ipv4.json
 
 By default a **wampy** client connects to localhost on port 8080, but this is of course configurable, and is done so on client initialisation.
 
