@@ -89,15 +89,15 @@ Given a **Crossbar.io** server running on localhost on port 8080, a **realm** of
     In [7]: with client:
                 client.send_message(message)
 
-This is quite verbose an unnecessary with the core **wampy** API. With **wampy** you don't actually have to manually craft any messages. And of course, without another **Peer** having registered "foobar" on the same **realm**, this example will achieve little.
+This is quite verbose an unnecessary with the core **wampy** API. With **wampy** you don't actually have to manually craft any messages. And of course, without another **Peer** having registered "foobar" on the same **realm**, this example will achieve little. And even if there were, you'd still have to do work to recieve, unpack and interpret the response.
 
-In the example, as you leave the context managed function call, the client will send a **GOODBYE** message and your **Session** will end.
+Note that in the example, as you leave the context managed function call, the client will send a **GOODBYE** message and your **Session** will end.
 
 The above can essentially be replaced with:
 
 ::
 
-    In [X]: client.rpc.foobar(*args, **kwargs)
+    In [X]: respones = client.rpc.foobar(*args, **kwargs)
 
 wampy RPC
 ~~~~~~~~~
@@ -148,6 +148,18 @@ Now, open a Python console in a new terminal, allowing the ``BinaryNumberService
 
     In [4]: result
     Out[4]: u'0b1100100'
+
+wampy RPC for Crossbar.io
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The RPC pattern above was inspired by the nameko project, but this pattern may not feel intuitive for those familiar with Crossbar.io, the primary Router used by wampy.
+
+For this reason there also exists the ```CallProxy``` object which more loosely wraps the ```Call``` Message, which wampy sends down the wire. In this pattern, applications and their endpoints are identified by dot delimented strings rather than a single API name, e.g.
+
+    ::
+
+        procedure="com.example.endpoint"
+
 
 Publishing and Subscribing is equally as simple
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
