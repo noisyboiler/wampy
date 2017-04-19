@@ -15,7 +15,8 @@ logger = logging.getLogger('wampy.peers.routers')
 class Crossbar(ParseUrlMixin):
 
     def __init__(
-        self, config_path, crossbar_directory=None, certificate=None,
+        self, config_path="./crossbar/config.json",
+        crossbar_directory=None, certificate=None,
     ):
 
         with open(config_path) as data_file:

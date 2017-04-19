@@ -33,6 +33,7 @@ With **wampy** you can quickly and easily create your own **WAMP** clients, whet
 
 **wampy** tries to provide an intuitive API for your **WAMP** messaging.
 
+
 WAMP
 ----
 
@@ -45,6 +46,7 @@ The `WAMP Protocol`_ is a powerful tool for your web applications and microservi
 **WAMP** is most commonly a WebSocket subprotocol (runs on top of WebSocket) that uses JSON as message serialization format. However, the protocol can also run with MsgPack as serialization, run over raw TCP or in fact any message based, bidirectional, reliable transport - but **wampy** (currently) runs over websockets only.
 
 For further reading please see some of the popular blog posts on WAMP such as http://tavendo.com/blog/post/is-crossbar-the-future-of-python-web-apps/.
+
 
 Quickstart: wampy from the command line
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -60,6 +62,7 @@ For the quickest of starts I suggest that you use **Crossbar.io** and start it u
     $ crossbar start --config ./wampy/testing/configs/crossbar.config.ipv4.json
 
 By default a **wampy** client connects to localhost on port 8080, but this is of course configurable, and is done so on client initialisation.
+
 
 The wampy Client
 ~~~~~~~~~~~~~~~~
@@ -89,15 +92,18 @@ Given a **Crossbar.io** server running on localhost on port 8080, a **realm** of
     In [7]: with client:
                 client.send_message(message)
 
-This is quite verbose an unnecessary with the core **wampy** API. With **wampy** you don't actually have to manually craft any messages. And of course, without another **Peer** having registered "foobar" on the same **realm**, this example will achieve little.
+This is quite verbose an unnecessary with the core **wampy** API. With **wampy** you don't actually have to manually craft any messages. And of course, without another **Peer** having registered "foobar" on the same **realm**, this example will achieve little. And even if there were, you'd still have to do work to receive, unpack and interpret the response.
 
-In the example, as you leave the context managed function call, the client will send a **GOODBYE** message and your **Session** will end.
+Note that in the example, as you leave the context managed function call, the client will send a **GOODBYE** message and your **Session** will end. And that ``./crossbar/config.json`` is the default value for ``config_path``.
 
 The above can essentially be replaced with:
 
 ::
 
-    In [X]: client.rpc.foobar(*args, **kwargs)
+    In [X]: respones = client.rpc.foobar(*args, **kwargs)
+
+Under the hood, **wampy** has the ``RpcProxy`` object that implements the ``rpc`` API.
+
 
 wampy RPC
 ~~~~~~~~~
@@ -143,16 +149,46 @@ Now, open a Python console in a new terminal, allowing the ``BinaryNumberService
 
     In [2]: from wampy.peers.routers import Crossbar
 
-    In [3]: with Client(router=Crossbar("./crossbar/config.json")) as client:
+    In [3]: with Client(router=Crossbar()) as client:
                 result = client.rpc.get_binary_number(number=100)
 
     In [4]: result
     Out[4]: u'0b1100100'
 
+
+wampy RPC for Crossbar.io
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The RPC pattern above was inspired by the nameko_ project, but this pattern may not feel intuitive for those familiar with **Crossbar.io**, the primary Router used by **wampy**.
+
+For this reason there also exists the ``CallProxy`` object which implements the ``call`` API by more loosely wrapping **wampy's** ``Call`` Message. In this pattern, applications and their endpoints are identified by dot delimented strings rather than a single API name, e.g.
+
+::
+
+    "com.example.endpoint"
+
+Just like the ``rpc`` API, the ``call`` API is directly available on every **wampy** client. Lets look at the two examples side by side.
+
+::
+
+    >>> client.rpc.get_foo_bar(eggs, foo=bar, spam=ham)
+    >>> client.call("get_foo_bar", eggs, foo=bar, spam=ham)
+
+Noted these are very similar and achieve the same, but the intention here is for the ``call`` API to behave more like a classic **Crossbar.io** application and the ``rpc`` to be used in nameko_wamp_.
+
+The ``call`` API however does allow calls of the form...
+
+::
+
+    >>> client.call("com.myapp.foo.bar", eggs, foo=bar, spam=ham) 
+
+...which you will not be able to do with the ``rpc`` API.
+
+
 Publishing and Subscribing is equally as simple
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To demonstrate, first of all you need a **Subscriber**. You can either create one yourself in a Python module (as a subclass of a **wampy** ``Client``, ready to run using ``wampy run....``) or use the example ``Client`` already for you in ``docs.examples.services``.
+To demonstrate, first of all you need a **Subscriber**. You can either create one yourself in a Python module (as a subclass of a **wampy** ``Client``) or use the example ``Client`` already for you in ``docs.examples.services``.
 
 Here we use the said example service, but all a **Subscriber** is is a **wampy** ``Client`` with a method decorated by ``subscribe``. Take a look and see for yourself in the examples_.
 
@@ -172,10 +208,11 @@ In another terminal, with a **wampy** virtualenv, you can create a **Publisher**
 
     In [2]: from wampy.peers.routers import Crossbar
 
-    In [3]: with Client(router=Crossbar("./crossbar/config.json")) as client:
+    In [3]: with Client(router=Crossbar()) as client:
                 result = client.publish(topic="foo", message="spam")
 
 Hopefully you'll see any message you send printed to the screen where the example service is running. You'll also see the meta data that **wampy** chooses to send.
+
 
 TLS/wss Support
 ~~~~~~~~~~~~~~~
@@ -188,7 +225,7 @@ When you instantiate your Router, pass in a path to the server certificate along
 
     In [2]: from wampy.peers.routers import Crossbar
 
-    In [3]: router = Crossbar('./crossbar/config.json', certificate="path.to.certificate")
+    In [3]: router = Crossbar(certificate="path.to.certificate")
 
 Your Router must be configured to use TLS. For an example see the `config`_ used by the test runner along with the `TLS Router`_ setup.
 
@@ -198,7 +235,8 @@ To connect a Client over TLS pass the ``use_tls=True`` parameter on initialisati
 
     In [4]: client = Client(router=router, use_tls=True)
 
-Note that **Crossbar.io** does not support TLS over IPV6 and you'll need to be executing as root for port 443. All of these choices are made in the Crossbar.io config.
+Note that **Crossbar.io** does not support TLS over IPV6 and you'll need to be executing as root for port 443. All of these choices are made in the **Crossbar.io** config.
+
 
 Testing
 ~~~~~~~
@@ -254,3 +292,5 @@ If you like this project, then Thank You, and you're welcome to get involved.
 .. _config: https://github.com/noisyboiler/wampy/blob/master/wampy/testing/configs/crossbar.config.tls.json
 .. _TLS Router: https://github.com/noisyboiler/wampy/blob/master/wampy/testing/pytest_plugin.py#L49
 .. _autobahn: http://autobahn.ws/python/
+.. _nameko_wamp: https://github.com/noisyboiler/nameko-wamp
+.. _nameko: https://github.com/nameko/nameko

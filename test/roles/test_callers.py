@@ -5,6 +5,7 @@ import pytest
 
 from wampy.peers.clients import Client
 from wampy.roles.callee import callee
+from wampy.testing import wait_for_registrations
 
 
 class DateService(Client):
@@ -40,7 +41,8 @@ class BinaryNumberService(Client):
 
 @pytest.yield_fixture
 def date_service(router):
-    with DateService(router=router):
+    with DateService(router=router) as serv:
+        wait_for_registrations(serv, 1)
         yield
 
 
@@ -56,35 +58,51 @@ def binary_number_service(router):
         yield
 
 
-def test_call_with_no_args_or_kwargs(date_service, router):
-    client = Client(router=router)
-    with client:
-        response = client.rpc.get_todays_date()
+class TestClientCall:
 
-    today = date.today()
+    def test_call_with_no_args_or_kwargs(self, date_service, router):
+        client = Client(router=router)
+        with client:
+            response = client.call("get_todays_date")
 
-    assert response == today.isoformat()
+        today = date.today()
+
+        assert response == today.isoformat()
+
+    def test_call_with_args_but_no_kwargs(self, hello_service, router):
+        caller = Client(router=router)
+        with caller:
+            response = caller.call("say_hello", "Simon")
+
+        assert response == "Hello Simon"
+
+    def test_call_with_args_and_kwargs(self, hello_service, router):
+        caller = Client(router=router)
+        with caller:
+            response = caller.call("say_greeting", "Simon", greeting="watcha")
+
+        assert response == "watcha to Simon"
 
 
-def test_call_with_args_but_no_kwargs(hello_service, router):
-    caller = Client(router=router)
-    with caller:
-        response = caller.rpc.say_hello("Simon")
+class TestClientRpc:
 
-    assert response == "Hello Simon"
+    def test_rpc_with_no_args_but_a_default_kwarg(self, hello_service, router):
+        caller = Client(router=router)
+        with caller:
+            response = caller.rpc.say_greeting("Simon")
 
+        assert response == "hola to Simon"
 
-def test_call_with_no_args_but_a_default_kwarg(hello_service, router):
-    caller = Client(router=router)
-    with caller:
-        response = caller.rpc.say_greeting("Simon")
+    def test_rpc_with_args_but_no_kwargs(self, hello_service, router):
+        caller = Client(router=router)
+        with caller:
+            response = caller.rpc.say_hello("Simon")
 
-    assert response == "hola to Simon"
+        assert response == "Hello Simon"
 
+    def test_rpc_with_no_args_but_a_kwarg(self, hello_service, router):
+        caller = Client(router=router)
+        with caller:
+            response = caller.rpc.say_greeting("Simon", greeting="goodbye")
 
-def test_call_with_no_args_but_a_kwarg(hello_service, router):
-    caller = Client(router=router)
-    with caller:
-        response = caller.rpc.say_greeting("Simon", greeting="goodbye")
-
-    assert response == "goodbye to Simon"
+        assert response == "goodbye to Simon"
