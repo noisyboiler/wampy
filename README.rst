@@ -102,7 +102,7 @@ The above can essentially be replaced with:
 
     In [X]: respones = client.rpc.foobar(*args, **kwargs)
 
-Under the hood, wampy has the ``RpcProxy`` object that implements the ``rpc`` API.
+Under the hood, **wampy** has the ``RpcProxy`` object that implements the ``rpc`` API.
 
 
 wampy RPC
