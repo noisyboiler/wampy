@@ -29,10 +29,3 @@ class PublishProxy:
         logger.info('publishing message: "%s"', message)
 
         self.client.send_message(message)
-
-
-class PublisherMixin:
-
-    @property
-    def publish(self):
-        return PublishProxy(client=self)
