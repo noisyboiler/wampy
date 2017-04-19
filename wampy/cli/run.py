@@ -7,7 +7,6 @@ Largely experimental for now.... sorry.
 """
 import os
 import sys
-from urlparse import urlparse
 
 from wampy.peers.routers import Crossbar
 
