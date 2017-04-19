@@ -156,9 +156,18 @@ The RPC pattern above was inspired by the nameko project, but this pattern may n
 
 For this reason there also exists the ```CallProxy``` object which more loosely wraps the ```Call``` Message, which wampy sends down the wire. In this pattern, applications and their endpoints are identified by dot delimented strings rather than a single API name, e.g.
 
-    ::
+::
 
-        procedure="com.example.endpoint"
+    "com.example.endpoint"
+
+Just like the ```rpc`` API is directly available on every Wampy client, so is the ```call``` API. Lets look at the two examples side by side.
+
+::
+
+    >>> client.rpc.get_foo_bar(eggs, foo=bar, spam=ham)
+    >>> client.call("get_foo_bar", eggs, foo=bar, spam=ham)
+
+Noted these are very similar, but the intention here is for the ```call``` API to behave more like a classic Crossbar.io application.
 
 
 Publishing and Subscribing is equally as simple
