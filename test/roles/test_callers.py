@@ -56,7 +56,7 @@ def binary_number_service(router):
         yield
 
 
-def test_call_with_no_args_or_kwargs(date_service, router):
+def test_rpc_with_no_args_or_kwargs(date_service, router):
     client = Client(router=router)
     with client:
         response = client.rpc.get_todays_date()
@@ -66,7 +66,7 @@ def test_call_with_no_args_or_kwargs(date_service, router):
     assert response == today.isoformat()
 
 
-def test_call_with_args_but_no_kwargs(hello_service, router):
+def test_rpc_with_args_but_no_kwargs(hello_service, router):
     caller = Client(router=router)
     with caller:
         response = caller.rpc.say_hello("Simon")
@@ -74,7 +74,7 @@ def test_call_with_args_but_no_kwargs(hello_service, router):
     assert response == "Hello Simon"
 
 
-def test_call_with_no_args_but_a_default_kwarg(hello_service, router):
+def test_rpc_with_no_args_but_a_default_kwarg(hello_service, router):
     caller = Client(router=router)
     with caller:
         response = caller.rpc.say_greeting("Simon")
@@ -82,7 +82,7 @@ def test_call_with_no_args_but_a_default_kwarg(hello_service, router):
     assert response == "hola to Simon"
 
 
-def test_call_with_no_args_but_a_kwarg(hello_service, router):
+def test_rpc_with_no_args_but_a_kwarg(hello_service, router):
     caller = Client(router=router)
     with caller:
         response = caller.rpc.say_greeting("Simon", greeting="goodbye")
