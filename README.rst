@@ -102,6 +102,8 @@ The above can essentially be replaced with:
 
     In [X]: respones = client.rpc.foobar(*args, **kwargs)
 
+Under the hood, wampy has the ```RpcProxy``` object that implements the ```rpc`` API.
+
 
 wampy RPC
 ~~~~~~~~~
@@ -157,15 +159,15 @@ Now, open a Python console in a new terminal, allowing the ``BinaryNumberService
 wampy RPC for Crossbar.io
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The RPC pattern above was inspired by the nameko project, but this pattern may not feel intuitive for those familiar with Crossbar.io, the primary Router used by wampy.
+The RPC pattern above was inspired by the nameko_ project, but this pattern may not feel intuitive for those familiar with Crossbar.io, the primary Router used by **wampy**.
 
-For this reason there also exists the ```CallProxy``` object which more loosely wraps wampy's ```Call``` Message. In this pattern, applications and their endpoints are identified by dot delimented strings rather than a single API name, e.g.
+For this reason there also exists the ```CallProxy``` object which implements the ```calll``` API by more loosely wraps **wampy's** ```Call``` Message. In this pattern, applications and their endpoints are identified by dot delimented strings rather than a single API name, e.g.
 
 ::
 
     "com.example.endpoint"
 
-Just like the ```rpc`` API is directly available on every wampy client, so is the ```call``` API. Lets look at the two examples side by side.
+Just like the ```rpc`` API is directly available on every **wampy** client, so is the ```call``` API. Lets look at the two examples side by side.
 
 ::
 
@@ -173,6 +175,14 @@ Just like the ```rpc`` API is directly available on every wampy client, so is th
     >>> client.call("get_foo_bar", eggs, foo=bar, spam=ham)
 
 Noted these are very similar and achieve the same, but the intention here is for the ```call``` API to behave more like a classic Crossbar.io application and the ```rpc``` to be used in nameko_wamp_.
+
+The ```call``` API however does allow calls of the form...
+
+::
+
+    >>> client.call("com.myapp.foo.bar", eggs, foo=bar, spam=ham) 
+
+...which you will not be able to do with the ```rpc``` API.
 
 
 Publishing and Subscribing is equally as simple
@@ -283,4 +293,4 @@ If you like this project, then Thank You, and you're welcome to get involved.
 .. _TLS Router: https://github.com/noisyboiler/wampy/blob/master/wampy/testing/pytest_plugin.py#L49
 .. _autobahn: http://autobahn.ws/python/
 .. _nameko_wamp: https://github.com/noisyboiler/nameko-wamp
-
+.. _nameko: https://github.com/nameko/nameko
