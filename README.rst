@@ -94,7 +94,7 @@ Given a **Crossbar.io** server running on localhost on port 8080, a **realm** of
 
 This is quite verbose an unnecessary with the core **wampy** API. With **wampy** you don't actually have to manually craft any messages. And of course, without another **Peer** having registered "foobar" on the same **realm**, this example will achieve little. And even if there were, you'd still have to do work to receive, unpack and interpret the response.
 
-Note that in the example, as you leave the context managed function call, the client will send a **GOODBYE** message and your **Session** will end.
+Note that in the example, as you leave the context managed function call, the client will send a **GOODBYE** message and your **Session** will end. And that ``./crossbar/config.json`` is the default value for ``config_path``.
 
 The above can essentially be replaced with:
 
@@ -149,7 +149,7 @@ Now, open a Python console in a new terminal, allowing the ``BinaryNumberService
 
     In [2]: from wampy.peers.routers import Crossbar
 
-    In [3]: with Client(router=Crossbar("./crossbar/config.json")) as client:
+    In [3]: with Client(router=Crossbar()) as client:
                 result = client.rpc.get_binary_number(number=100)
 
     In [4]: result
@@ -182,13 +182,13 @@ The ``call`` API however does allow calls of the form...
 
     >>> client.call("com.myapp.foo.bar", eggs, foo=bar, spam=ham) 
 
-...which you will not be able to do with the ```rpc``` API.
+...which you will not be able to do with the ``rpc`` API.
 
 
 Publishing and Subscribing is equally as simple
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To demonstrate, first of all you need a **Subscriber**. You can either create one yourself in a Python module (as a subclass of a **wampy** ``Client``, ready to run using ``wampy run....``) or use the example ``Client`` already for you in ``docs.examples.services``.
+To demonstrate, first of all you need a **Subscriber**. You can either create one yourself in a Python module (as a subclass of a **wampy** ``Client``) or use the example ``Client`` already for you in ``docs.examples.services``.
 
 Here we use the said example service, but all a **Subscriber** is is a **wampy** ``Client`` with a method decorated by ``subscribe``. Take a look and see for yourself in the examples_.
 
@@ -208,7 +208,7 @@ In another terminal, with a **wampy** virtualenv, you can create a **Publisher**
 
     In [2]: from wampy.peers.routers import Crossbar
 
-    In [3]: with Client(router=Crossbar("./crossbar/config.json")) as client:
+    In [3]: with Client(router=Crossbar()) as client:
                 result = client.publish(topic="foo", message="spam")
 
 Hopefully you'll see any message you send printed to the screen where the example service is running. You'll also see the meta data that **wampy** chooses to send.
@@ -225,7 +225,7 @@ When you instantiate your Router, pass in a path to the server certificate along
 
     In [2]: from wampy.peers.routers import Crossbar
 
-    In [3]: router = Crossbar('./crossbar/config.json', certificate="path.to.certificate")
+    In [3]: router = Crossbar(certificate="path.to.certificate")
 
 Your Router must be configured to use TLS. For an example see the `config`_ used by the test runner along with the `TLS Router`_ setup.
 
