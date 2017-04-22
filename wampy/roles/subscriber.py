@@ -36,7 +36,7 @@ class TopicSubscriber(Client):
     }
 
     def __init__(
-        self, topics, callback, router, roles=None,
+        self, topics, callback, router, roles=None, name=None,
     ):
         """ Subscribe to a one or more topics.
 
@@ -50,7 +50,7 @@ class TopicSubscriber(Client):
 
         """
         super(TopicSubscriber, self).__init__(
-            router, roles or self.DEFAULT_ROLES
+            router, roles or self.DEFAULT_ROLES, name=name,
         )
 
         self.topics = topics
