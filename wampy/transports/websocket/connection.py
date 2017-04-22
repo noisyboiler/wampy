@@ -203,7 +203,7 @@ class WampWebSocket(ParseUrlMixin):
                 frame = ServerFrame(received_bytes)
             except IncompleteFrameError as exc:
                 bufsize = exc.required_bytes
-                logger.info('now requesting the missing %s bytes', bufsize)
+                logger.debug('now requesting the missing %s bytes', bufsize)
             else:
                 break
 
