@@ -31,6 +31,7 @@ class Client(object):
     def __init__(
             self, router, roles=None, message_handler=None,
             transport="websocket", use_tls=False,
+            name=None,
     ):
 
         self.roles = roles or self.DEFAULT_ROLES
@@ -48,6 +49,8 @@ class Client(object):
         )
 
         self.request_ids = {}
+
+        self.name = name or self.__class__.__name__
 
     def __enter__(self):
         self.start()
@@ -144,16 +147,10 @@ class Client(object):
         self.request_ids[request_id] = message, subscriber_name
 
         logger.info(
-            'registered handler "%s" for topic "%s"',
-            subscriber_name, topic
+            '%s subscribed to topic "%s"', self.name, topic,
         )
 
     def _register_procedure(self, procedure_name, invocation_policy="single"):
-        logger.debug(
-            "registering %s with invocation policy %s",
-            procedure_name, invocation_policy
-        )
-
         options = {"invoke": invocation_policy}
         message = Register(procedure=procedure_name, options=options)
         request_id = message.request_id
@@ -166,3 +163,7 @@ class Client(object):
             )
 
         self.request_ids[request_id] = procedure_name
+
+        logger.info(
+            '%s registered callee "%s"', self.name, procedure_name,
+        )
