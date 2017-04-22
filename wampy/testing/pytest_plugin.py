@@ -25,6 +25,25 @@ class PytestConfigurationError(Exception):
     pass
 
 
+def pytest_addoption(parser):
+    parser.addoption(
+        '--logging-level',
+        type=str,
+        action='store',
+        dest='logging_level',
+        help='configure the logging level',
+    )
+
+    parser.addoption(
+        '--file-logging',
+        type=bool,
+        action='store',
+        dest='file_logging',
+        help='optionally log to file',
+        default=False,
+    )
+
+
 def add_file_logging():
     root = logging.getLogger()
     fhandler = logging.FileHandler(filename='test-runner-log.log', mode='a')
