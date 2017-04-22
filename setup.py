@@ -40,7 +40,8 @@ setup(
             "autobahn==0.17.2",
             "pytest==2.9.1",
             "mock==1.3.0",
-            "pytest-capturelog",
+            "pytest==2.9.1",
+            "pytest-capturelog==0.7",
             "colorlog",
             "flake8",
         ]
