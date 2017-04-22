@@ -1,5 +1,6 @@
 import logging
 import socket
+from functools import partial
 
 import eventlet
 
@@ -188,13 +189,15 @@ class Session(object):
                 pass
 
     def _listen_on_connection(self, connection, message_queue):
+
         def connection_handler():
             while True:
                 try:
                     frame = connection.read_websocket_frame()
                     if frame:
                         message = frame.payload
-                        self.client.process_message(message)
+                        handler = partial(self.client.process_message, message)
+                        eventlet.spawn(handler)
                 except (
                         SystemExit, KeyboardInterrupt, ConnectionError,
                         WampProtocolError,

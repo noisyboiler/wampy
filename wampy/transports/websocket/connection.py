@@ -189,7 +189,9 @@ class WampWebSocket(ParseUrlMixin):
                 message = str(e)
                 raise ConnectionError('timeout: "{}"'.format(message))
             except Exception as exc:
-                raise ConnectionError('error: "{}"'.format(exc))
+                raise ConnectionError(
+                    'unexpected error reading from socket: "{}"'.format(exc)
+                )
 
             if not bytes:
                 break
@@ -201,6 +203,7 @@ class WampWebSocket(ParseUrlMixin):
                 frame = ServerFrame(received_bytes)
             except IncompleteFrameError as exc:
                 bufsize = exc.required_bytes
+                logger.info('now requesting the missing %s bytes', bufsize)
             else:
                 break
 

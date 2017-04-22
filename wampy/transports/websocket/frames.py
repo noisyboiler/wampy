@@ -277,8 +277,10 @@ class ServerFrame(Frame):
             body_candidate = available_bytes_for_body[6:]  # require >= 8 bytes
 
         if len(body_candidate) < body_length:
+            required_bytes = body_length - len(body_candidate)
+            logger.debug("missing %s bytes", required_bytes)
             raise IncompleteFrameError(
-                required_bytes=body_length - len(body_candidate)
+                required_bytes=required_bytes
             )
 
         self.body = body_candidate
