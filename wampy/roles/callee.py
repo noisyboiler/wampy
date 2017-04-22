@@ -41,7 +41,7 @@ class CalleeProxy(Client):
 
     def __init__(
         self, procedure_names, callback, router,
-        roles=None, message_handler=None, name=None.
+        roles=None, message_handler=None, name=None,
     ):
         """ Begin a Session that manages RPC registration and invocations
         only.
