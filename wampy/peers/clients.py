@@ -87,12 +87,13 @@ class Client(object):
         return self.session.recv_message()
 
     def send_message_and_wait_for_response(self, message):
-        logger.debug("sending message: %s", message)
+        logger.debug("%s sending message: %s", self.name, message)
         self.session.send_message(message)
         return self.session.recv_message()
 
     def process_message(self, message):
-        logger.info("client processing %s", MESSAGE_TYPE_MAP[message[0]])
+        logger.info(
+            "%s processing %s", self.name, MESSAGE_TYPE_MAP[message[0]])
         self.message_handler(message)
 
     @property
@@ -108,7 +109,7 @@ class Client(object):
         return PublishProxy(client=self)
 
     def _register_roles(self):
-        logger.info("registering roles for: %s", self.__class__.__name__)
+        logger.info("registering roles for: %s", self.name)
 
         maybe_roles = []
         bases = [b for b in inspect.getmro(self.__class__) if b is not object]
