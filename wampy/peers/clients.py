@@ -31,6 +31,7 @@ class Client(object):
     def __init__(
             self, router, roles=None, message_handler=None,
             transport="websocket", use_tls=False,
+            name=None,
     ):
 
         self.roles = roles or self.DEFAULT_ROLES
@@ -48,6 +49,8 @@ class Client(object):
         )
 
         self.request_ids = {}
+
+        self.name = name or self.__class__.__name__
 
     def __enter__(self):
         self.start()
