@@ -86,6 +86,9 @@ def pytest_configure(config):
 
     sh.setFormatter(formatter)
     root = logging.getLogger()
+    # remove the default streamhandler
+    root.handlers.pop()
+    # and add our fancy coloured one
     root.addHandler(sh)
 
     if config.option.file_logging is True:
