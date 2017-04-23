@@ -87,7 +87,15 @@ def pytest_configure(config):
     sh.setFormatter(formatter)
     root = logging.getLogger()
     # remove the default streamhandler
-    root.handlers.pop()
+    handler = next(
+        (
+            handler for handler in root.handlers if
+            isinstance(handler, logging.StreamHandler)
+        ), None
+    )
+    if handler:
+        index = root.handlers.index(handler)
+        root.handlers.pop(index)
     # and add our fancy coloured one
     root.addHandler(sh)
 
