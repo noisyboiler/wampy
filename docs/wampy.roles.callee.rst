@@ -1,7 +1,7 @@
 wampy.roles.callee module
 =========================
 
-.. automodule:: rpc
+.. automodule:: callee
     :members:
     :undoc-members:
     :show-inheritance:

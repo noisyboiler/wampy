@@ -3,16 +3,13 @@ wampy
 
 .. pull-quote ::
 
-    WAMP RPC and Pub/Sub for stand alone clients and microservices
+    WAMP RPC and Pub/Sub for your Python apps and microservices
 
-wampy is a client implementation of the WAMP protocol. WAMP is the Web Application Messaging Protocol and offers two communication patterns for application components to talk to each: Pub/Sub and RPC.
+This is a Python implementation of **WAMP** not requiring Twisted or asyncio, enabling use within classic blocking Python applications. It is a light-weight alternative to `autobahn`_.
 
-With wampy you can do both of these - easily.
+With **wampy** you can quickly and easily create your own **WAMP** clients, whether this is in a web app, a microservice, a script or just in a Python shell.
 
-You have two options:
-
-- Create stand-alone clients
-- Create a microservice
+**wampy** tries to provide an intuitive API for your **WAMP** messaging.
 
 Contents:
 
@@ -26,13 +23,8 @@ modules
 
 	wampy.constants
 	wampy.errors
-	wampy.peer
-	wampy.registry
-	wampy.routers
-	wampy.publishing
-	wampy.rpc
-	wampy.connection
-	wampy.frames
+	wampy.mixins
+	wampy.session
 	wampy.messages.call
 	wampy.messages.hello
 	wampy.messages.goodbye
@@ -40,19 +32,13 @@ modules
 	wampy.messages.publish
 	wampy.messages.yield
 	wampy.messages.register
+	wampy.peers.clients
+	wampy.peers.routers
+	wampy.roles.callee
+	wampy.roles.caller
+	wampy.roles.publisher
+	wampy.roles.subscriber
 
-
-.. automodule:: connection
-    :noindex:
-
-.. automodule:: frames
-    :noindex:
-
-.. automodule:: publishing
-    :noindex:
-
-.. automodule:: rpc
-    :noindex:
 
 .. automodule:: constants
     :noindex:
@@ -60,22 +46,28 @@ modules
 .. automodule:: errors
     :noindex:
 
-.. automodule:: peer
+.. automodule:: mixins
     :noindex:
 
-.. automodule:: registry
+.. automodule:: session
+    :noindex:
+
+.. automodule:: clients
     :noindex:
 
 .. automodule:: routers
     :noindex:
 
-.. automodule:: call
+.. automodule:: callee
     :noindex:
 
-.. automodule:: hello
+.. automodule:: caller
     :noindex:
 
-.. automodule:: goodbye
+.. automodule:: publisher
+    :noindex:
+
+.. automodule:: subscriber
     :noindex:
 
 .. automodule:: subscribe
@@ -94,3 +86,5 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+.. _autobahn: http://autobahn.ws/python/

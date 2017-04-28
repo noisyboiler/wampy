@@ -20,9 +20,9 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('..'))
 sys.path.insert(0, os.path.abspath('../wampy'))
-sys.path.insert(0, os.path.abspath('../wampy/entrypoints'))
-sys.path.insert(0, os.path.abspath('../wampy/networking'))
+sys.path.insert(0, os.path.abspath('../wampy/roles'))
 sys.path.insert(0, os.path.abspath('../wampy/messages'))
+sys.path.insert(0, os.path.abspath('../wampy/peers'))
 
 # -- General configuration ------------------------------------------------
 

@@ -1,5 +1,5 @@
-wampy.routers module
-====================
+wampy.peers.routers module
+==========================
 
 .. automodule:: routers
     :members:
