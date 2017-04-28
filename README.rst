@@ -217,16 +217,6 @@ Hopefully you'll see any message you send printed to the screen where the exampl
 TLS/wss Support
 ~~~~~~~~~~~~~~~
 
-When you instantiate your Router, pass in a path to the server certificate along with the host and port that it operates on, e.g.
-
-::
-
-    In [1]: from wampy.peers.clients import Client
-
-    In [2]: from wampy.peers.routers import Crossbar
-
-    In [3]: router = Crossbar(certificate="path.to.certificate")
-
 Your Router must be configured to use TLS. For an example see the `config`_ used by the test runner along with the `TLS Router`_ setup.
 
 To connect a Client over TLS pass the ``use_tls=True`` parameter on initialisation.

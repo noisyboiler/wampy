@@ -15,8 +15,7 @@ logger = logging.getLogger('wampy.peers.routers')
 class Crossbar(ParseUrlMixin):
 
     def __init__(
-        self, config_path="./crossbar/config.json",
-        crossbar_directory=None, certificate=None,
+        self, config_path="./crossbar/config.json", crossbar_directory=None,
     ):
 
         with open(config_path) as data_file:
@@ -25,6 +24,7 @@ class Crossbar(ParseUrlMixin):
         self.config = config_data
         self.config_path = config_path
         config = self.config['workers'][0]
+
         self.realm = config['realms'][0]
         self.roles = self.realm['roles']
 
@@ -54,7 +54,11 @@ class Crossbar(ParseUrlMixin):
         self.websocket_location = self.resource
 
         self.crossbar_directory = crossbar_directory
-        self.certificate = certificate
+
+        try:
+            self.certificate = self.transport['endpoint']['tls']['certificate']
+        except KeyError:
+            self.certificate = None
 
         self.proc = None
 

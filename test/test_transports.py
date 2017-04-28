@@ -71,7 +71,6 @@ def test_ipv4_secure_websocket_connection():
     crossbar = Crossbar(
         config_path='./wampy/testing/configs/crossbar.config.ipv4.tls.json',
         crossbar_directory='./',
-        certificate="./wampy/testing/keys/server_cert.pem",
     )
 
     with crossbar as router:
