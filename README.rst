@@ -289,8 +289,8 @@ If you like this project, then Thank You, and you're welcome to get involved.
 .. _ReadTheDocs: http://wampy.readthedocs.io/en/latest/
 .. _WAMP Protocol: http://wamp-proto.org/
 .. _examples: https://github.com/noisyboiler/wampy/blob/master/docs/examples/services.py#L26
-.. _config: https://github.com/noisyboiler/wampy/blob/master/wampy/testing/configs/crossbar.config.tls.json
-.. _TLS Router: https://github.com/noisyboiler/wampy/blob/master/wampy/testing/pytest_plugin.py#L49
+.. _config: https://github.com/noisyboiler/wampy/blob/master/wampy/testing/configs/crossbar.config.ipv4.tls.json
+.. _TLS Router: https://github.com/noisyboiler/wampy/blob/master/test/test_transports.py#L71
 .. _autobahn: http://autobahn.ws/python/
 .. _nameko_wamp: https://github.com/noisyboiler/nameko-wamp
 .. _nameko: https://github.com/nameko/nameko
