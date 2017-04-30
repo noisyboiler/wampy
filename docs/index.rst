@@ -11,10 +11,31 @@ With **wampy** you can quickly and easily create your own **WAMP** clients, whet
 
 **wampy** tries to provide an intuitive API for your **WAMP** messaging.
 
-Contents:
+WAMP
+----
+
+Background to the Web Application Messaging Protocol of which wampy implements.
 
 .. toctree::
-	:maxdepth: 3
+   :maxdepth: 2
+
+   what_is_wamp
+
+
+User Guide
+----------
+
+Running a wampy application or interacting with any other WAMP application
+
+.. toctree::
+   :maxdepth: 2
+
+   what_is_wampy
+   a_wampy_application
+   a_wampy_client
+   publishing_to_a_topic
+   subscribing_to_a_topic
+   remote_procedure_calls
 
 modules
 -------
