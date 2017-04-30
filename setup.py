@@ -47,7 +47,6 @@ setup(
         ],
         'docs': [
             "Sphinx==1.4.5",
-            "wampy==0.9.3",
         ],
     },
     entry_points={
