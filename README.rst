@@ -270,7 +270,7 @@ Build the docs
 
 ::
 
-    $ pip install -r docs_requirements.txt
+    $ pip install -r rtd_requirements.txt
     $ sphinx-build -E -b html ./docs/ ./docs/_build/
 
 If you like this project, then Thank You, and you're welcome to get involved.

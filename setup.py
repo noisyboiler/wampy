@@ -44,7 +44,11 @@ setup(
             "pytest-capturelog==0.7",
             "colorlog",
             "flake8",
-        ]
+        ],
+        'docs': [
+            "Sphinx==1.4.5",
+            "wampy==0.9.3",
+        ],
     },
     entry_points={
         'console_scripts': [
