@@ -37,6 +37,7 @@ Running a wampy application or interacting with any other WAMP application
    subscribing_to_a_topic
    remote_procedure_calls
    testing
+   tls
 
 modules
 -------

@@ -158,6 +158,8 @@ In another terminal, with a **wampy** virtualenv, you can create a **Publisher**
 
 Hopefully you'll see any message you send printed to the screen where the example service is running. You'll also see the meta data that **wampy** chooses to send.
 
+See `ReadTheDocs`_ for more detailed documentation.
+
 Running the tests
 ~~~~~~~~~~~~~~~~~
 
