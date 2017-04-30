@@ -158,49 +158,6 @@ In another terminal, with a **wampy** virtualenv, you can create a **Publisher**
 
 Hopefully you'll see any message you send printed to the screen where the example service is running. You'll also see the meta data that **wampy** chooses to send.
 
-
-TLS/wss Support
-~~~~~~~~~~~~~~~
-
-Your Router must be configured to use TLS. For an example see the `config`_ used by the test runner along with the `TLS Router`_ setup.
-
-To connect a Client over TLS pass the ``use_tls=True`` parameter on initialisation.
-
-::
-
-    In [4]: client = Client(router=router, use_tls=True)
-
-Note that **Crossbar.io** does not support TLS over IPV6 and you'll need to be executing as root for port 443. All of these choices are made in the **Crossbar.io** config.
-
-
-Testing
-~~~~~~~
-
-**wampy** provides some ``pytest`` fixtures and helpers for you to run a crossbar server. These are ``router`` and ``session_maker``. 
-
-The router is **Crossbar.io** and will be started and shutdown between each test. It has a default configuration which you can override in your tests by creating a ``config_path`` fixture in your own ``conftest`` - see *wampy's* ``conftest`` for an example. If you require even more control you can import the router itself from ``wampy.peers.routers`` and setup your tests however you need to.
-
-To help you setup your test there are also some helpers that you can execute to wait for async certain actions to perform before you start actually running test code. These are:
-
-::
-
-    # execute with the client you're waiting for as the only argument
-    from wampy.testing import wait_for_session
-    # e.g. ```wait_for_session(client)```
-
-    # wait for a specific number of registrations on a client
-    from wampy.testing import wait_for_registrations
-    # e.g. ``wait_for_registrations(client, number_of_registrations=5)
-
-    # wait for a specific number of subscriptions on a client
-    from wampy.testing import wait_for_subscriptions
-    # e.g. ``wait_for_subscriptions(client, number_of_subscriptions=7)
-
-    # provied a function that raises until the test passes
-    from test.helpers import assert_stops_raising
-    # e.g. assert_stops_raising(my_func_that_raises_until_condition_met)
-
-
 Running the tests
 ~~~~~~~~~~~~~~~~~
 
@@ -224,8 +181,6 @@ If you like this project, then Thank You, and you're welcome to get involved.
 .. _ReadTheDocs: http://wampy.readthedocs.io/en/latest/
 .. _WAMP Protocol: http://wamp-proto.org/
 .. _examples: https://github.com/noisyboiler/wampy/blob/master/docs/examples/services.py#L26
-.. _config: https://github.com/noisyboiler/wampy/blob/master/wampy/testing/configs/crossbar.config.ipv4.tls.json
-.. _TLS Router: https://github.com/noisyboiler/wampy/blob/master/test/test_transports.py#L71
 .. _autobahn: http://autobahn.ws/python/
 .. _nameko_wamp: https://github.com/noisyboiler/nameko-wamp
 .. _nameko: https://github.com/nameko/nameko

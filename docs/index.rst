@@ -36,6 +36,7 @@ Running a wampy application or interacting with any other WAMP application
    publishing_to_a_topic
    subscribing_to_a_topic
    remote_procedure_calls
+   testing
 
 modules
 -------
