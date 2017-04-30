@@ -44,7 +44,7 @@ class Client(object):
         self.session = session_builder(
             client=self,
             router=router,
-            transport=transport,  # TODO transport should wrap tls an ipv
+            transport=transport,
             use_tls=use_tls,
         )
 
