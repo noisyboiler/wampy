@@ -47,6 +47,7 @@ setup(
         ],
         'docs': [
             "Sphinx==1.4.5",
+            "guzzle_sphinx_theme",
         ],
     },
     entry_points={

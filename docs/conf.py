@@ -20,6 +20,9 @@ import os
 import pkg_resources
 import sys
 
+import guzzle_sphinx_theme
+
+
 sys.path.insert(0, os.path.abspath('..'))
 sys.path.insert(0, os.path.abspath('../wampy'))
 sys.path.insert(0, os.path.abspath('../wampy/roles'))
@@ -41,6 +44,7 @@ extensions = [
     'sphinx.ext.coverage',
     'sphinx.ext.viewcode',
     'sphinx.ext.intersphinx',
+    'guzzle_sphinx_theme',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -128,10 +132,8 @@ todo_include_todos = False
 
 # -- Options for HTML output ----------------------------------------------
 
-# The theme to use for HTML and HTML Help pages.  See the documentation for
-# a list of builtin themes.
-#
-html_theme = 'bizstyle'
+html_theme_path = guzzle_sphinx_theme.html_theme_path()
+html_theme = 'guzzle_sphinx_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -187,7 +189,7 @@ html_static_path = ['_static']
 # Custom sidebar templates, maps document names to template names.
 #
 html_sidebars = {
-    '**': ['localtoc.html', 'relations.html', 'sourcelink.html',
+    '**': ['localtoc.html', 'relations.html',
            'sidebarlinks.html', 'searchbox.html']
 }
 
