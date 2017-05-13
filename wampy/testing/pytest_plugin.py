@@ -180,7 +180,7 @@ def session_maker(router, connection):
 
 @pytest.yield_fixture
 def client(router):
-    with Client() as client:
+    with Client(router=router) as client:
         yield client
 
 
