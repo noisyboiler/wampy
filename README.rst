@@ -92,14 +92,13 @@ Now, open a Python console in a new terminal, allowing the ``BinaryNumberService
 
     In [1]: from wampy.peers.clients import Client
 
-    In [2]: from wampy.peers.routers import Crossbar
-
-    In [3]: with Client(router=Crossbar()) as client:
+    In [2]: with Client() as client:
                 result = client.rpc.get_binary_number(number=100)
 
-    In [4]: result
-    Out[4]: u'0b1100100'
+    In [3]: result
+    Out[3]: u'0b1100100'
 
+Note here that a ``Client`` takes a ``router`` argument which defaults to Crossbar using the default realm of ``realm1`` on localhost port 8080. To use different values you'll need to configure and pass in the router to the client yourself.
 
 wampy RPC for Crossbar.io
 ~~~~~~~~~~~~~~~~~~~~~~~~~
