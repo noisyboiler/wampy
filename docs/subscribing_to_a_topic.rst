@@ -6,7 +6,7 @@ You need a long running wampy application process for this.
 ::
 
     from wampy.peers.clients import Client
-    from wampy.roles import subscribe
+    from wampy.roles.subscriber import subscribe
 
 
     class WampyApp(Client):
