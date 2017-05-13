@@ -8,6 +8,7 @@ import colorlog
 import pytest
 
 from wampy.constants import DEFAULT_HOST, DEFAULT_PORT
+from wampy.peers.clients import Client
 from wampy.peers.routers import Crossbar
 from wampy.session import Session
 from wampy.transports.websocket.connection import WampWebSocket as WebSocket
@@ -175,6 +176,12 @@ def session_maker(router, connection):
         )
 
     return maker
+
+
+@pytest.yield_fixture
+def client(router):
+    with Client() as client:
+        yield client
 
 
 atexit.register(kill_crossbar)
