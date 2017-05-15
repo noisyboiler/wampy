@@ -48,8 +48,6 @@ For the quickest of starts I suggest that you use **Crossbar.io** and start it u
 
     $ crossbar start --config ./wampy/testing/configs/crossbar.config.ipv4.json
 
-By default a **wampy** client connects to localhost on port 8080, but this is of course configurable, and is done so on client initialisation.
-
 wampy RPC
 ~~~~~~~~~
 
@@ -98,7 +96,7 @@ Now, open a Python console in a new terminal, allowing the ``BinaryNumberService
     In [3]: result
     Out[3]: u'0b1100100'
 
-Note here that a ``Client`` takes a ``router`` argument which defaults to Crossbar using the default realm of ``realm1`` on localhost port 8080. To use different values you'll need to configure and pass in the router to the client yourself.
+Note here that a ``Client`` takes a ``router`` argument which defaults to Crossbar. Crossbar then defaults to ``realm1`` on ``localhost:8080``. To use different values you'll need to configure and pass in the router object to the client yourself. This isn't hard, but when you're developing locally these defaults are there to help you get up and running quickly.
 
 wampy RPC for Crossbar.io
 ~~~~~~~~~~~~~~~~~~~~~~~~~
