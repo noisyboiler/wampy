@@ -23,6 +23,8 @@
 wampy
 =====
 
+*[whomp-ee]*
+
 .. pull-quote ::
 
     WAMP RPC and Pub/Sub for your Python apps and microservices
