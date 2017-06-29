@@ -1,3 +1,7 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 import logging
 import inspect
 
@@ -7,6 +11,7 @@ from wampy.messages import MESSAGE_TYPE_MAP
 from wampy.messages.handler import MessageHandler
 from wampy.messages.register import Register
 from wampy.messages.subscribe import Subscribe
+from wampy.peers.routers import Crossbar
 from wampy.roles.caller import CallProxy, RpcProxy
 from wampy.roles.publisher import PublishProxy
 
@@ -29,11 +34,12 @@ class Client(object):
     }
 
     def __init__(
-            self, router, roles=None, message_handler=None,
+            self, router=None, roles=None, message_handler=None,
             transport="websocket", use_tls=False,
             name=None,
     ):
 
+        self.router = router or Crossbar()
         self.roles = roles or self.DEFAULT_ROLES
         # only support one realm per Router, and we implicitly assume that
         # is the one a client is interested in here. this possibly could be
@@ -43,7 +49,7 @@ class Client(object):
 
         self.session = session_builder(
             client=self,
-            router=router,
+            router=self.router,
             transport=transport,
             use_tls=use_tls,
         )

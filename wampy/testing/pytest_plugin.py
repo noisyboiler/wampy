@@ -1,3 +1,7 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 import atexit
 import logging
 import os
@@ -8,6 +12,7 @@ import colorlog
 import pytest
 
 from wampy.constants import DEFAULT_HOST, DEFAULT_PORT
+from wampy.peers.clients import Client
 from wampy.peers.routers import Crossbar
 from wampy.session import Session
 from wampy.transports.websocket.connection import WampWebSocket as WebSocket
@@ -175,6 +180,12 @@ def session_maker(router, connection):
         )
 
     return maker
+
+
+@pytest.yield_fixture
+def client(router):
+    with Client(router=router) as client:
+        yield client
 
 
 atexit.register(kill_crossbar)

@@ -41,6 +41,8 @@ For example
 
 If you require even more control you can import the router itself from ``wampy.peers.routers`` and setup your tests however you need to.
 
+**wampy** also provides a ``pytest`` fixture for a WAMP client.
+
 Here is an example testing a wampy ``HelloService`` application.
 
 ::
@@ -66,10 +68,8 @@ Here is an example testing a wampy ``HelloService`` application.
             yield
 
 
-    def test_get_hello_message(hello_service, router):
-        client = Client(router=router)
-        with client:
-            response = client.rpc.say_hello(name="wampy")
+    def test_get_hello_message(hello_service, router, client):
+        response = client.rpc.say_hello(name="wampy")
 
         assert response == "Hello wampy"
 
