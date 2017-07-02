@@ -8,7 +8,7 @@ import os
 import socket
 import subprocess
 from socket import error as socket_error
-from time import time as now
+from time import time as now, sleep
 
 from wampy.errors import ConnectionError, WampyError
 from wampy.mixins import ParseUrlMixin
@@ -132,10 +132,17 @@ class Crossbar(ParseUrlMixin):
         # termination failing and killing the process to ensure has died.
         try:
             self.proc.terminate()
+        except OSError as exc:
+            if "no such process" in str(exc):
+                logger.warning("process died already: %s", self.proc)
+                return
+
             self.proc.wait()
             self.proc.kill()
-        except OSError:
-            pass
+
+        # wait for a graceful shutdown
+        logger.info("sleeping while Crossbar shuts down")
+        sleep(2)
 
     def try_connection(self):
         if self.ipv == 4:
