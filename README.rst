@@ -78,7 +78,7 @@ For example, running one of the **wampy** example applications against the Route
 
     $ wampy run docs.examples.services:DateService --config ./wampy/testing/configs/crossbar.json
 
-Actually, the ``BinaryNumberService`` example already exists in the *wampy* examples.
+Actually - no need to panic! The ``BinaryNumberService`` example already exists in the **wampy** examples so put that text editor away if you like. Just execute from the command line:
 
 ::
 
