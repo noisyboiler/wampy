@@ -72,17 +72,17 @@ Save this module somewhere on your Python path and we'll use a **wampy** command
 
     $ wampy run path.to.your.module.including.module_name:BinaryNumberService
 
-For example, running one of the **wampy** example applications.
+For example, running one of the **wampy** example applications against the Router suggested previously:
 
 ::
 
-    $ wampy run docs.examples.services:DateService --config './path/to/crossbar.config.json'
+    $ wampy run docs.examples.services:DateService --config ./wampy/testing/configs/crossbar.json
 
-Okay, no need to write any code: execute this:
+Actually, the ``BinaryNumberService`` example already exists in the *wampy* examples.
 
 ::
 
-    $ wampy run docs.examples.services:BinaryNumberService --config './wampy/testing/configs/crossbar.json'
+    $ wampy run docs.examples.services:BinaryNumberService --config ./wampy/testing/configs/crossbar.json
 
 
 Now, open a Python console in a new terminal, allowing the ``BinaryNumberService`` to run uninterupted in your original terminal (but once you're done with it ``Ctrl-C`` is required).
