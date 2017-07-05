@@ -130,7 +130,7 @@ def kill_crossbar():
         pid = int(pid_as_str)
 
         try:
-            os.waitpid(pid)
+            os.waitpid(pid, options=os.WNOHANG)
         except OSError:
             pass
 
