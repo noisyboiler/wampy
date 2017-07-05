@@ -57,15 +57,14 @@ Now open your preferred text editor and we'll write a few lines of Python constr
 
 ::
 
-    In [1]: from wampy.peers.clients import Client
+    from wampy.peers.clients import Client
+    from wampy.roles import callee
 
-    In [2]: from wampy.roles import callee
+    class BinaryNumberService(Client):
 
-    In [3]: class BinaryNumberService(Client):
-
-                @callee
-                def get_binary_number(self, number):
-                    return bin(number)
+        @callee
+        def get_binary_number(self, number):
+            return bin(number)
 
 Save this module somewhere on your Python path and we'll use a **wampy** command line interface tool to start the service.
 
