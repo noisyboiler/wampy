@@ -82,7 +82,7 @@ Okay, no need to write any code: execute this:
 
 ::
 
-    $ wampy run docs.examples.services:BinaryNumberService --config './wampy/testing/configs/crossbar.config.ipv4.json'
+    $ wampy run docs.examples.services:BinaryNumberService --config './wampy/testing/configs/crossbar.json'
 
 
 Now, open a Python console in a new terminal, allowing the ``BinaryNumberService`` to run uninterupted in your original terminal (but once you're done with it ``Ctrl-C`` is required).
@@ -91,7 +91,11 @@ Now, open a Python console in a new terminal, allowing the ``BinaryNumberService
 
     In [1]: from wampy.peers.clients import Client
 
-    In [2]: with Client() as client:
+    In [2]: from wampy.peers.routers import Crossbar
+
+    In [3]: router = Crossbar(config_path='./wampy/testing/configs/crossbar.json')
+
+    In [2]: with Client(router=router) as client:
                 result = client.rpc.get_binary_number(number=100)
 
     In [3]: result
