@@ -40,7 +40,7 @@ See `ReadTheDocs`_ for more detailed documentation.
 Quickstart: wampy from the command line
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Before any messaging can happen you do need that **Router** I mentioned. Messages are then routed between **Clients** over an administrative domain on the **Router** called a **Realm**.
+Before any messaging can happen you need a **Router**. Messages are then routed between **Clients** over an administrative domain on the **Router** called a **Realm**.
 
 For the quickest of starts I suggest that you use **Crossbar.io** and start it up on the default host and port, and with the default **realm** and **roles**. See the `Crossbar.io docs`_ for the instructions on this or alternatively run with **wampy's** testing setup.
 
