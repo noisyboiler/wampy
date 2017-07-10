@@ -100,7 +100,7 @@ class Client(object):
     def process_message(self, message):
         logger.info(
             "%s processing %s", self.name, MESSAGE_TYPE_MAP[message[0]])
-        self.message_handler(message)
+        self.message_handler.handle_message(message)
 
     @property
     def call(self):

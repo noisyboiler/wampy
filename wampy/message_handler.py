@@ -38,9 +38,6 @@ class MessageHandler(object):
         self.messages = {}
         self._configure_messages()
 
-    def __call__(self, *args, **kwargs):
-        return self.handle_message(*args, **kwargs)
-
     def _configure_messages(self):
         messages = self.messages
         for message in self.messages_to_handle:
