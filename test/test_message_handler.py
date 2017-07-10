@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from wampy.messages.handler import MessageHandler
+from wampy.message_handler import MessageHandler
 from wampy.messages.invocation import InvocationWithMeta
 from wampy.messages import Goodbye, Error, Registered, Welcome
 from wampy.roles.callee import CalleeProxy

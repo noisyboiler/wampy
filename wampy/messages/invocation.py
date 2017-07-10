@@ -68,17 +68,17 @@ class Invocation(Message):
         else:
             error = None
 
-        self.handle_result(result, error)
+        self.handle_result(result, exc=error)
 
     def handle_result(self, result, exc=None):
         result_kwargs = {}
 
-        result_kwargs['error'] = exc.__class__.__name__, str(exc)
+        if exc is not None:
+            result_kwargs['error'] = exc.__class__.__name__, str(exc)
         result_kwargs['message'] = result
         result_kwargs['meta'] = {}
         result_kwargs['meta']['procedure_name'] = self.procedure_name
         result_kwargs['meta']['session_id'] = self.session.id
-
         result_args = [result]
 
         from wampy.messages import Yield
