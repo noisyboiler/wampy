@@ -64,16 +64,16 @@ class Invocation(Message):
         except Exception as exc:
             logger.exception("error calling: %s", self.procedure_name)
             result = None
-            error = str(exc)
+            error = exc
         else:
             error = None
 
         self.handle_result(result, error)
 
-    def handle_result(self, result, error=None):
+    def handle_result(self, result, exc=None):
         result_kwargs = {}
 
-        result_kwargs['error'] = error
+        result_kwargs['error'] = exc.__class__.__name__, str(exc)
         result_kwargs['message'] = result
         result_kwargs['meta'] = {}
         result_kwargs['meta']['procedure_name'] = self.procedure_name

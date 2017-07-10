@@ -75,7 +75,8 @@ class RpcProxy:
                 )
 
             if yield_kwargs.get('error'):
-                raise RemoteError(yield_kwargs['error'])
+                exc_type, value = yield_kwargs['error']
+                raise RemoteError(exc_type=exc_type, value=value)
 
             results = yield_args
             result = results[0]
