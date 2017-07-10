@@ -8,7 +8,7 @@ import inspect
 from wampy.errors import WampProtocolError
 from wampy.session import session_builder
 from wampy.messages import MESSAGE_TYPE_MAP
-from wampy.messages.handler import MessageHandler
+from wampy.message_handler import MessageHandler
 from wampy.messages.register import Register
 from wampy.messages.subscribe import Subscribe
 from wampy.peers.routers import Crossbar
