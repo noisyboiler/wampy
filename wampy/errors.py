@@ -42,3 +42,7 @@ class WampError(Exception):
 
 class WampyError(Exception):
     pass
+
+
+class RemoteError(Exception):
+    pass

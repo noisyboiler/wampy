@@ -4,7 +4,7 @@
 
 import logging
 
-from wampy.errors import WampProtocolError
+from wampy.errors import RemoteError, WampProtocolError
 from wampy.messages import MESSAGE_TYPE_MAP
 from wampy.messages import Message
 from wampy.messages.call import Call
@@ -65,7 +65,8 @@ class RpcProxy:
             # TOOO: make_remote_procedure_call might be a better name?
             response = self.client.send_message_and_wait_for_response(
                 message)
-            wamp_code = response[0]
+
+            wamp_code, _, _, yield_args, yield_kwargs = response
             if wamp_code != Message.RESULT:
                 raise WampProtocolError(
                     'unexpected message code: "%s (%s) %s"',
@@ -73,9 +74,13 @@ class RpcProxy:
                     response[5]
                 )
 
-            results = response[3]
+            if yield_kwargs.get('error'):
+                raise RemoteError(yield_kwargs['error'])
+
+            results = yield_args
             result = results[0]
             logger.debug("RpcProxy got result: %s", result)
+
             return result
 
         return wrapper
