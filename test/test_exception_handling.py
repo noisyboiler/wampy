@@ -14,7 +14,7 @@ class UnreliableCallee(Client):
     @callee
     def get_foo(self, *args, **kwargs):
         raise ValueError(
-            "i don't like any of your values: %s, %s", args, kwargs
+            "i do not like any of your values: {}, {}".format(args, kwargs)
         )
 
 
