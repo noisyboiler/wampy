@@ -42,7 +42,7 @@ setup(
         'dev': [
             "crossbar==0.15.0",
             "autobahn==0.17.2",
-            "pytest==2.9.1",
+            "pytest==3.1.3",
             "mock==1.3.0",
             "pytest==2.9.1",
             "pytest-capturelog==0.7",
