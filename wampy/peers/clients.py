@@ -94,8 +94,20 @@ class Client(object):
 
     def send_message_and_wait_for_response(self, message):
         logger.debug("%s sending message: %s", self.name, message)
+
         self.session.send_message(message)
-        return self.session.recv_message()
+
+        try:
+            response = self.session.recv_message()
+        except WampProtocolError as wamp_err:
+            logger.error(wamp_err)
+            raise
+        except Exception as exc:
+            logger.warning("rpc failed!!")
+            logger.exception(str(exc))
+            raise
+
+        return response
 
     def process_message(self, message):
         logger.info(

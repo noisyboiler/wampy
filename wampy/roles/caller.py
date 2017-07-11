@@ -66,17 +66,23 @@ class RpcProxy:
             response = self.client.send_message_and_wait_for_response(
                 message)
 
+            wamp_code = response[0]
+            if wamp_code == Message.ERROR:
+                _, _, request_id, _, error_api, exc_args, exc_kwargs = (
+                    response)
+
+                raise RemoteError(
+                    error_api, request_id, *exc_args, **exc_kwargs
+                )
+
             wamp_code, _, _, yield_args, yield_kwargs = response
+
             if wamp_code != Message.RESULT:
                 raise WampProtocolError(
                     'unexpected message code: "%s (%s) %s"',
                     wamp_code, MESSAGE_TYPE_MAP[wamp_code],
                     response[5]
                 )
-
-            if yield_kwargs.get('error'):
-                exc_type, value = yield_kwargs['error']
-                raise RemoteError(exc_type=exc_type, value=value)
 
             results = yield_args
             result = results[0]

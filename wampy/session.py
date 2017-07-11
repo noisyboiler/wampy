@@ -115,25 +115,25 @@ class Session(object):
         message_type = MESSAGE_TYPE_MAP[message.WAMP_CODE]
         message = message.serialize()
 
+        if self._connection is None:
+            raise WampError("WAMP Connection Not Established")
+
         logger.debug(
             'sending "%s" message: %s', message_type, message
         )
 
-        if self._connection is None:
-            raise WampError("WAMP Connection Not Established")
-
         self._connection.send_websocket_frame(str(message))
 
     def recv_message(self, timeout=5):
-        logger.debug('waiting for message')
-
         try:
             message = self._wait_for_message(timeout)
         except eventlet.Timeout:
-            raise WampProtocolError("no message returned")
+            raise WampProtocolError(
+                "no message returned (timed-out in {})".format(timeout)
+            )
 
         logger.debug(
-            'received message: "%s"', MESSAGE_TYPE_MAP[message[0]]
+            'received message: "{}"'.format(MESSAGE_TYPE_MAP[message[0]])
         )
 
         return message

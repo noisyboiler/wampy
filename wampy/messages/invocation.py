@@ -74,21 +74,39 @@ class Invocation(Message):
         result_kwargs = {}
 
         if exc is not None:
-            result_kwargs['error'] = exc.__class__.__name__, str(exc)
-        result_kwargs['message'] = result
-        result_kwargs['meta'] = {}
-        result_kwargs['meta']['procedure_name'] = self.procedure_name
-        result_kwargs['meta']['session_id'] = self.session.id
-        result_args = [result]
+            from wampy.messages import Error
 
-        from wampy.messages import Yield
-        yield_message = Yield(
-            self.request_id,
-            result_args=result_args,
-            result_kwargs=result_kwargs,
-        )
-        logger.info("yielding response: %s", yield_message)
-        self.session.send_message(yield_message)
+            error_message = Error(
+                wamp_code=Error.WAMP_CODE,
+                request_type=68,  # the failing message wamp code
+                request_id=self.request_id,
+                error=self.procedure_name,
+                kwargs_dict={
+                    'exc_type': exc.__class__.__name__,
+                    'message': str(exc),
+                    'call_args': self.call_args,
+                    'call_kwargs': self.call_kwargs,
+                },
+            )
+            logger.info("returning with Error: %s", error_message)
+            self.session.send_message(error_message)
+
+        else:
+            from wampy.messages import Yield
+
+            result_kwargs['message'] = result
+            result_kwargs['meta'] = {}
+            result_kwargs['meta']['procedure_name'] = self.procedure_name
+            result_kwargs['meta']['session_id'] = self.session.id
+            result_args = [result]
+
+            yield_message = Yield(
+                self.request_id,
+                result_args=result_args,
+                result_kwargs=result_kwargs,
+            )
+            logger.info("yielding response: %s", yield_message)
+            self.session.send_message(yield_message)
 
 
 class InvocationWithMeta(Invocation):

@@ -14,7 +14,8 @@ class UnreliableCallee(Client):
     @callee
     def get_foo(self, *args, **kwargs):
         raise ValueError(
-            "i do not like any of your values: {}, {}".format(args, kwargs)
+            "i do not like any of your values: {}, {}".format(
+                args, kwargs)
         )
 
 
@@ -25,7 +26,17 @@ def unreliable_callee(router, config_path):
 
 
 def test_handle_value_error(unreliable_callee, router):
-    with Client(router=router) as client:
+    with Client(router=router, name="caller") as client:
 
-        with pytest.raises(RemoteError):
+        with pytest.raises(RemoteError) as exc_info:
             client.rpc.get_foo(1, 2, three=3)
+
+        exception = exc_info.value
+        assert type(exception) is RemoteError
+
+        message = str(exception)
+
+        assert "ValueError" in message
+        assert "i do not like any of your values" in message
+        assert "(1, 2)" in message
+        assert "{u'three': 3}" in message

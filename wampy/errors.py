@@ -45,8 +45,12 @@ class WampyError(Exception):
 
 
 class RemoteError(Exception):
-    def __init__(self, exc_type=None, value=""):
-        self.exc_type = exc_type
-        self.value = value
-        message = '{} {}'.format(exc_type, value)
+    def __init__(self, remote_api, request_id, *args, **kwargs):
+        self.remote_api = remote_api
+        self.request_id = request_id
+        self.exc_type = kwargs.get("exc_type")
+        self.value = kwargs.get("message")
+
+        message = '{} [{}] failed with reason {} {}'.format(
+            self.remote_api, self.request_id, self.exc_type, self.value)
         super(RemoteError, self).__init__(message)
