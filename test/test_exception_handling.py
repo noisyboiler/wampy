@@ -39,4 +39,4 @@ def test_handle_value_error(unreliable_callee, router):
         assert "ValueError" in message
         assert "i do not like any of your values" in message
         assert "(1, 2)" in message
-        assert "{u'three': 3}" in message
+        assert "three" in message
