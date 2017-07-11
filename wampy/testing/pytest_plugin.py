@@ -118,7 +118,7 @@ def find_processes(process_name):
     return output
 
 
-def kill_crossbar():
+def kill_crossbar(try_again=True):
     output = find_processes("crossbar")
     pids = [o for o in output.decode().split('\n') if o]
     if pids:
@@ -126,6 +126,7 @@ def kill_crossbar():
             "Crossbar.io did not stop when sig term issued!"
         )
 
+    success = True
     for pid_as_str in pids:
         pid = int(pid_as_str)
 
@@ -145,7 +146,11 @@ def kill_crossbar():
                 if "No such process" in str(exc):
                     return
                 logger.exception("Failed to shutdown router")
-                raise
+                success = False
+
+    if not success and try_again:
+        logger.warning('try one more time to shutdown Crossbar')
+        kill_crossbar(try_again=False)
 
 
 class ConfigurationError(Exception):
