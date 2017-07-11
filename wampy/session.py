@@ -8,22 +8,28 @@ from functools import partial
 
 import eventlet
 
-from wampy.errors import ConnectionError, WampError, WampProtocolError
+from wampy.errors import (
+    ConnectionError, WampError, WampProtocolError, WampyError)
 from wampy.messages import Message
+from wampy.messages import MESSAGE_TYPE_MAP
 from wampy.messages.hello import Hello
 from wampy.messages.goodbye import Goodbye
 from wampy.transports.websocket.connection import (
     WampWebSocket, TLSWampWebSocket)
-
-from wampy.messages import MESSAGE_TYPE_MAP
 
 
 logger = logging.getLogger('wampy.session')
 
 
 def session_builder(
-        client, router, transport="websocket", use_tls=False, ipv=4
+        client, router, transport="websocket", use_tls=False,
+        message_handler=None, ipv=4
 ):
+    if message_handler is None:
+        raise WampyError(
+            "A ``MessageHandler`` is needed by each ``Session``"
+        )
+
     if transport == "websocket":
         if use_tls:
             transport = TLSWampWebSocket(router)
@@ -34,6 +40,7 @@ def session_builder(
 
     return Session(
         client=client, router=router, transport=transport,
+        message_handler=message_handler,
     )
 
 
@@ -56,7 +63,7 @@ class Session(object):
 
     """
 
-    def __init__(self, client, router, transport):
+    def __init__(self, client, router, transport, message_handler):
         """ A Session between a Client and a Router.
 
         :Parameters:
@@ -69,6 +76,7 @@ class Session(object):
         self.client = client
         self.router = router
         self.transport = transport
+        self.message_handler = message_handler
 
         self.subscription_map = {}
         self.registration_map = {}
@@ -200,7 +208,7 @@ class Session(object):
                     frame = connection.read_websocket_frame()
                     if frame:
                         message = frame.payload
-                        handler = partial(self.client.process_message, message)
+                        handler = partial(self._process_message, message)
                         eventlet.spawn(handler)
                 except (
                         SystemExit, KeyboardInterrupt, ConnectionError,
@@ -222,3 +230,8 @@ class Session(object):
 
         message = q.get()
         return message
+
+    def _process_message(self, message):
+        logger.info(
+            "%s handling %s", self.client.name, MESSAGE_TYPE_MAP[message[0]])
+        self.message_handler.handle_message(message)

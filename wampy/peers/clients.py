@@ -7,7 +7,6 @@ import inspect
 
 from wampy.errors import WampProtocolError
 from wampy.session import session_builder
-from wampy.messages import MESSAGE_TYPE_MAP
 from wampy.message_handler import MessageHandler
 from wampy.messages.register import Register
 from wampy.messages.subscribe import Subscribe
@@ -45,12 +44,13 @@ class Client(object):
         # is the one a client is interested in here. this possibly could be
         # improved....
         self.realm = router.realm
-        self.message_handler = message_handler or MessageHandler(client=self)
+        message_handler = message_handler or MessageHandler(client=self)
 
         self.session = session_builder(
             client=self,
             router=self.router,
             transport=transport,
+            message_handler=message_handler,
             use_tls=use_tls,
         )
 
@@ -108,11 +108,6 @@ class Client(object):
             raise
 
         return response
-
-    def process_message(self, message):
-        logger.info(
-            "%s handling %s", self.name, MESSAGE_TYPE_MAP[message[0]])
-        self.message_handler.handle_message(message)
 
     @property
     def call(self):
