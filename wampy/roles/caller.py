@@ -29,7 +29,7 @@ class CallProxy:
 
     def __call__(self, procedure, *args, **kwargs):
         message = Call(procedure=procedure, args=args, kwargs=kwargs)
-        response = self.client.send_message_and_wait_for_response(
+        response = self.client.make_rpc(
             message)
         wamp_code = response[0]
 
@@ -62,9 +62,7 @@ class RpcProxy:
 
         def wrapper(*args, **kwargs):
             message = Call(procedure=name, args=args, kwargs=kwargs)
-            # TOOO: make_remote_procedure_call might be a better name?
-            response = self.client.send_message_and_wait_for_response(
-                message)
+            response = self.client.make_rpc(message)
 
             wamp_code = response[0]
             if wamp_code == Message.ERROR:

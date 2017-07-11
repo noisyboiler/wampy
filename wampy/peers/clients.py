@@ -92,7 +92,7 @@ class Client(object):
     def recv_message(self):
         return self.session.recv_message()
 
-    def send_message_and_wait_for_response(self, message):
+    def make_rpc(self, message):
         logger.debug("%s sending message: %s", self.name, message)
 
         self.session.send_message(message)
