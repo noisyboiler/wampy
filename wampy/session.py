@@ -208,7 +208,9 @@ class Session(object):
                     frame = connection.read_websocket_frame()
                     if frame:
                         message = frame.payload
-                        handler = partial(self._process_message, message)
+                        handler = partial(
+                            self.message_handler.handle_message, message
+                        )
                         eventlet.spawn(handler)
                 except (
                         SystemExit, KeyboardInterrupt, ConnectionError,
@@ -230,8 +232,3 @@ class Session(object):
 
         message = q.get()
         return message
-
-    def _process_message(self, message):
-        logger.info(
-            "%s handling %s", self.client.name, MESSAGE_TYPE_MAP[message[0]])
-        self.message_handler.handle_message(message)
