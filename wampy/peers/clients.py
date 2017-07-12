@@ -176,7 +176,8 @@ class Client(object):
                 "failed to register callee: %s", procedure_name
             )
 
-        self.request_ids[request_id] = procedure_name
+        procedure = getattr(self, procedure_name)
+        self.request_ids[request_id] = procedure
 
         logger.info(
             '%s registered callee "%s"', self.name, procedure_name,

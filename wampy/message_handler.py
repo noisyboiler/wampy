@@ -24,6 +24,15 @@ class MessageHandler(object):
     def __init__(self, client, messages_to_handle=None):
         """ Responsible for processing incoming WAMP messages.
 
+        The ``Session`` object receieves Messages on behalf of a
+        ``Client`` and passes them into a ``MessageHandler``.
+
+        The ``MessageHandler`` is designed to be extensible and be
+        configured so that a wampy client can be used as part of
+        larger applications. To do this Messages should be subclassed
+        and override the ``process`` methods to implement custom
+        behaviour.
+
         :Parameters:
             messages_to_handle : list
                 A list of Message classes. Only Messages described in

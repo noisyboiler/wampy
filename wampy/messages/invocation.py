@@ -54,13 +54,12 @@ class Invocation(Message):
         args = self.call_args
         kwargs = self.call_kwargs
 
-        self.procedure_name = client.registration_map[self.registration_id]
-        entrypoint = getattr(client, self.procedure_name)
+        procedure = client.registration_map[self.registration_id]
 
         self.update_kwargs(kwargs)
 
         try:
-            result = entrypoint(*args, **kwargs)
+            result = procedure(*args, **kwargs)
         except Exception as exc:
             logger.exception("error calling: %s", self.procedure_name)
             result = None
