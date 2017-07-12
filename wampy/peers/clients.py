@@ -158,7 +158,7 @@ class Client(object):
                     topic, exc)
             )
 
-        self.request_ids[request_id] = message, subscriber_name
+        self.request_ids[request_id] = message, handler
 
         logger.info(
             '%s subscribed to topic "%s"', self.name, topic,

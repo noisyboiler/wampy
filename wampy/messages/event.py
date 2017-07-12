@@ -50,13 +50,7 @@ class Event(Message):
         payload_list = self.publish_args
         payload_dict = self.publish_kwargs
 
-        func_name, topic = session.subscription_map[self.subscription_id]
-        try:
-            func = getattr(client, func_name)
-        except AttributeError:
-            raise WampError(
-                "Event handler not found: {}".format(func_name)
-            )
+        func, topic = session.subscription_map[self.subscription_id]
 
         payload_dict['meta'] = {}
         payload_dict['meta']['topic'] = topic

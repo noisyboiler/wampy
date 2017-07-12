@@ -34,7 +34,7 @@ class Subscribed(Message):
                 'failed to subscribe to topic: "{}"'.format(self.message)
             )
 
-        original_message, procedure_name = client.request_ids[self.request_id]
+        original_message, handler = client.request_ids[self.request_id]
         topic = original_message.topic
 
-        session.subscription_map[self.subscription_id] = procedure_name, topic
+        session.subscription_map[self.subscription_id] = handler, topic
