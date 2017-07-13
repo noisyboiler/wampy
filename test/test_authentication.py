@@ -11,6 +11,7 @@ from wampy.roles.callee import callee
 
 @pytest.fixture(scope="function")
 def config_path():
+    # this config has some static user creds defined
     return './wampy/testing/configs/crossbar.static.auth.json'
 
 
@@ -27,7 +28,7 @@ def foo_service(router, config_path):
         yield
 
 
-def test_connection_is_aborted(router):
+def test_connection_is_aborted_when_no_auth_method(router):
     client = Client(router=router, name="unauthenticated-client")
 
     with pytest.raises(WelcomeAbortedError) as exc_info:
