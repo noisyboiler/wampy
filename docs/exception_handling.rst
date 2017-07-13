@@ -9,8 +9,10 @@ When calling a remote procedure an ``Exception`` might be raised by the remote a
     from wampy.peers.clients import Client
 
 
-    try:
-        with Client() as client:
+    with Client() as client:
+
+        try:
             response = client.rpc.some_unreliable_procedure()
-    except RemoteError as rmt_err:
-        # do stuff here to recover from the error
+        except RemoteError as rmt_err:
+            # do stuff here to recover from the error or
+            # fail gracefully
