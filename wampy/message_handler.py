@@ -89,7 +89,9 @@ class MessageHandler(object):
         func(*payload_list, **payload_dict)
 
     def handle_abort(self, message_obj):
-        logger.error("The Router has Aborted the handshake: %s", str(message_obj))
+        logger.warning(
+            "The Router has Aborted the handshake: %s", message_obj.message)
+        self.session._message_queue.put(message_obj)
 
     def handle_error(self, message_obj):
         self.session._message_queue.put(message_obj.message)
@@ -128,10 +130,11 @@ class MessageHandler(object):
         session.registration_map[message_obj.registration_id] = procedure_name
 
     def handle_result(self, message_obj):
-        self.session._message_queue.put(message_obj.message)
+        self.session._message_queue.put(message_obj)
 
     def handle_welcome(self, message_obj):
         self.session.session_id = message_obj.session_id
+        self.session._message_queue.put(message_obj)
 
     def handle_goodbye(self, message_obj):
         pass

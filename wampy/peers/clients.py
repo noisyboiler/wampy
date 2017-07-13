@@ -7,6 +7,7 @@ import inspect
 
 from wampy.errors import WampProtocolError
 from wampy.session import session_builder
+from wampy.messages import Message
 from wampy.message_handler import MessageHandler
 from wampy.peers.routers import Crossbar
 from wampy.roles.caller import CallProxy, RpcProxy
@@ -74,7 +75,10 @@ class Client(object):
         return self.session.request_ids
 
     def start(self):
-        self.session.begin()
+        response = self.session.begin()
+        if response.WAMP_CODE == Message.ABORT:
+            raise WampProtocolError(response.message)
+
         self.register_roles()
 
     def stop(self):

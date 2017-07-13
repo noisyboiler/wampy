@@ -113,7 +113,7 @@ class Session(object):
 
     def begin(self):
         self._connect()
-        self._say_hello()
+        return self._say_hello()
 
     def end(self):
         self._say_goodbye()
@@ -144,7 +144,7 @@ class Session(object):
             )
 
         logger.debug(
-            'received message: "{}"'.format(MESSAGE_TYPE_MAP[message[0]])
+            'received message: "{}"'.format(message.name)
         )
 
         return message
@@ -181,6 +181,8 @@ class Session(object):
     def _say_hello(self):
         message = Hello(self.realm, self.roles)
         self.send_message(message)
+        response = self.recv_message()
+        return response
 
     def _say_goodbye(self):
         message = Goodbye(wamp_code=6)
