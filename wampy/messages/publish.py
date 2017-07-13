@@ -20,6 +20,7 @@ class Publish(Message):
 
     """
     WAMP_CODE = 16
+    name = "publish"
 
     def __init__(self, topic, options, *args, **kwargs):
         super(Publish, self).__init__()

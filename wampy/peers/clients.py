@@ -142,11 +142,10 @@ class Client(object):
 
             if hasattr(maybe_role, 'subscriber'):
                 topic = maybe_role.topic
-                handler = maybe_role.handler
-                self._subscribe_to_topic(topic, handler)
+                handler_name = maybe_role.handler.__name__
+                self._subscribe_to_topic(handler_name, topic)
 
-    def _subscribe_to_topic(self, topic, handler):
-        subscriber_name = handler.__name__
+    def _subscribe_to_topic(self, handler_name, topic):
         message = Subscribe(topic=topic)
         request_id = message.request_id
 
@@ -158,6 +157,7 @@ class Client(object):
                     topic, exc)
             )
 
+        handler = getattr(self, handler_name)
         self.request_ids[request_id] = message, handler
 
         logger.info(

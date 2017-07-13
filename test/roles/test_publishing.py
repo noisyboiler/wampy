@@ -21,7 +21,7 @@ class SubscribingClient(Client):
     call_count = 0
 
     @subscribe(topic="foo")
-    def foo_topic_handler(self, **kwargs):
+    def foo_topic_handler(self, *args, **kwargs):
         self.call_count += 1
 
 

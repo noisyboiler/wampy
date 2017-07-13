@@ -13,6 +13,7 @@ logger = logging.getLogger('wampy.messages.error')
 
 class Error(Message):
     WAMP_CODE = 8
+    name = "error"
 
     def __init__(
             self, wamp_code, request_type, request_id,
@@ -64,6 +65,3 @@ class Error(Message):
             self.WAMP_CODE, self.request_type, self.request_id,
             self.details, self.error, self.args_list, self.kwargs_dict,
         ]
-
-    def process(self, client):
-        client.session._message_queue.put(self.message)

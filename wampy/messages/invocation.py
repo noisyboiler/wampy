@@ -22,8 +22,8 @@ class Invocation(Message):
            Details|dict, CALL.Arguments|list, CALL.ArgumentsKw|dict]
 
     """
-
     WAMP_CODE = 68
+    name = "invocation"
 
     def __init__(
             self, wamp_code, request_id, registration_id, details,
@@ -41,77 +41,3 @@ class Invocation(Message):
             self.WAMP_CODE, self.request_id, self.registration_id,
             self.details, self.call_args, self.call_kwargs,
         ]
-
-        self.session = None
-        self.procedure_name = None
-
-    def update_kwargs(self, kwargs):
-        pass
-
-    def process(self, client):
-        self.session = client.session
-
-        args = self.call_args
-        kwargs = self.call_kwargs
-
-        procedure = client.registration_map[self.registration_id]
-
-        self.update_kwargs(kwargs)
-
-        try:
-            result = procedure(*args, **kwargs)
-        except Exception as exc:
-            logger.exception("error calling: %s", self.procedure_name)
-            result = None
-            error = exc
-        else:
-            error = None
-
-        self.handle_result(result, exc=error)
-
-    def handle_result(self, result, exc=None):
-        result_kwargs = {}
-
-        if exc is not None:
-            from wampy.messages import Error
-
-            error_message = Error(
-                wamp_code=Error.WAMP_CODE,
-                request_type=68,  # the failing message wamp code
-                request_id=self.request_id,
-                error=self.procedure_name,
-                kwargs_dict={
-                    'exc_type': exc.__class__.__name__,
-                    'message': str(exc),
-                    'call_args': self.call_args,
-                    'call_kwargs': self.call_kwargs,
-                },
-            )
-            logger.info("returning with Error: %s", error_message)
-            self.session.send_message(error_message)
-
-        else:
-            from wampy.messages import Yield
-
-            result_kwargs['message'] = result
-            result_kwargs['meta'] = {}
-            result_kwargs['meta']['procedure_name'] = self.procedure_name
-            result_kwargs['meta']['session_id'] = self.session.id
-            result_args = [result]
-
-            yield_message = Yield(
-                self.request_id,
-                result_args=result_args,
-                result_kwargs=result_kwargs,
-            )
-            logger.info("yielding response: %s", yield_message)
-            self.session.send_message(yield_message)
-
-
-class InvocationWithMeta(Invocation):
-
-    def update_kwargs(self, kwargs):
-        kwargs['meta'] = {}
-        kwargs['meta']['procedure_name'] = self.procedure_name
-        kwargs['meta']['session_id'] = self.session.id
-        kwargs['meta']['request_id'] = self.request_id

@@ -2,7 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from wampy.errors import WampProtocolError
 from wampy.messages.message import Message
 
 
@@ -14,6 +13,7 @@ class Subscribed(Message):
 
     """
     WAMP_CODE = 33
+    name = "subscribed"
 
     def __init__(self, wamp_code, request_id, subscription_id):
         self.wamp_code = wamp_code
@@ -25,16 +25,3 @@ class Subscribed(Message):
         return [
             self.wamp_code, self.request_id, self.subscription_id,
         ]
-
-    def process(self, client):
-        session = client.session
-
-        if self.wamp_code != Message.SUBSCRIBED:
-            raise WampProtocolError(
-                'failed to subscribe to topic: "{}"'.format(self.message)
-            )
-
-        original_message, handler = client.request_ids[self.request_id]
-        topic = original_message.topic
-
-        session.subscription_map[self.subscription_id] = handler, topic

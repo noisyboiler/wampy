@@ -4,7 +4,6 @@
 
 import logging
 
-from wampy.errors import WampError
 from wampy.messages.message import Message
 
 logger = logging.getLogger(__name__)
@@ -18,6 +17,7 @@ class Welcome(Message):
 
     """
     WAMP_CODE = 2
+    name = "welcome"
 
     def __init__(self, wamp_code, session_id, details_dict):
         assert wamp_code == self.WAMP_CODE
@@ -31,14 +31,3 @@ class Welcome(Message):
         return [
             self.WAMP_CODE, self.session_id, self.details,
         ]
-
-    def process(self, client):
-        session = client.session
-        if self.wamp_code not in [Message.WELCOME, Message.ABORT]:
-            raise WampError(
-                'unexpected response from HELLO message: {}'.format(
-                    self.message
-                )
-            )
-
-        session.session_id = self.session_id

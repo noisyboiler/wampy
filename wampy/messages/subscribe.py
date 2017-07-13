@@ -19,6 +19,7 @@ class Subscribe(Message):
 
     """
     WAMP_CODE = 32
+    name = "subscribe"
 
     def __init__(self, topic, options=None):
         super(Subscribe, self).__init__()
