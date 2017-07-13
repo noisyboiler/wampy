@@ -5,7 +5,7 @@
 import logging
 import inspect
 
-from wampy.errors import WampProtocolError
+from wampy.errors import WampProtocolError, WelcomeAbortedError
 from wampy.session import session_builder
 from wampy.messages import Message
 from wampy.message_handler import MessageHandler
@@ -77,7 +77,7 @@ class Client(object):
     def start(self):
         response = self.session.begin()
         if response.WAMP_CODE == Message.ABORT:
-            raise WampProtocolError(response.message)
+            raise WelcomeAbortedError(response.message)
 
         self.register_roles()
 

@@ -4,6 +4,7 @@
 
 import pytest
 
+from wampy.errors import WelcomeAbortedError
 from wampy.peers.clients import Client
 from wampy.roles.callee import callee
 
@@ -26,6 +27,15 @@ def foo_service(router, config_path):
         yield
 
 
-def test_connect(router):
-    with Client(router=router, name="unauthenticated-caller") as client:
-        client.rpc.get_foo()
+def test_connection_is_aborted(router):
+    client = Client(router=router, name="unauthenticated-client")
+
+    with pytest.raises(WelcomeAbortedError) as exc_info:
+        client.start()
+
+    exception = exc_info.value
+
+    message = str(exception)
+
+    assert "cannot authenticate" in message
+    assert "wamp.error.no_auth_method" in message
