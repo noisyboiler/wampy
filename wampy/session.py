@@ -14,6 +14,8 @@ from wampy.messages import Message
 from wampy.messages import MESSAGE_TYPE_MAP
 from wampy.messages.hello import Hello
 from wampy.messages.goodbye import Goodbye
+from wampy.messages.register import Register
+from wampy.messages.subscribe import Subscribe
 from wampy.transports.websocket.connection import (
     WampWebSocket, TLSWampWebSocket)
 
@@ -78,6 +80,7 @@ class Session(object):
         self.transport = transport
         self.message_handler = message_handler
 
+        self.request_ids = {}
         self.subscription_map = {}
         self.registration_map = {}
 
@@ -209,7 +212,7 @@ class Session(object):
                     if frame:
                         message = frame.payload
                         handler = partial(
-                            self.message_handler.handle_message, message
+                            self.message_handler.handle_message, message, self
                         )
                         eventlet.spawn(handler)
                 except (
@@ -232,3 +235,32 @@ class Session(object):
 
         message = q.get()
         return message
+
+    def _subscribe_to_topic(self, handler, topic):
+        message = Subscribe(topic=topic)
+        request_id = message.request_id
+
+        try:
+            self.send_message(message)
+        except Exception as exc:
+            raise WampProtocolError(
+                "failed to subscribe to {}: \"{}\"".format(
+                    topic, exc)
+            )
+
+        self.request_ids[request_id] = message, handler
+
+    def _register_procedure(self, procedure, invocation_policy="single"):
+        procedure_name = procedure.__name__
+        options = {"invoke": invocation_policy}
+        message = Register(procedure=procedure_name, options=options)
+        request_id = message.request_id
+
+        try:
+            self.send_message(message)
+        except ValueError:
+            raise WampProtocolError(
+                "failed to register callee: %s", procedure_name
+            )
+
+        self.request_ids[request_id] = procedure
