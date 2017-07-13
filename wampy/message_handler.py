@@ -128,7 +128,7 @@ class MessageHandler(object):
         self.session._message_queue.put(message_obj.message)
 
     def handle_welcome(self, message_obj):
-        self.session_id = message_obj.session_id
+        self.session.session_id = message_obj.session_id
 
     def handle_goodbye(self, message_obj):
         pass
