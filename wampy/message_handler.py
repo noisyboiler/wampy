@@ -21,7 +21,7 @@ class MessageHandler(object):
         Error, Subscribed, Event
     ]
 
-    def __init__(self, client, messages_to_handle=None):
+    def __init__(self, messages_to_handle=None):
         """ Responsible for processing incoming WAMP messages.
 
         The ``Session`` object receieves Messages on behalf of a
@@ -29,9 +29,10 @@ class MessageHandler(object):
 
         The ``MessageHandler`` is designed to be extensible and be
         configured so that a wampy client can be used as part of
-        larger applications. To do this Messages should be subclassed
-        and override the ``process`` methods to implement custom
-        behaviour.
+        larger applications. To do this subclass ``MessageHandler``
+        and override the ``handle_`` methods you wish to customise,
+        then instantiate your ``Client`` with your ``MessageHandler``
+        instance.
 
         :Parameters:
             messages_to_handle : list
@@ -39,7 +40,6 @@ class MessageHandler(object):
                 this list will be accepted.
 
         """
-        self.client = client
         self.messages_to_handle = (
             messages_to_handle or self.DEFAULT_MESSAGES_TO_HANDLE
         )
@@ -52,13 +52,15 @@ class MessageHandler(object):
         for message in self.messages_to_handle:
             messages[message.WAMP_CODE] = message
 
-    def handle_message(self, message, context=None, meta=None):
+    def handle_message(self, message, session):
         wamp_code = message[0]
         if wamp_code not in self.messages:
             raise WampyError(
                 "No message handler is configured for: {}".format(
                     MESSAGE_TYPE_MAP[wamp_code])
             )
+
+        self.session = session
 
         logger.info(
             "received message: %s (%s)",
@@ -73,7 +75,7 @@ class MessageHandler(object):
         handler(message_obj)
 
     def handle_event(self, message_obj):
-        session = self.client.session
+        session = self.session
 
         payload_list = message_obj.publish_args
         payload_dict = message_obj.publish_kwargs
@@ -87,19 +89,19 @@ class MessageHandler(object):
         func(*payload_list, **payload_dict)
 
     def handle_error(self, message_obj):
-        self.client.session._message_queue.put(message_obj.message)
+        self.session._message_queue.put(message_obj.message)
 
     def handle_subscribed(self, message_obj):
-        session = self.client.session
+        session = self.session
 
-        original_message, handler = self.client.request_ids[
+        original_message, handler = session.request_ids[
             message_obj.request_id]
         topic = original_message.topic
 
         session.subscription_map[message_obj.subscription_id] = handler, topic
 
     def handle_invocation(self, message_obj):
-        session = self.client.session
+        session = self.session
 
         args = message_obj.call_args
         kwargs = message_obj.call_kwargs
@@ -118,16 +120,15 @@ class MessageHandler(object):
         self.process_result(message_obj, result, exc=error)
 
     def handle_registered(self, message_obj):
-        session = self.client.session
-        procedure_name = self.client.request_ids[message_obj.request_id]
+        session = self.session
+        procedure_name = session.request_ids[message_obj.request_id]
         session.registration_map[message_obj.registration_id] = procedure_name
 
     def handle_result(self, message_obj):
-        self.client.session._message_queue.put(message_obj.message)
+        self.session._message_queue.put(message_obj.message)
 
     def handle_welcome(self, message_obj):
-        session = self.client.session
-        session.session_id = message_obj.session_id
+        self.session_id = message_obj.session_id
 
     def handle_goodbye(self, message_obj):
         pass
@@ -135,7 +136,7 @@ class MessageHandler(object):
     def process_result(self, message_obj, result, exc=None):
         result_kwargs = {}
 
-        procedure = self.client.session.registration_map[
+        procedure = self.session.registration_map[
             message_obj.registration_id]
         procedure_name = procedure.__name__
 
@@ -156,7 +157,7 @@ class MessageHandler(object):
             )
             logger.info("returning with Error: %s", error_message)
             error_message.serialize()
-            self.client.session.send_message(error_message)
+            self.session.send_message(error_message)
 
         else:
             from wampy.messages import Yield
@@ -164,7 +165,7 @@ class MessageHandler(object):
             result_kwargs['message'] = result
             result_kwargs['meta'] = {}
             result_kwargs['meta']['procedure_name'] = procedure_name
-            result_kwargs['meta']['session_id'] = self.client.session.id
+            result_kwargs['meta']['session_id'] = self.session.id
             result_args = [result]
 
             yield_message = Yield(
@@ -173,4 +174,4 @@ class MessageHandler(object):
                 result_kwargs=result_kwargs,
             )
             logger.info("yielding response: %s", yield_message)
-            self.client.session.send_message(yield_message)
+            self.session.send_message(yield_message)
