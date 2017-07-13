@@ -18,6 +18,8 @@ class Goodbye(Message):
     WAMP_CODE = 6
     DEFAULT_REASON = "wamp.close.normal"
 
+    name = "goodbye"
+
     def __init__(
             self, wamp_code, details=None, reason=DEFAULT_REASON,
     ):

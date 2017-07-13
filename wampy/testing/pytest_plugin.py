@@ -7,6 +7,7 @@ import logging
 import os
 import signal
 import subprocess
+from time import sleep
 
 import colorlog
 import pytest
@@ -118,9 +119,14 @@ def find_processes(process_name):
     return output
 
 
-def kill_crossbar():
+def get_process_ids():
     output = find_processes("crossbar")
     pids = [o for o in output.decode().split('\n') if o]
+    return pids
+
+
+def kill_crossbar(try_again=True):
+    pids = get_process_ids()
     if pids:
         logger.error(
             "Crossbar.io did not stop when sig term issued!"
@@ -130,22 +136,32 @@ def kill_crossbar():
         pid = int(pid_as_str)
 
         try:
-            os.waitpid(pid, options=os.WNOHANG)
-        except OSError:
-            pass
-
-        try:
             logger.warning("OS sending SIGTERM to crossbar pid: %s", pid)
             os.kill(pid, signal.SIGTERM)
         except OSError:
-            logger.error("Failed to terminate router process again: %s", pid)
+            logger.exception(
+                "Failed to terminate router process: %s", pid)
+
+            try:
+                os.waitpid(pid, options=os.WNOHANG)
+            except OSError:
+                pass
+
             try:
                 os.kill(int(pid), signal.SIGKILL)
             except Exception as exc:
                 if "No such process" in str(exc):
-                    return
-                logger.exception("Failed to shutdown router")
-                raise
+                    continue
+                logger.exception(
+                    "Failed again to terminate router process: %s", pid)
+
+    pids = get_process_ids()
+    if pids and try_again is True:
+        logger.warning('try one more time to shutdown Crossbar')
+        sleep(2)
+        kill_crossbar(try_again=False)
+    elif pids and try_again is False:
+        logger.warning("Failed to shutdown all router processes")
 
 
 class ConfigurationError(Exception):

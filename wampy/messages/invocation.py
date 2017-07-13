@@ -22,8 +22,8 @@ class Invocation(Message):
            Details|dict, CALL.Arguments|list, CALL.ArgumentsKw|dict]
 
     """
-
     WAMP_CODE = 68
+    name = "invocation"
 
     def __init__(
             self, wamp_code, request_id, registration_id, details,
@@ -41,60 +41,3 @@ class Invocation(Message):
             self.WAMP_CODE, self.request_id, self.registration_id,
             self.details, self.call_args, self.call_kwargs,
         ]
-
-        self.session = None
-        self.procedure_name = None
-
-    def update_kwargs(self, kwargs):
-        pass
-
-    def process(self, client):
-        self.session = client.session
-
-        args = self.call_args
-        kwargs = self.call_kwargs
-
-        self.procedure_name = client.registration_map[self.registration_id]
-        entrypoint = getattr(client, self.procedure_name)
-
-        self.update_kwargs(kwargs)
-
-        try:
-            result = entrypoint(*args, **kwargs)
-        except Exception as exc:
-            logger.exception("error calling: %s", self.procedure_name)
-            result = None
-            error = str(exc)
-        else:
-            error = None
-
-        self.handle_result(result, error)
-
-    def handle_result(self, result, error=None):
-        result_kwargs = {}
-
-        result_kwargs['error'] = error
-        result_kwargs['message'] = result
-        result_kwargs['meta'] = {}
-        result_kwargs['meta']['procedure_name'] = self.procedure_name
-        result_kwargs['meta']['session_id'] = self.session.id
-
-        result_args = [result]
-
-        from wampy.messages import Yield
-        yield_message = Yield(
-            self.request_id,
-            result_args=result_args,
-            result_kwargs=result_kwargs,
-        )
-        logger.info("yielding response: %s", yield_message)
-        self.session.send_message(yield_message)
-
-
-class InvocationWithMeta(Invocation):
-
-    def update_kwargs(self, kwargs):
-        kwargs['meta'] = {}
-        kwargs['meta']['procedure_name'] = self.procedure_name
-        kwargs['meta']['session_id'] = self.session.id
-        kwargs['meta']['request_id'] = self.request_id

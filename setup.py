@@ -16,7 +16,7 @@ with open(path.join(here, 'README.rst')) as f:
 
 setup(
     name='wampy',
-    version='0.9.5',
+    version='0.9.6',
     description='WAMP RPC and Pub/Sub for python apps and microservices',
     long_description=long_description,
     url='https://github.com/noisyboiler/wampy',
@@ -42,7 +42,7 @@ setup(
         'dev': [
             "crossbar==0.15.0",
             "autobahn==0.17.2",
-            "pytest==2.9.1",
+            "pytest==3.1.3",
             "mock==1.3.0",
             "pytest==2.9.1",
             "pytest-capturelog==0.7",

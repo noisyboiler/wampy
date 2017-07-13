@@ -7,10 +7,7 @@ import inspect
 
 from wampy.errors import WampProtocolError
 from wampy.session import session_builder
-from wampy.messages import MESSAGE_TYPE_MAP
-from wampy.messages.handler import MessageHandler
-from wampy.messages.register import Register
-from wampy.messages.subscribe import Subscribe
+from wampy.message_handler import MessageHandler
 from wampy.peers.routers import Crossbar
 from wampy.roles.caller import CallProxy, RpcProxy
 from wampy.roles.publisher import PublishProxy
@@ -45,16 +42,15 @@ class Client(object):
         # is the one a client is interested in here. this possibly could be
         # improved....
         self.realm = router.realm
-        self.message_handler = message_handler or MessageHandler(client=self)
+        message_handler = message_handler or MessageHandler()
 
         self.session = session_builder(
             client=self,
             router=self.router,
             transport=transport,
+            message_handler=message_handler,
             use_tls=use_tls,
         )
-
-        self.request_ids = {}
 
         self.name = name or self.__class__.__name__
 
@@ -73,6 +69,10 @@ class Client(object):
     def registration_map(self):
         return self.session.registration_map
 
+    @property
+    def request_ids(self):
+        return self.session.request_ids
+
     def begin_session(self):
         self.session.begin()
 
@@ -81,7 +81,7 @@ class Client(object):
 
     def start(self):
         self.begin_session()
-        self._register_roles()
+        self.register_roles()
 
     def stop(self):
         self.end_session()
@@ -92,15 +92,22 @@ class Client(object):
     def recv_message(self):
         return self.session.recv_message()
 
-    def send_message_and_wait_for_response(self, message):
+    def make_rpc(self, message):
         logger.debug("%s sending message: %s", self.name, message)
-        self.session.send_message(message)
-        return self.session.recv_message()
 
-    def process_message(self, message):
-        logger.info(
-            "%s processing %s", self.name, MESSAGE_TYPE_MAP[message[0]])
-        self.message_handler(message)
+        self.session.send_message(message)
+
+        try:
+            response = self.session.recv_message()
+        except WampProtocolError as wamp_err:
+            logger.error(wamp_err)
+            raise
+        except Exception as exc:
+            logger.warning("rpc failed!!")
+            logger.exception(str(exc))
+            raise
+
+        return response
 
     @property
     def call(self):
@@ -114,7 +121,7 @@ class Client(object):
     def publish(self):
         return PublishProxy(client=self)
 
-    def _register_roles(self):
+    def register_roles(self):
         logger.info("registering roles for: %s", self.name)
 
         maybe_roles = []
@@ -130,47 +137,21 @@ class Client(object):
 
             if hasattr(maybe_role, 'callee'):
                 procedure_name = maybe_role.__name__
+                # maybe_role is not bound
+                procedure = getattr(self, procedure_name)
                 invocation_policy = maybe_role.invocation_policy
-                self._register_procedure(procedure_name, invocation_policy)
+                self.session._register_procedure(
+                    procedure, invocation_policy)
+
+                logger.info(
+                    '%s registered callee "%s"', self.name, procedure_name,
+                )
 
             if hasattr(maybe_role, 'subscriber'):
                 topic = maybe_role.topic
-                handler = maybe_role.handler
-                self._subscribe_to_topic(topic, handler)
-
-    def _subscribe_to_topic(self, topic, handler):
-        subscriber_name = handler.__name__
-        message = Subscribe(topic=topic)
-        request_id = message.request_id
-
-        try:
-            self.session.send_message(message)
-        except Exception as exc:
-            raise WampProtocolError(
-                "failed to subscribe to {}: \"{}\"".format(
-                    topic, exc)
-            )
-
-        self.request_ids[request_id] = message, subscriber_name
-
-        logger.info(
-            '%s subscribed to topic "%s"', self.name, topic,
-        )
-
-    def _register_procedure(self, procedure_name, invocation_policy="single"):
-        options = {"invoke": invocation_policy}
-        message = Register(procedure=procedure_name, options=options)
-        request_id = message.request_id
-
-        try:
-            self.session.send_message(message)
-        except ValueError:
-            raise WampProtocolError(
-                "failed to register callee: %s", procedure_name
-            )
-
-        self.request_ids[request_id] = procedure_name
-
-        logger.info(
-            '%s registered callee "%s"', self.name, procedure_name,
-        )
+                handler_name = maybe_role.handler.__name__
+                handler = getattr(self, handler_name)
+                self.session._subscribe_to_topic(handler, topic)
+                logger.info(
+                    '%s subscribed to topic "%s"', self.name, topic,
+                )

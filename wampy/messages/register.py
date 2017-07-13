@@ -26,6 +26,7 @@ class Register(Message):
 
     """
     WAMP_CODE = 64
+    name = "register"
 
     def __init__(self, procedure, options=None):
         super(Register, self).__init__()

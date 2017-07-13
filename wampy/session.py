@@ -8,22 +8,30 @@ from functools import partial
 
 import eventlet
 
-from wampy.errors import ConnectionError, WampError, WampProtocolError
+from wampy.errors import (
+    ConnectionError, WampError, WampProtocolError, WampyError)
 from wampy.messages import Message
+from wampy.messages import MESSAGE_TYPE_MAP
 from wampy.messages.hello import Hello
 from wampy.messages.goodbye import Goodbye
+from wampy.messages.register import Register
+from wampy.messages.subscribe import Subscribe
 from wampy.transports.websocket.connection import (
     WampWebSocket, TLSWampWebSocket)
-
-from wampy.messages import MESSAGE_TYPE_MAP
 
 
 logger = logging.getLogger('wampy.session')
 
 
 def session_builder(
-        client, router, transport="websocket", use_tls=False, ipv=4
+        client, router, transport="websocket", use_tls=False,
+        message_handler=None, ipv=4
 ):
+    if message_handler is None:
+        raise WampyError(
+            "A ``MessageHandler`` is needed by each ``Session``"
+        )
+
     if transport == "websocket":
         if use_tls:
             transport = TLSWampWebSocket(router)
@@ -34,6 +42,7 @@ def session_builder(
 
     return Session(
         client=client, router=router, transport=transport,
+        message_handler=message_handler,
     )
 
 
@@ -56,7 +65,7 @@ class Session(object):
 
     """
 
-    def __init__(self, client, router, transport):
+    def __init__(self, client, router, transport, message_handler):
         """ A Session between a Client and a Router.
 
         :Parameters:
@@ -69,7 +78,9 @@ class Session(object):
         self.client = client
         self.router = router
         self.transport = transport
+        self.message_handler = message_handler
 
+        self.request_ids = {}
         self.subscription_map = {}
         self.registration_map = {}
 
@@ -115,25 +126,25 @@ class Session(object):
         message_type = MESSAGE_TYPE_MAP[message.WAMP_CODE]
         message = message.serialize()
 
+        if self._connection is None:
+            raise WampError("WAMP Connection Not Established")
+
         logger.debug(
             'sending "%s" message: %s', message_type, message
         )
 
-        if self._connection is None:
-            raise WampError("WAMP Connection Not Established")
-
         self._connection.send_websocket_frame(str(message))
 
     def recv_message(self, timeout=5):
-        logger.debug('waiting for message')
-
         try:
             message = self._wait_for_message(timeout)
         except eventlet.Timeout:
-            raise WampProtocolError("no message returned")
+            raise WampProtocolError(
+                "no message returned (timed-out in {})".format(timeout)
+            )
 
         logger.debug(
-            'received message: "%s"', MESSAGE_TYPE_MAP[message[0]]
+            'received message: "{}"'.format(MESSAGE_TYPE_MAP[message[0]])
         )
 
         return message
@@ -200,7 +211,9 @@ class Session(object):
                     frame = connection.read_websocket_frame()
                     if frame:
                         message = frame.payload
-                        handler = partial(self.client.process_message, message)
+                        handler = partial(
+                            self.message_handler.handle_message, message, self
+                        )
                         eventlet.spawn(handler)
                 except (
                         SystemExit, KeyboardInterrupt, ConnectionError,
@@ -222,3 +235,32 @@ class Session(object):
 
         message = q.get()
         return message
+
+    def _subscribe_to_topic(self, handler, topic):
+        message = Subscribe(topic=topic)
+        request_id = message.request_id
+
+        try:
+            self.send_message(message)
+        except Exception as exc:
+            raise WampProtocolError(
+                "failed to subscribe to {}: \"{}\"".format(
+                    topic, exc)
+            )
+
+        self.request_ids[request_id] = message, handler
+
+    def _register_procedure(self, procedure, invocation_policy="single"):
+        procedure_name = procedure.__name__
+        options = {"invoke": invocation_policy}
+        message = Register(procedure=procedure_name, options=options)
+        request_id = message.request_id
+
+        try:
+            self.send_message(message)
+        except ValueError:
+            raise WampProtocolError(
+                "failed to register callee: %s", procedure_name
+            )
+
+        self.request_ids[request_id] = procedure

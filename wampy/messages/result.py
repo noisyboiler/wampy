@@ -26,6 +26,7 @@ class Result(Message):
 
     """
     WAMP_CODE = 50
+    name = "result"
 
     def __init__(
             self, wamp_code, request_id, details_dict, yield_args=None,
@@ -43,8 +44,3 @@ class Result(Message):
             self.WAMP_CODE, self.request_id, self.details, self.yield_args,
             self.yield_kwargs
         ]
-
-    def process(self, client):
-        message = self.message
-        logger.debug("RESULT received: %s", message)
-        client.session._message_queue.put(message)

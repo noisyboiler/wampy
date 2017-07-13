@@ -2,7 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from wampy.errors import WampError
 from wampy.messages.message import Message
 
 
@@ -25,6 +24,7 @@ class Event(Message):
 
     """
     WAMP_CODE = 36
+    name = "event"
 
     def __init__(
             self, wamp_code, subscription_id, publication_id, details_dict,
@@ -43,23 +43,3 @@ class Event(Message):
             self.WAMP_CODE, self.subscription_id, self.publication_id,
             self.details, self.publish_args, self.publish_kwargs,
         ]
-
-    def process(self, client):
-        session = client.session
-
-        payload_list = self.publish_args
-        payload_dict = self.publish_kwargs
-
-        func_name, topic = session.subscription_map[self.subscription_id]
-        try:
-            func = getattr(client, func_name)
-        except AttributeError:
-            raise WampError(
-                "Event handler not found: {}".format(func_name)
-            )
-
-        payload_dict['meta'] = {}
-        payload_dict['meta']['topic'] = topic
-        payload_dict['meta']['subscription_id'] = self.subscription_id
-
-        func(*payload_list, **payload_dict)

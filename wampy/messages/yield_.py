@@ -30,6 +30,7 @@ class Yield(Message):
 
     """
     WAMP_CODE = 70
+    name = "yield"
 
     def __init__(
             self, invocation_request_id, options=None, result_args=None,

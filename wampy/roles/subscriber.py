@@ -70,7 +70,7 @@ class TopicSubscriber(Client):
     def start(self):
         self.session.begin()
         for topic in self.topics:
-            self._subscribe_to_topic(
+            self.session._subscribe_to_topic(
                 topic=topic, handler=self.topic_handler
             )
 

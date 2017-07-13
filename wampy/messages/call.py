@@ -27,6 +27,7 @@ class Call(Message):
 
     """
     WAMP_CODE = 48
+    name = "call"
 
     def __init__(self, procedure, options=None, args=None, kwargs=None):
         super(Call, self).__init__()
