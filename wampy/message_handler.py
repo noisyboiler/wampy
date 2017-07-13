@@ -6,8 +6,8 @@ import logging
 
 from wampy.messages import MESSAGE_TYPE_MAP
 from wampy.messages import (
-    Goodbye, Error, Event, Invocation, Registered, Result, Subscribed,
-    Welcome, Yield)
+    Abort, Goodbye, Error, Event, Invocation, Registered, Result,
+    Subscribed, Welcome, Yield)
 from wampy.errors import WampyError
 
 logger = logging.getLogger('wampy.messagehandler')
@@ -17,7 +17,7 @@ class MessageHandler(object):
 
     # the minimum messages to perform WAMP RPC and PubSub
     DEFAULT_MESSAGES_TO_HANDLE = [
-        Welcome, Goodbye, Registered, Invocation, Yield, Result,
+        Welcome, Abort, Goodbye, Registered, Invocation, Yield, Result,
         Error, Subscribed, Event
     ]
 
@@ -87,6 +87,9 @@ class MessageHandler(object):
         payload_dict['meta']['subscription_id'] = message_obj.subscription_id
 
         func(*payload_list, **payload_dict)
+
+    def handle_abort(self, message_obj):
+        logger.error("The Router has Aborted the handshake: %s", str(message_obj))
 
     def handle_error(self, message_obj):
         self.session._message_queue.put(message_obj.message)

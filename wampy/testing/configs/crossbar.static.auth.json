@@ -117,54 +117,36 @@
             ],
             "transports": [
                 {
-                    "type": "web",
-                    "endpoint": {
-                        "type": "tcp",
-                        "port": 8080
-                    },
-                    "paths": {
-                        "/": {
+                   "type": "websocket",
+                   "endpoint": {
+                      "type": "tcp",
+                      "port": 8080,
+                      "version": 4,
+                      "interface": "localhost"
+                   },
+                   "url": "ws://localhost:8080",
+                   "auth": {
+                        "wampcra": {
                             "type": "static",
-                            "directory": "../web"
-                        },
-                        "shared": {
-                            "type": "static",
-                            "directory": "../../../../_shared-web-resources"
-                        },
-                        "ws": {
-                            "type": "websocket",
-                            "auth": {
-                                "wampcra": {
-                                    "type": "static",
-                                    "users": {
-                                        "joe": {
-                                            "secret": "secret2",
-                                            "role": "frontend"
-                                        },
-                                        "peter": {
-                                            "secret": "prq7+YkJ1/KlW1X0YczMHw==",
-                                            "role": "frontend",
-                                            "salt": "salt123",
-                                            "iterations": 100,
-                                            "keylen": 16
-                                        },
-                                        "homer": {
-                                            "secret": "${MYSECRET}",
-                                            "role": "frontend"
-                                        }
-                                    }
+                            "users": {
+                                "joe": {
+                                    "secret": "secret2",
+                                    "role": "frontend"
+                                },
+                                "peter": {
+                                    "secret": "prq7+YkJ1/KlW1X0YczMHw==",
+                                    "role": "frontend",
+                                    "salt": "salt123",
+                                    "iterations": 100,
+                                    "keylen": 16
+                                },
+                                "homer": {
+                                    "secret": "${MYSECRET}",
+                                    "role": "frontend"
                                 }
                             }
                         }
                     }
-                }
-            ],
-            "components": [
-                {
-                    "type": "class",
-                    "classname": "backend.BackendSession",
-                    "realm": "realm1",
-                    "role": "backend"
                 }
             ]
         }
