@@ -12,6 +12,7 @@ from wampy.roles.callee import callee
 @pytest.fixture(scope="function")
 def config_path():
     # this config has some static user creds defined
+    # for "peter"
     return './wampy/testing/configs/crossbar.static.auth.json'
 
 
@@ -28,8 +29,22 @@ def foo_service(router, config_path):
         yield
 
 
-def test_connection_is_aborted_when_no_auth_method(router):
-    client = Client(router=router, name="unauthenticated-client")
+def test_connection_is_aborted_when_not_authorised(router):
+    roles = {
+        'roles': {
+            'subscriber': {},
+            'publisher': {},
+            'callee': {
+                'shared_registration': True,
+            },
+            'caller': {},
+        },
+        'authmethods': ['wampcra'],
+        'authid': 'not-an-expected-user',
+    }
+
+    client = Client(
+        router=router, roles=roles, name="unauthenticated-client")
 
     with pytest.raises(WelcomeAbortedError) as exc_info:
         client.start()
@@ -38,5 +53,8 @@ def test_connection_is_aborted_when_no_auth_method(router):
 
     message = str(exception)
 
-    assert "cannot authenticate" in message
-    assert "wamp.error.no_auth_method" in message
+    assert (
+        "no principal with authid \"not-an-expected-user\" exists"
+        in message
+    )
+    assert "wamp.error.not_authorized" in message
