@@ -19,6 +19,7 @@ class Message(object):
     HELLO = 1
     WELCOME = 2
     ABORT = 3
+    CHALLENGE = 4
     GOODBYE = 6
 
     ERROR = 8

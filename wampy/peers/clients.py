@@ -80,10 +80,14 @@ class Client(object):
         if response.WAMP_CODE == Message.ABORT:
             raise WelcomeAbortedError(response.message)
 
+        if response.WAMP_CODE == Message.CHALLENGE:
+            # handle auth here?
+
         self.register_roles()
 
     def stop(self):
-        self.session.end()
+        if self.session and self.session.id:
+            self.session.end()
 
     def send_message(self, message):
         self.session.send_message(message)

@@ -6,8 +6,8 @@ import logging
 
 from wampy.messages import MESSAGE_TYPE_MAP
 from wampy.messages import (
-    Abort, Goodbye, Error, Event, Invocation, Registered, Result,
-    Subscribed, Welcome, Yield)
+    Abort, Challenge, Goodbye, Error, Event, Invocation, Registered,
+    Result, Subscribed, Welcome, Yield)
 from wampy.errors import WampyError
 
 logger = logging.getLogger('wampy.messagehandler')
@@ -18,7 +18,7 @@ class MessageHandler(object):
     # the minimum messages to perform WAMP RPC and PubSub
     DEFAULT_MESSAGES_TO_HANDLE = [
         Welcome, Abort, Goodbye, Registered, Invocation, Yield, Result,
-        Error, Subscribed, Event
+        Error, Subscribed, Event, Challenge
     ]
 
     def __init__(self, messages_to_handle=None):
@@ -74,6 +74,21 @@ class MessageHandler(object):
         handler = getattr(self, handler_name)
         handler(message_obj)
 
+    def handle_abort(self, message_obj):
+        logger.warning(
+            "The Router has Aborted the handshake: %s", message_obj.message)
+        self.session._message_queue.put(message_obj)
+
+    def handle_authenticate(self, message_obj):
+        self.session._message_queue.put(message_obj)
+
+    def handle_challenge(self, message_obj):
+        logger.info("client has been Challenged")
+        self.session._message_queue.put(message_obj)
+
+    def handle_error(self, message_obj):
+        self.session._message_queue.put(message_obj.message)
+
     def handle_event(self, message_obj):
         session = self.session
 
@@ -87,14 +102,6 @@ class MessageHandler(object):
         payload_dict['meta']['subscription_id'] = message_obj.subscription_id
 
         func(*payload_list, **payload_dict)
-
-    def handle_abort(self, message_obj):
-        logger.warning(
-            "The Router has Aborted the handshake: %s", message_obj.message)
-        self.session._message_queue.put(message_obj)
-
-    def handle_error(self, message_obj):
-        self.session._message_queue.put(message_obj.message)
 
     def handle_subscribed(self, message_obj):
         session = self.session
