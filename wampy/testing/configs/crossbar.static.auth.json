@@ -13,45 +13,10 @@
                     "name": "realm1",
                     "roles": [
                         {
-                            "name": "backend",
+                            "name": "wampy",
                             "permissions": [
                                 {
-                                    "uri": "",
-                                    "match": "prefix",
-                                    "allow": {
-                                        "call": true,
-                                        "register": true,
-                                        "publish": true,
-                                        "subscribe": true
-                                    },
-                                    "disclose": {
-                                        "caller": false,
-                                        "publisher": false
-                                    },
-                                    "cache": true
-                                },
-                                {
-                                    "uri": "com.example.topic2",
-                                    "match": "exact",
-                                    "allow": {
-                                        "call": false,
-                                        "register": false,
-                                        "publish": false,
-                                        "subscribe": false
-                                    },
-                                    "disclose": {
-                                        "caller": false,
-                                        "publisher": false
-                                    },
-                                    "cache": true
-                                }
-                            ]
-                        },
-                        {
-                            "name": "frontend",
-                            "permissions": [
-                                {
-                                    "uri": "com.example.add2",
+                                    "uri": "get_foo",
                                     "match": "exact",
                                     "allow": {
                                         "call": true,
@@ -128,23 +93,24 @@
                    "auth": {
                         "wampcra": {
                             "type": "static",
+                            "role": "wampy",
                             "users": {
                                 "joe": {
                                     "secret": "secret2",
-                                    "role": "frontend"
+                                    "role": "wampy"
                                 },
                                 "peter": {
                                     "secret": "prq7+YkJ1/KlW1X0YczMHw==",
-                                    "role": "frontend",
+                                    "role": "wampy",
                                     "salt": "salt123",
                                     "iterations": 100,
                                     "keylen": 16
-                                },
-                                "homer": {
-                                    "secret": "${MYSECRET}",
-                                    "role": "frontend"
                                 }
                             }
+                        },
+                        "anonymous": {
+                            "type": "static",
+                            "role": "wampy"
                         }
                     }
                 }
