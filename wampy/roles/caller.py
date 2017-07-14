@@ -29,17 +29,14 @@ class CallProxy:
 
     def __call__(self, procedure, *args, **kwargs):
         message = Call(procedure=procedure, args=args, kwargs=kwargs)
-        response = self.client.make_rpc(
-            message)
-        wamp_code = response[0]
+        response = self.client.make_rpc(message)
+        wamp_code = response.WAMP_CODE
 
         if wamp_code == Message.ERROR:
             logger.error("call returned an error: %s", response)
             return response
         elif wamp_code == Message.RESULT:
-            results = response[3]
-            result = results[0]
-            return result
+            return response.value
 
         raise WampProtocolError("unexpected response: %s", response)
 
@@ -64,16 +61,14 @@ class RpcProxy:
             message = Call(procedure=name, args=args, kwargs=kwargs)
             response = self.client.make_rpc(message)
 
-            wamp_code = response[0]
+            wamp_code = response.WAMP_CODE
             if wamp_code == Message.ERROR:
                 _, _, request_id, _, error_api, exc_args, exc_kwargs = (
-                    response)
+                    response.message)
 
                 raise RemoteError(
                     error_api, request_id, *exc_args, **exc_kwargs
                 )
-
-            wamp_code, _, _, yield_args, yield_kwargs = response
 
             if wamp_code != Message.RESULT:
                 raise WampProtocolError(
@@ -82,10 +77,8 @@ class RpcProxy:
                     response[5]
                 )
 
-            results = yield_args
-            result = results[0]
+            result = response.value
             logger.debug("RpcProxy got result: %s", result)
-
             return result
 
         return wrapper

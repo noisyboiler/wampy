@@ -29,6 +29,7 @@ class Client(object):
             },
             'caller': {},
         },
+        'authmethods': ['anonymous']
     }
 
     def __init__(
