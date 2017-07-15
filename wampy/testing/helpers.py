@@ -45,7 +45,10 @@ def wait_for_messages(client, number_of_messages):
 
 
 class CollectingMessageHandler(MessageHandler):
-    messages_received = []
+
+    def __init__(self):
+        super(CollectingMessageHandler, self).__init__()
+        self.messages_received = []
 
     def handle_message(self, message, client):
         self.messages_received.append(message)
