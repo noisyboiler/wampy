@@ -160,7 +160,16 @@ In another terminal, with a **wampy** virtualenv, you can create a **Publisher**
 
 Hopefully you'll see any message you send printed to the screen where the example service is running. You'll also see the meta data that **wampy** chooses to send.
 
+Other wampy features
+~~~~~~~~~~~~~~~~~~~~
+
+- TLS
+- Client Authentication
+- Pytest fixtures
+- `nameko`_ integration
+
 See `ReadTheDocs`_ for more detailed documentation.
+
 
 Running the tests
 ~~~~~~~~~~~~~~~~~
@@ -186,6 +195,7 @@ If you like this project, then Thank You, and you're welcome to get involved.
 .. _WAMP Protocol: http://wamp-proto.org/
 .. _examples: https://github.com/noisyboiler/wampy/blob/master/docs/examples/services.py#L26
 .. _autobahn: http://autobahn.ws/python/
+.. _nameko: https://github.com/noisyboiler/nameko-wamp
 .. _nameko_wamp: https://github.com/noisyboiler/nameko-wamp
 .. _nameko: https://github.com/nameko/nameko
 .. _Twisted: https://twistedmatrix.com/trac/
