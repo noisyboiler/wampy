@@ -19,7 +19,7 @@ class Authenticate(Message):
         """
         super(Authenticate, self).__init__()
 
-        self.signature = signature.encode("utf-8")
+        self.signature = signature
         self.kwargs_dict = kwargs_dict or {}
         self.message = [
             Message.AUTHENTICATE, self.signature, self.kwargs_dict
