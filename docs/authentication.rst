@@ -47,11 +47,11 @@ Challenge Response Authentication
 
 WAMP Challenge-Response ("WAMP-CRA") authentication is a simple, secure authentication mechanism using a shared secret. The client and the server share a secret. The secret never travels the wire, hence WAMP-CRA can be used via non-TLS connections. 
 
-The secret must be set as an environment variable against the key ``WAMPYSECRET`` on deployment otherwise a ``WampyError`` will be raised.
+wampy needs the secret to be set as an environment variable against the key ``WAMPYSECRET`` on deployment or in the test environment (if testing auth) otherwise a ``WampyError`` will be raised. In future a ``Client`` could take configuration on startup.
 
-The Router must be configured to expect users and the wampy Client given the corresponding configutred Roles.
+The Router must also be configured to expect Users and by what auth method.
 
-For the Client, e.g.
+For the Client you can instantiate the ``Client`` with ``roles`` which can take ``authmethods`` and ``authid``.
 
 ::
 
@@ -100,6 +100,6 @@ And the Router would include something like...
         }
     }
 
-See the included testing `config`_ for a more complete example.
+with permissions for RPC and subscriptions optionally defined. See the included testing `config`_ for a more complete example.
 
 .. _config: https://github.com/noisyboiler/wampy/master/wampy/testing/config.static.auth.json
