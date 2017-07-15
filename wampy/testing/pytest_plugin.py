@@ -127,7 +127,7 @@ def get_process_ids():
 
 def kill_crossbar(try_again=True):
     pids = get_process_ids()
-    if pids:
+    if pids and try_again is True:
         logger.error(
             "Crossbar.io did not stop when sig term issued!"
         )
@@ -158,10 +158,10 @@ def kill_crossbar(try_again=True):
     pids = get_process_ids()
     if pids and try_again is True:
         logger.warning('try one more time to shutdown Crossbar')
-        sleep(2)
+        sleep(5)
         kill_crossbar(try_again=False)
     elif pids and try_again is False:
-        logger.warning("Failed to shutdown all router processes")
+        logger.error("Failed to shutdown all router processes")
 
 
 class ConfigurationError(Exception):
