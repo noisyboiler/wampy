@@ -100,7 +100,7 @@ class MessageHandler(object):
         self.session.send_message(message)
 
     def handle_error(self, message_obj):
-        self.session._message_queue.put(message_obj.message)
+        self.session._message_queue.put(message_obj)
 
     def handle_event(self, message_obj):
         session = self.session

@@ -6,7 +6,8 @@ import os
 
 import pytest
 
-from wampy.errors import WelcomeAbortedError, WampyError
+from wampy.errors import (
+    NotAuthorisedError, WelcomeAbortedError, WampyError)
 from wampy.messages.message import Message
 from wampy.peers.clients import Client
 from wampy.roles.callee import callee
@@ -31,7 +32,19 @@ class FooService(Client):
 
 @pytest.yield_fixture
 def foo_service(router, config_path):
-    with FooService(router=router):
+    os.environ['WAMPYSECRET'] = "prq7+YkJ1/KlW1X0YczMHw=="
+    roles = {
+        'roles': {
+            'subscriber': {},
+            'publisher': {},
+            'callee': {},
+            'caller': {},
+        },
+        'authmethods': ['anonymous', 'wampcra'],
+        'authid': 'foo-service',
+    }
+
+    with FooService(router=router, roles=roles):
         yield
 
 
@@ -123,3 +136,74 @@ def test_connection_is_challenged(router):
     assert messages[0][0] == Message.CHALLENGE
     assert messages[1][0] == Message.WELCOME
     assert messages[2][0] == Message.GOODBYE
+
+
+def test_incorrect_secret(router):
+    os.environ['WAMPYSECRET'] = "incorrect-password"
+    roles = {
+        'roles': {
+            'subscriber': {},
+            'publisher': {},
+            'callee': {},
+            'caller': {},
+        },
+        'authmethods': ['wampcra'],
+        'authid': 'peter',
+    }
+
+    client = Client(
+        router=router,
+        roles=roles,
+        name="bad-client"
+    )
+
+    with pytest.raises(WelcomeAbortedError) as exc_info:
+        client.start()
+
+    exception = exc_info.value
+
+    message = str(exception)
+
+    assert (
+        "WAMP-CRA signature is invalid"
+        in message
+    )
+    assert "wamp.error.not_authorized" in message
+
+
+def test_peter_cannot_call_get_foo(router, foo_service):
+    # `get_foo` can be registered but not called over the wampy role
+    os.environ['WAMPYSECRET'] = "prq7+YkJ1/KlW1X0YczMHw=="
+    roles = {
+        'roles': {
+            'subscriber': {},
+            'publisher': {},
+            'callee': {},
+            'caller': {},
+        },
+        'authmethods': ['wampcra'],
+        'authid': 'peter',
+    }
+
+    message_handler = CollectingMessageHandler()
+    client = Client(
+        router=router,
+        roles=roles,
+        message_handler=message_handler,
+        name="unauthenticated-client",
+    )
+
+    with pytest.raises(NotAuthorisedError):
+        client.start()
+        client.rpc.get_foo()
+
+    client.stop()
+
+    messages = wait_for_messages(client, 4)
+
+    # now also expect a Goodbye message
+    assert len(messages) == 4
+    assert messages[0][0] == Message.CHALLENGE
+    assert messages[1][0] == Message.WELCOME
+    assert messages[2][0] == Message.ERROR
+    assert messages[3][0] == Message.GOODBYE

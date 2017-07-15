@@ -19,8 +19,8 @@
                                     "uri": "get_foo",
                                     "match": "exact",
                                     "allow": {
-                                        "call": true,
-                                        "register": false,
+                                        "call": false,
+                                        "register": true,
                                         "publish": false,
                                         "subscribe": false
                                     },
@@ -50,6 +50,10 @@
                             "type": "static",
                             "role": "wampy",
                             "users": {
+                                "foo-service": {
+                                    "secret": "secret1",
+                                    "role": "wampy"
+                                },
                                 "joe": {
                                     "secret": "secret2",
                                     "role": "wampy"

@@ -58,3 +58,7 @@ class RemoteError(Exception):
         message = '{} [{}] failed with reason {} {}'.format(
             self.remote_api, self.request_id, self.exc_type, self.value)
         super(RemoteError, self).__init__(message)
+
+
+class NotAuthorisedError(Exception):
+    pass
