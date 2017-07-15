@@ -3,8 +3,12 @@ import hmac
 import hashlib
 from struct import Struct
 from operator import xor
-from itertools import izip, starmap
+from itertools import starmap
 
+try:
+    from itertools import izip as zip
+except ImportError:
+    pass
 
 _pack_int = Struct('>I').pack
 
@@ -26,7 +30,7 @@ def pbkdf2(data, salt, iterations=1000, keylen=32, hashfunc=None):
         rv = u = _pseudorandom(salt + _pack_int(block), mac)
         for i in range(iterations - 1):
             u = _pseudorandom(''.join(map(chr, u)), mac)
-            rv = starmap(xor, izip(rv, u))
+            rv = starmap(xor, zip(rv, u))
         buf.extend(rv)
     return ''.join(map(chr, buf))[:keylen]
 
