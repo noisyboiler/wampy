@@ -3,12 +3,14 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import logging
+import os
 
+from wampy.auth import compute_wcs
+from wampy.errors import WampyError
 from wampy.messages import MESSAGE_TYPE_MAP
 from wampy.messages import (
-    Abort, Challenge, Goodbye, Error, Event, Invocation, Registered,
-    Result, Subscribed, Welcome, Yield)
-from wampy.errors import WampyError
+    Abort, Authenticate, Challenge, Goodbye, Error, Event, Invocation,
+    Registered, Result, Subscribed, Welcome, Yield)
 
 logger = logging.getLogger('wampy.messagehandler')
 
@@ -85,7 +87,17 @@ class MessageHandler(object):
 
     def handle_challenge(self, message_obj):
         logger.info("client has been Challenged")
-        self.session._message_queue.put(message_obj)
+        if 'WAMPYSECRET' not in os.environ:
+            # unable to handle this so delegate to the Client
+            self.session._message_queue.put(message_obj)
+            return
+
+        secret = os.environ['WAMPYSECRET']
+        challenge_data = message_obj.challenge
+        signature = compute_wcs(secret, str(challenge_data))
+
+        message = Authenticate(signature.decode("utf-8"))
+        self.session.send_message(message)
 
     def handle_error(self, message_obj):
         self.session._message_queue.put(message_obj.message)

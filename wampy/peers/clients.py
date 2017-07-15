@@ -2,15 +2,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import logging
 import inspect
+import logging
 import os
 
-from wampy.auth import compute_wcs
 from wampy.errors import (
     WampProtocolError, WampyError, WelcomeAbortedError)
 from wampy.session import session_builder
-from wampy.messages import Message, Authenticate
+from wampy.messages import Message
 from wampy.message_handler import MessageHandler
 from wampy.peers.routers import Crossbar
 from wampy.roles.caller import CallProxy, RpcProxy
@@ -89,12 +88,7 @@ class Client(object):
                     "in the environment as ``WAMPYSECRET``"
                 )
 
-            secret = os.environ['WAMPYSECRET']
-            challenge_data = response.challenge
-            signature = compute_wcs(secret, str(challenge_data))
-
-            message = Authenticate(signature.decode("utf-8"))
-            self.send_message(message)
+            raise WampyError("Failed to handle CHALLENGE")
 
         if response.WAMP_CODE == Message.WELCOME:
             logger.info("client %s has connected", self.name)

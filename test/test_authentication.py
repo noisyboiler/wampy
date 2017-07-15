@@ -111,9 +111,15 @@ def test_connection_is_challenged(router):
 
     client.start()
     messages = wait_for_messages(client, 2)
-    client.stop()
 
-    # expect a Challenge and a Welcome message
-    assert len(messages) == 2
+    # expect a Challenge and Welcome message
     assert messages[0][0] == Message.CHALLENGE
     assert messages[1][0] == Message.WELCOME
+
+    client.stop()
+
+    # now also expect a Goodbye message
+    assert len(messages) == 3
+    assert messages[0][0] == Message.CHALLENGE
+    assert messages[1][0] == Message.WELCOME
+    assert messages[2][0] == Message.GOODBYE
