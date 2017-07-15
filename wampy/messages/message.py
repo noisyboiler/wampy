@@ -20,6 +20,7 @@ class Message(object):
     WELCOME = 2
     ABORT = 3
     CHALLENGE = 4
+    AUTHENTICATE = 5
     GOODBYE = 6
 
     ERROR = 8
@@ -49,10 +50,8 @@ class Message(object):
                 'cannot serialise unconstructed message'
             )
 
-        self.serialized = True
-
         try:
-            return json.dumps(
+            serialized = json.dumps(
                 self.message, separators=(',', ':'), ensure_ascii=False,
             )
         except TypeError:
@@ -60,3 +59,6 @@ class Message(object):
                 "failed to serialise message: %s", self.message)
             raise WampProtocolError(
                 "Message not serialized: {}".format(self.message))
+
+        self.serialized = True
+        return serialized

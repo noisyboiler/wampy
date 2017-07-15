@@ -52,7 +52,7 @@ class MessageHandler(object):
         for message in self.messages_to_handle:
             messages[message.WAMP_CODE] = message
 
-    def handle_message(self, message, session):
+    def handle_message(self, message, client):
         wamp_code = message[0]
         if wamp_code not in self.messages:
             raise WampyError(
@@ -60,7 +60,8 @@ class MessageHandler(object):
                     MESSAGE_TYPE_MAP[wamp_code])
             )
 
-        self.session = session
+        self.client = client
+        self.session = client.session
 
         logger.info(
             "received message: %s (%s)",
@@ -103,6 +104,9 @@ class MessageHandler(object):
 
         func(*payload_list, **payload_dict)
 
+    def handle_goodbye(self, message_obj):
+        pass
+
     def handle_subscribed(self, message_obj):
         session = self.session
 
@@ -140,11 +144,10 @@ class MessageHandler(object):
         self.session._message_queue.put(message_obj)
 
     def handle_welcome(self, message_obj):
+        logger.info("client %s has been welcomed", self.client.name)
         self.session.session_id = message_obj.session_id
         self.session._message_queue.put(message_obj)
-
-    def handle_goodbye(self, message_obj):
-        pass
+        self.client._register_roles()
 
     def process_result(self, message_obj, result, exc=None):
         result_kwargs = {}

@@ -185,7 +185,7 @@ class Session(object):
         return response
 
     def _say_goodbye(self):
-        message = Goodbye(wamp_code=6)
+        message = Goodbye(wamp_code=Message.GOODBYE)
         try:
             self.send_message(message)
         except Exception as exc:
@@ -195,7 +195,7 @@ class Session(object):
         else:
             try:
                 message = self.recv_message(timeout=2)
-                if message[0] != Message.GOODBYE:
+                if message.WAMP_CODE != Message.GOODBYE:
                     raise WampProtocolError(
                         "Unexpected response from GOODBYE message: {}".format(
                             message
@@ -214,7 +214,9 @@ class Session(object):
                     if frame:
                         message = frame.payload
                         handler = partial(
-                            self.message_handler.handle_message, message, self
+                            self.message_handler.handle_message,
+                            message,
+                            self.client
                         )
                         eventlet.spawn(handler)
                 except (

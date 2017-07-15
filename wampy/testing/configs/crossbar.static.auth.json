@@ -29,51 +29,6 @@
                                         "publisher": false
                                     },
                                     "cache": true
-                                },
-                                {
-                                    "uri": "com.example.",
-                                    "match": "prefix",
-                                    "allow": {
-                                        "call": false,
-                                        "register": false,
-                                        "publish": true,
-                                        "subscribe": false
-                                    },
-                                    "disclose": {
-                                        "caller": false,
-                                        "publisher": false
-                                    },
-                                    "cache": true
-                                },
-                                {
-                                    "uri": "com.example.topic2",
-                                    "match": "exact",
-                                    "allow": {
-                                        "call": false,
-                                        "register": false,
-                                        "publish": false,
-                                        "subscribe": false
-                                    },
-                                    "disclose": {
-                                        "caller": false,
-                                        "publisher": false
-                                    },
-                                    "cache": true
-                                },
-                                {
-                                    "uri": "com.foobar.topic1",
-                                    "match": "exact",
-                                    "allow": {
-                                        "call": false,
-                                        "register": false,
-                                        "publish": true,
-                                        "subscribe": false
-                                    },
-                                    "disclose": {
-                                        "caller": false,
-                                        "publisher": false
-                                    },
-                                    "cache": true
                                 }
                             ]
                         }

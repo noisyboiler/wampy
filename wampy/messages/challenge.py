@@ -25,3 +25,11 @@ class Challenge(Message):
         self.message = [
             self.WAMP_CODE, self.auth_method, self.kwargs_dict
         ]
+
+    @property
+    def value(self):
+        return self.kwargs_dict
+
+    @property
+    def challenge(self):
+        return self.value['challenge']

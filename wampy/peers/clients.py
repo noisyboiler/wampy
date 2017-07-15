@@ -4,10 +4,13 @@
 
 import logging
 import inspect
+import os
 
-from wampy.errors import WampProtocolError, WelcomeAbortedError
+from wampy.auth import compute_wcs
+from wampy.errors import (
+    WampProtocolError, WampyError, WelcomeAbortedError)
 from wampy.session import session_builder
-from wampy.messages import Message
+from wampy.messages import Message, Authenticate
 from wampy.message_handler import MessageHandler
 from wampy.peers.routers import Crossbar
 from wampy.roles.caller import CallProxy, RpcProxy
@@ -34,8 +37,7 @@ class Client(object):
 
     def __init__(
             self, router=None, roles=None, message_handler=None,
-            transport="websocket", use_tls=False,
-            name=None,
+            transport="websocket", use_tls=False, name=None,
     ):
 
         self.router = router or Crossbar()
@@ -81,9 +83,21 @@ class Client(object):
             raise WelcomeAbortedError(response.message)
 
         if response.WAMP_CODE == Message.CHALLENGE:
-            # handle auth here?
+            if 'WAMPYSECRET' not in os.environ:
+                raise WampyError(
+                    "Wampy requires a client's secret to be "
+                    "in the environment as ``WAMPYSECRET``"
+                )
 
-        self.register_roles()
+            secret = os.environ['WAMPYSECRET']
+            challenge_data = response.challenge
+            signature = compute_wcs(secret, str(challenge_data))
+
+            message = Authenticate(signature.decode("utf-8"))
+            self.send_message(message)
+
+        if response.WAMP_CODE == Message.WELCOME:
+            logger.info("client %s has connected", self.name)
 
     def stop(self):
         if self.session and self.session.id:
@@ -124,7 +138,7 @@ class Client(object):
     def publish(self):
         return PublishProxy(client=self)
 
-    def register_roles(self):
+    def _register_roles(self):
         logger.info("registering roles for: %s", self.name)
 
         maybe_roles = []
