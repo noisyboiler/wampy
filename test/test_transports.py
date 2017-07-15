@@ -25,7 +25,7 @@ class TestIP4(object):
 
     @pytest.fixture(scope="function")
     def config_path(self):
-        return './wampy/testing/configs/crossbar.config.ipv4.json'
+        return './wampy/testing/configs/crossbar.json'
 
     def test_ipv4_websocket_connection(self, config_path, router):
         with router:
