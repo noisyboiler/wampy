@@ -66,6 +66,8 @@ def test_connection_is_aborted_when_not_authorised(router):
     with pytest.raises(WelcomeAbortedError) as exc_info:
         client.start()
 
+    client.stop()
+
     exception = exc_info.value
 
     message = str(exception)
