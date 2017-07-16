@@ -5,6 +5,7 @@
 import atexit
 import logging
 import os
+import psutil
 import signal
 import subprocess
 from time import sleep
@@ -125,6 +126,13 @@ def get_process_ids():
     return pids
 
 
+def kill(pid):
+    process = psutil.Process(pid)
+    for proc in process.children(recursive=True):
+        proc.kill()
+    process.kill()
+
+
 def kill_crossbar(try_again=True):
     pids = get_process_ids()
     if pids and try_again is True:
@@ -137,7 +145,7 @@ def kill_crossbar(try_again=True):
 
         try:
             logger.warning("OS sending SIGTERM to crossbar pid: %s", pid)
-            os.kill(pid, signal.SIGTERM)
+            kill(os.getpgid(pid), signal.SIGTERM)
         except OSError:
             logger.exception(
                 "Failed to terminate router process: %s", pid)
@@ -148,7 +156,7 @@ def kill_crossbar(try_again=True):
                 pass
 
             try:
-                os.kill(int(pid), signal.SIGKILL)
+                os.kill(pid, signal.SIGKILL)
             except Exception as exc:
                 if "No such process" in str(exc):
                     continue
