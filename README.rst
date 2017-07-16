@@ -37,6 +37,16 @@ With **wampy** you can quickly and easily create your own **WAMP** clients, whet
 
 See `ReadTheDocs`_ for more detailed documentation.
 
+wampy features
+~~~~~~~~~~~~~~
+
+- Remote Procedure Calls
+- Publish and Subscribe
+- Client Authentication
+- TLS
+- Pytest fixtures
+- `nameko`_ integration
+
 Quickstart: wampy from the command line
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -159,14 +169,6 @@ In another terminal, with a **wampy** virtualenv, you can create a **Publisher**
                 result = client.publish(topic="foo", message="spam")
 
 Hopefully you'll see any message you send printed to the screen where the example service is running. You'll also see the meta data that **wampy** chooses to send.
-
-Other wampy features
-~~~~~~~~~~~~~~~~~~~~
-
-- TLS
-- Client Authentication
-- Pytest fixtures
-- `nameko`_ integration
 
 See `ReadTheDocs`_ for more detailed documentation.
 
