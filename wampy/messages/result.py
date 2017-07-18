@@ -44,7 +44,3 @@ class Result(Message):
             self.WAMP_CODE, self.request_id, self.details, self.yield_args,
             self.yield_kwargs
         ]
-
-    @property
-    def value(self):
-        return self.yield_kwargs['message']

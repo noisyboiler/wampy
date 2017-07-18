@@ -37,7 +37,6 @@ Running a wampy application or interacting with any other WAMP application
    subscribing_to_a_topic
    remote_procedure_calls
    exception_handling
-   authentication
    message_handler
    testing
    tls

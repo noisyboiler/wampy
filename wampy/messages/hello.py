@@ -13,8 +13,6 @@ class Hello(Message):
         [
             HELLO, "realm", {
                 "roles": {"subscriber": {}, "publisher": {}},
-                "authmethods": ["wampcra"],
-                "authid": "peter"
             }
         ]
 

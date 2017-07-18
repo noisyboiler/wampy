@@ -4,8 +4,7 @@
 
 import logging
 
-from wampy.constants import NOT_AUTHORISED
-from wampy.errors import RemoteError, WampProtocolError, NotAuthorisedError
+from wampy.errors import RemoteError, WampProtocolError
 from wampy.messages import MESSAGE_TYPE_MAP
 from wampy.messages import Message
 from wampy.messages.call import Call
@@ -30,14 +29,17 @@ class CallProxy:
 
     def __call__(self, procedure, *args, **kwargs):
         message = Call(procedure=procedure, args=args, kwargs=kwargs)
-        response = self.client.make_rpc(message)
-        wamp_code = response.WAMP_CODE
+        response = self.client.make_rpc(
+            message)
+        wamp_code = response[0]
 
         if wamp_code == Message.ERROR:
             logger.error("call returned an error: %s", response)
             return response
         elif wamp_code == Message.RESULT:
-            return response.value
+            results = response[3]
+            result = results[0]
+            return result
 
         raise WampProtocolError("unexpected response: %s", response)
 
@@ -62,19 +64,16 @@ class RpcProxy:
             message = Call(procedure=name, args=args, kwargs=kwargs)
             response = self.client.make_rpc(message)
 
-            wamp_code = response.WAMP_CODE
+            wamp_code = response[0]
             if wamp_code == Message.ERROR:
-                _, _, request_id, _, endpoint, exc_args, exc_kwargs = (
-                    response.message)
-
-                if endpoint == NOT_AUTHORISED:
-                    raise NotAuthorisedError(
-                        "{} - {}".format(self.client.name, exc_args[0])
-                    )
+                _, _, request_id, _, error_api, exc_args, exc_kwargs = (
+                    response)
 
                 raise RemoteError(
-                    endpoint, request_id, *exc_args, **exc_kwargs
+                    error_api, request_id, *exc_args, **exc_kwargs
                 )
+
+            wamp_code, _, _, yield_args, yield_kwargs = response
 
             if wamp_code != Message.RESULT:
                 raise WampProtocolError(
@@ -83,8 +82,10 @@ class RpcProxy:
                     response[5]
                 )
 
-            result = response.value
+            results = yield_args
+            result = results[0]
             logger.debug("RpcProxy got result: %s", result)
+
             return result
 
         return wrapper
