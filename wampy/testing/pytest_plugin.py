@@ -5,7 +5,6 @@
 import atexit
 import logging
 import os
-import psutil
 import signal
 import subprocess
 from time import sleep
@@ -126,16 +125,9 @@ def get_process_ids():
     return pids
 
 
-def kill(pid):
-    process = psutil.Process(pid)
-    for proc in process.children(recursive=True):
-        proc.kill()
-    process.kill()
-
-
 def kill_crossbar(try_again=True):
     pids = get_process_ids()
-    if pids and try_again is True:
+    if pids:
         logger.error(
             "Crossbar.io did not stop when sig term issued!"
         )
@@ -145,7 +137,7 @@ def kill_crossbar(try_again=True):
 
         try:
             logger.warning("OS sending SIGTERM to crossbar pid: %s", pid)
-            os.kill(os.getpgid(pid), signal.SIGTERM)
+            os.kill(pid, signal.SIGTERM)
         except OSError:
             logger.exception(
                 "Failed to terminate router process: %s", pid)
@@ -156,7 +148,7 @@ def kill_crossbar(try_again=True):
                 pass
 
             try:
-                os.kill(pid, signal.SIGKILL)
+                os.kill(int(pid), signal.SIGKILL)
             except Exception as exc:
                 if "No such process" in str(exc):
                     continue
@@ -166,10 +158,10 @@ def kill_crossbar(try_again=True):
     pids = get_process_ids()
     if pids and try_again is True:
         logger.warning('try one more time to shutdown Crossbar')
-        sleep(5)
+        sleep(2)
         kill_crossbar(try_again=False)
     elif pids and try_again is False:
-        logger.error("Failed to shutdown all router processes")
+        logger.warning("Failed to shutdown all router processes")
 
 
 class ConfigurationError(Exception):

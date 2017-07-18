@@ -31,5 +31,3 @@ DEFAULT_ROLES = {
 }
 
 SUBSCRIBER = "subscriber"
-
-NOT_AUTHORISED = 'wamp.error.not_authorized'

@@ -136,17 +136,9 @@ class Crossbar(ParseUrlMixin):
             if "no such process" in str(exc):
                 logger.warning("process died already: %s", self.proc)
                 return
-            logger.warning("process %s did not terminate", self.proc)
 
-        try:
             self.proc.wait()
-        except OSError:
-            pass
-        else:
-            try:
-                self.proc.kill()
-            except OSError:
-                pass
+            self.proc.kill()
 
         # wait for a graceful shutdown
         logger.info("sleeping while Crossbar shuts down")
