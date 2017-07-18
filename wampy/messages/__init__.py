@@ -2,7 +2,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from . abort import Abort
+from . authenticate import Authenticate
 from . call import Call
+from . challenge import Challenge
 from . error import Error
 from . event import Event
 from . hello import Hello
@@ -20,8 +23,9 @@ from . welcome import Welcome
 
 
 __all__ = [
-    Call, Error, Event, Goodbye, Hello, Invocation, Message, Publish,
-    Register, Registered, Result, Subscribe, Subscribed, Welcome, Yield
+    Abort, Authenticate, Call, Challenge, Error, Event, Goodbye, Hello,
+    Invocation, Message, Publish, Register, Registered, Result, Subscribe,
+    Subscribed, Welcome, Yield
 ]
 
 
@@ -29,6 +33,8 @@ MESSAGE_TYPE_MAP = {
     1: 'HELLO',
     2: 'WELCOME',
     3: 'ABORT',
+    4: 'CHALLENGE',
+    5: 'AUTHENTICATE',
     6: 'GOODBYE',
     8: 'ERROR',
     16: 'PUBLISH',

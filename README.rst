@@ -37,6 +37,16 @@ With **wampy** you can quickly and easily create your own **WAMP** clients, whet
 
 See `ReadTheDocs`_ for more detailed documentation.
 
+wampy features
+~~~~~~~~~~~~~~
+
+- Remote Procedure Calls
+- Publish and Subscribe
+- Client Authentication
+- TLS
+- Pytest fixtures
+- `nameko`_ integration
+
 Quickstart: wampy from the command line
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -162,6 +172,7 @@ Hopefully you'll see any message you send printed to the screen where the exampl
 
 See `ReadTheDocs`_ for more detailed documentation.
 
+
 Running the tests
 ~~~~~~~~~~~~~~~~~
 
@@ -186,6 +197,7 @@ If you like this project, then Thank You, and you're welcome to get involved.
 .. _WAMP Protocol: http://wamp-proto.org/
 .. _examples: https://github.com/noisyboiler/wampy/blob/master/docs/examples/services.py#L26
 .. _autobahn: http://autobahn.ws/python/
+.. _nameko: https://github.com/noisyboiler/nameko
 .. _nameko_wamp: https://github.com/noisyboiler/nameko-wamp
 .. _nameko: https://github.com/nameko/nameko
 .. _Twisted: https://twistedmatrix.com/trac/
