@@ -2,11 +2,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import logging
 import inspect
+import logging
+import os
 
-from wampy.errors import WampProtocolError
+from wampy.errors import (
+    WampProtocolError, WampyError, WelcomeAbortedError)
 from wampy.session import session_builder
+from wampy.messages import Message
 from wampy.message_handler import MessageHandler
 from wampy.peers.routers import Crossbar
 from wampy.roles.caller import CallProxy, RpcProxy
@@ -28,12 +31,12 @@ class Client(object):
             },
             'caller': {},
         },
+        'authmethods': ['anonymous']
     }
 
     def __init__(
             self, router=None, roles=None, message_handler=None,
-            transport="websocket", use_tls=False,
-            name=None,
+            transport="websocket", use_tls=False, name=None,
     ):
 
         self.router = router or Crossbar()
@@ -73,18 +76,26 @@ class Client(object):
     def request_ids(self):
         return self.session.request_ids
 
-    def begin_session(self):
-        self.session.begin()
-
-    def end_session(self):
-        self.session.end()
-
     def start(self):
-        self.begin_session()
-        self.register_roles()
+        response = self.session.begin()
+        if response.WAMP_CODE == Message.ABORT:
+            raise WelcomeAbortedError(response.message)
+
+        if response.WAMP_CODE == Message.CHALLENGE:
+            if 'WAMPYSECRET' not in os.environ:
+                raise WampyError(
+                    "Wampy requires a client's secret to be "
+                    "in the environment as ``WAMPYSECRET``"
+                )
+
+            raise WampyError("Failed to handle CHALLENGE")
+
+        if response.WAMP_CODE == Message.WELCOME:
+            logger.info("client %s has connected", self.name)
 
     def stop(self):
-        self.end_session()
+        if self.session and self.session.id:
+            self.session.end()
 
     def send_message(self, message):
         self.session.send_message(message)
@@ -121,7 +132,7 @@ class Client(object):
     def publish(self):
         return PublishProxy(client=self)
 
-    def register_roles(self):
+    def _register_roles(self):
         logger.info("registering roles for: %s", self.name)
 
         maybe_roles = []

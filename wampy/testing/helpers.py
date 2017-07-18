@@ -4,6 +4,8 @@
 
 import eventlet
 
+from wampy.message_handler import MessageHandler
+
 TIMEOUT = 5
 
 
@@ -29,3 +31,27 @@ def wait_for_session(client):
     with eventlet.Timeout(TIMEOUT):
         while client.session.id is None:
             eventlet.sleep()
+
+
+def wait_for_messages(client, number_of_messages):
+    messages_received = (
+        client.session.message_handler.messages_received)
+
+    with eventlet.Timeout(TIMEOUT):
+        while len(messages_received) < number_of_messages:
+            eventlet.sleep()
+
+    return messages_received
+
+
+class CollectingMessageHandler(MessageHandler):
+
+    def __init__(self):
+        super(CollectingMessageHandler, self).__init__()
+        self.messages_received = []
+
+    def handle_message(self, message, client):
+        self.messages_received.append(message)
+        super(CollectingMessageHandler, self).handle_message(
+            message, client
+        )
