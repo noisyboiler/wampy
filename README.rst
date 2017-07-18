@@ -45,7 +45,7 @@ wampy features
 - Client Authentication
 - TLS
 - Pytest fixtures
-- `nameko`_ integration
+- nameko_ integration with nameko_wamp_
 
 Quickstart: wampy from the command line
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
