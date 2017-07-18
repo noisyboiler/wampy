@@ -197,7 +197,7 @@ If you like this project, then Thank You, and you're welcome to get involved.
 .. _WAMP Protocol: http://wamp-proto.org/
 .. _examples: https://github.com/noisyboiler/wampy/blob/master/docs/examples/services.py#L26
 .. _autobahn: http://autobahn.ws/python/
-.. _nameko: https://github.com/noisyboiler/nameko
+.. _nameko: https://github.com/nameko
 .. _nameko_wamp: https://github.com/noisyboiler/nameko-wamp
 .. _nameko: https://github.com/nameko/nameko
 .. _Twisted: https://twistedmatrix.com/trac/
