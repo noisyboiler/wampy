@@ -113,7 +113,7 @@ class Session(object):
 
     def begin(self):
         self._connect()
-        self._say_hello()
+        return self._say_hello()
 
     def end(self):
         self._say_goodbye()
@@ -144,7 +144,7 @@ class Session(object):
             )
 
         logger.debug(
-            'received message: "{}"'.format(MESSAGE_TYPE_MAP[message[0]])
+            'received message: "{}"'.format(message.name)
         )
 
         return message
@@ -181,9 +181,11 @@ class Session(object):
     def _say_hello(self):
         message = Hello(self.realm, self.roles)
         self.send_message(message)
+        response = self.recv_message()
+        return response
 
     def _say_goodbye(self):
-        message = Goodbye(wamp_code=6)
+        message = Goodbye(wamp_code=Message.GOODBYE)
         try:
             self.send_message(message)
         except Exception as exc:
@@ -193,7 +195,7 @@ class Session(object):
         else:
             try:
                 message = self.recv_message(timeout=2)
-                if message[0] != Message.GOODBYE:
+                if message.WAMP_CODE != Message.GOODBYE:
                     raise WampProtocolError(
                         "Unexpected response from GOODBYE message: {}".format(
                             message
@@ -212,7 +214,9 @@ class Session(object):
                     if frame:
                         message = frame.payload
                         handler = partial(
-                            self.message_handler.handle_message, message, self
+                            self.message_handler.handle_message,
+                            message,
+                            self.client
                         )
                         eventlet.spawn(handler)
                 except (
