@@ -105,13 +105,23 @@ Now, open a Python console in a new terminal, allowing the ``BinaryNumberService
 
     In [3]: router = Crossbar(config_path='./wampy/testing/configs/crossbar.json')
 
-    In [2]: with Client(router=router) as client:
+    In [4]: with Client(router=router) as client:
                 result = client.rpc.get_binary_number(number=100)
 
-    In [3]: result
-    Out[3]: u'0b1100100'
+    In [5]: result
+    Out[5]: u'0b1100100'
 
 Note here that a ``Client`` takes a ``router`` argument which defaults to Crossbar. Crossbar then defaults to ``realm1`` on ``localhost:8080``. To use different values you'll need to configure and pass in the router object to the client yourself. This isn't hard, but when you're developing locally these defaults are there to help you get up and running quickly.
+
+In fact, the ``router`` was just there in this example to make it clear that a ``Client`` takes a ``router`` parameter. Developing locally, this is all you need:
+
+::
+
+    In [1]: from wampy.peers.clients import Client
+
+    In [2]: with Client() as client:
+                result = client.rpc.get_binary_number(number=100)
+
 
 wampy RPC for Crossbar.io
 ~~~~~~~~~~~~~~~~~~~~~~~~~
