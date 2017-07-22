@@ -43,8 +43,8 @@ wampy features
 - Remote Procedure Calls over websockets
 - Publish and Subscribe over websockets
 - Client Authentication
-- TLS
-- Pytest fixtures
+- Transport Layer Security
+- Pytest fixtures to use when testing your projects
 - nameko_ integration with nameko_wamp_
 
 Quickstart: wampy from the command line
