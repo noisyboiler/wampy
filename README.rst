@@ -45,7 +45,7 @@ wampy features
 - Client Authentication
 - Transport Layer Security
 - Pytest fixtures to use when testing your projects
-- nameko_ integration with nameko_wamp_
+- `nameko`_ integration with nameko_wamp_
 
 Quickstart: wampy from the command line
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
