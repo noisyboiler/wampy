@@ -163,7 +163,7 @@ Let's start up that example service.
 
 ::
     
-    $ wampy run docs.examples.services:SubscribingService --config './wampy/testing/configs/crossbar.config.ipv4.json'
+    $ wampy run docs.examples.services:SubscribingService --config ./wampy/testing/configs/crossbar.json
 
 Now we have a service running that subscribes to the topic "foo".
 
