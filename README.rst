@@ -45,7 +45,7 @@ wampy features
 - Client Authentication
 - Transport Layer Security
 - Pytest fixtures to use when testing your projects
-- `nameko`_ integration with nameko_wamp_
+- nameko_ integration with nameko_wamp_
 
 Quickstart: wampy from the command line
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -209,6 +209,5 @@ If you like this project, then Thank You, and you're welcome to get involved.
 .. _autobahn: http://autobahn.ws/python/
 .. _nameko: https://github.com/nameko
 .. _nameko_wamp: https://github.com/noisyboiler/nameko-wamp
-.. _nameko: https://github.com/nameko/nameko
 .. _Twisted: https://twistedmatrix.com/trac/
 .. _WAMP: http://wamp-proto.org/static/rfc/draft-oberstet-hybi-crossbar-wamp.html
