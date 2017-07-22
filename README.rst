@@ -40,8 +40,8 @@ See `ReadTheDocs`_ for more detailed documentation.
 wampy features
 ~~~~~~~~~~~~~~
 
-- Remote Procedure Calls
-- Publish and Subscribe
+- Remote Procedure Calls over websockets
+- Publish and Subscribe over websockets
 - Client Authentication
 - TLS
 - Pytest fixtures
