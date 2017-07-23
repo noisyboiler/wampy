@@ -147,8 +147,9 @@ def kill_crossbar(try_again=True):
             logger.warning("OS sending SIGTERM to crossbar pid: %s", pid)
             os.kill(os.getpgid(pid), signal.SIGTERM)
         except OSError:
-            logger.exception(
-                "Failed to terminate router process: %s", pid)
+            logger.error(
+                "Failed to terminate router process: %s", pid
+            )
 
             try:
                 os.waitpid(pid, options=os.WNOHANG)
