@@ -2,10 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from wampy.messages.message import Message
 
-
-class Challenge(Message):
+class Challenge(object):
     WAMP_CODE = 4
     name = "challenge"
 
@@ -22,7 +20,10 @@ class Challenge(Message):
 
         self.auth_method = auth_method
         self.kwargs_dict = kwargs_dict
-        self.message = [
+
+    @property
+    def message(self):
+        return [
             self.WAMP_CODE, self.auth_method, self.kwargs_dict
         ]
 

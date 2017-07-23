@@ -2,14 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import logging
 
-from wampy.messages.message import Message
-
-logger = logging.getLogger(__name__)
-
-
-class Result(Message):
+class Result(object):
     """ The Dealer sends a "RESULT" message to the original
     Caller ::
 
@@ -34,13 +28,16 @@ class Result(Message):
     ):
 
         assert wamp_code == self.WAMP_CODE
+        super(Result, self).__init__()
 
         self.request_id = request_id
         self.details = details_dict
         self.yield_args = yield_args
         self.yield_kwargs = yield_kwargs
 
-        self.message = [
+    @property
+    def message(self):
+        return [
             self.WAMP_CODE, self.request_id, self.details, self.yield_args,
             self.yield_kwargs
         ]

@@ -184,7 +184,6 @@ class MessageHandler(object):
                 },
             )
             logger.info("returning with Error: %s", error_message)
-            error_message.serialize()
             self.session.send_message(error_message)
 
         else:

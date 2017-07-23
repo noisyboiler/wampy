@@ -16,6 +16,7 @@ from wampy.messages.hello import Hello
 from wampy.messages.goodbye import Goodbye
 from wampy.messages.register import Register
 from wampy.messages.subscribe import Subscribe
+from wampy.serializers import json_serialize
 from wampy.transports.websocket.connection import (
     WampWebSocket, TLSWampWebSocket)
 
@@ -123,17 +124,17 @@ class Session(object):
         self.session_id = None
 
     def send_message(self, message):
+        serialized_message = json_serialize(message)
         message_type = MESSAGE_TYPE_MAP[message.WAMP_CODE]
-        message = message.serialize()
 
         if self._connection is None:
             raise WampError("WAMP Connection Not Established")
 
         logger.debug(
-            'sending "%s" message: %s', message_type, message
+            'sending "%s" message: %s', message_type, serialized_message
         )
 
-        self._connection.send_websocket_frame(str(message))
+        self._connection.send_websocket_frame(serialized_message)
 
     def recv_message(self, timeout=5):
         try:

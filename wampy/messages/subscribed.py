@@ -2,10 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from wampy.messages.message import Message
 
-
-class Subscribed(Message):
+class Subscribed(object):
     """ If the _Broker_ is able to fulfill and allow the subscription, it
     answers by sending a "SUBSCRIBED" message to the _Subscriber_
 
@@ -16,6 +14,9 @@ class Subscribed(Message):
     name = "subscribed"
 
     def __init__(self, wamp_code, request_id, subscription_id):
+        assert wamp_code == self.WAMP_CODE
+        super(Subscribed, self).__init__()
+
         self.wamp_code = wamp_code
         self.request_id = request_id
         self.subscription_id = subscription_id

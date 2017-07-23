@@ -4,10 +4,8 @@
 
 import random
 
-from wampy.messages.message import Message
 
-
-class Call(Message):
+class Call(object):
     """ When a Caller wishes to call a remote procedure, it sends a "CALL"
     message to a Dealer.
 
@@ -37,7 +35,10 @@ class Call(Message):
         self.args = args or []
         self.kwargs = kwargs or {}
         self.request_id = random.getrandbits(32)
-        self.message = [
-            Message.CALL, self.request_id, self.options, self.procedure,
+
+    @property
+    def message(self):
+        return [
+            self.WAMP_CODE, self.request_id, self.options, self.procedure,
             self.args, self.kwargs
         ]

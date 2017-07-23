@@ -2,10 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from wampy.messages.message import Message
 
-
-class Yield(Message):
+class Yield(object):
     """ When the Callee is able to successfully process and finish the
     execution of the call, it answers by sending a "YIELD" message to the
     Dealer.
@@ -47,6 +45,6 @@ class Yield(Message):
     @property
     def message(self):
         return [
-            Message.YIELD, self.invocation_request_id, self.options,
+            self.WAMP_CODE, self.invocation_request_id, self.options,
             self.result_args, self.result_kwargs
         ]

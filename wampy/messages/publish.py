@@ -4,10 +4,8 @@
 
 import random
 
-from wampy.messages.message import Message
 
-
-class Publish(Message):
+class Publish(object):
     """ Send a PUBLISH message to the Router.
 
     Message is of the format ``[PUBLISH, Request|id, Options|dict,
@@ -30,7 +28,10 @@ class Publish(Message):
         self.request_id = random.getrandbits(32)
         self.args = args
         self.kwargs = kwargs
-        self.message = [
-            Message.PUBLISH, self.request_id, self.options, self.topic,
+
+    @property
+    def message(self):
+        return [
+            self.WAMP_CODE, self.request_id, self.options, self.topic,
             self.args, self.kwargs
         ]

@@ -2,10 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from wampy.messages.message import Message
 
-
-class Abort(Message):
+class Abort(object):
     WAMP_CODE = 3
     name = "abort"
 
@@ -26,6 +24,9 @@ class Abort(Message):
 
         self.details = details
         self.uri = uri
-        self.message = [
+
+    @property
+    def message(self):
+        return [
             self.WAMP_CODE, self.details, self.uri
         ]

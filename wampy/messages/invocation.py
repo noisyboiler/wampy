@@ -2,14 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import logging
 
-from wampy.messages.message import Message
-
-logger = logging.getLogger('wampy.messagehandler')
-
-
-class Invocation(Message):
+class Invocation(object):
     """Actual invocation of an endpoint sent by Dealer to a Callee.
 
        [INVOCATION, Request|id, REGISTERED.Registration|id,
@@ -30,6 +24,7 @@ class Invocation(Message):
             call_args=None, call_kwargs=None,
     ):
         assert wamp_code == self.WAMP_CODE
+        super(Invocation, self).__init__()
 
         self.request_id = request_id
         self.registration_id = registration_id
@@ -37,7 +32,9 @@ class Invocation(Message):
         self.call_args = call_args or tuple()
         self.call_kwargs = call_kwargs or {}
 
-        self.message = [
+    @property
+    def message(self):
+        return [
             self.WAMP_CODE, self.request_id, self.registration_id,
             self.details, self.call_args, self.call_kwargs,
         ]

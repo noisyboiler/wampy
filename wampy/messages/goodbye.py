@@ -2,10 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from wampy.messages.message import Message
 
-
-class Goodbye(Message):
+class Goodbye(object):
     """ Send a GOODBYE message to the Router.
 
     Message is of the format ``[GOODBYE, Details|dict, Reason|uri]``, e.g. ::
@@ -24,10 +22,13 @@ class Goodbye(Message):
             self, wamp_code, details=None, reason=DEFAULT_REASON,
     ):
         assert wamp_code == self.WAMP_CODE
+        super(Goodbye, self).__init__()
 
         self.details = details or {}
         self.reason = reason
 
-        self.message = [
-            Message.GOODBYE, self.details, self.reason
+    @property
+    def message(self):
+        return [
+            self.WAMP_CODE, self.details, self.reason
         ]

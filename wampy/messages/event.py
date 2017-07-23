@@ -2,10 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from wampy.messages.message import Message
 
-
-class Event(Message):
+class Event(object):
     """ When a Subscriber_is deemed to be a receiver, the Broker sends
     the Subscriber an "EVENT" message:
 
@@ -32,6 +30,7 @@ class Event(Message):
     ):
 
         assert wamp_code == self.WAMP_CODE
+        super(Event, self).__init__()
 
         self.subscription_id = subscription_id
         self.publication_id = publication_id
@@ -39,7 +38,9 @@ class Event(Message):
         self.publish_args = publish_args or []
         self.publish_kwargs = publish_kwargs or {}
 
-        self.message = [
+    @property
+    def message(self):
+        return [
             self.WAMP_CODE, self.subscription_id, self.publication_id,
             self.details, self.publish_args, self.publish_kwargs,
         ]

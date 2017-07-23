@@ -4,10 +4,8 @@
 
 import random
 
-from wampy.messages.message import Message
 
-
-class Subscribe(Message):
+class Subscribe(object):
     """ Send a SUBSCRIBE message to the Router.
 
     Message is of the format ``[SUBSCRIBE, Request|id, Options|dict,
@@ -27,6 +25,9 @@ class Subscribe(Message):
         self.topic = topic
         self.options = options or {}
         self.request_id = random.getrandbits(32)
-        self.message = [
+
+    @property
+    def message(self):
+        return [
             self.WAMP_CODE, self.request_id, self.options, self.topic
         ]

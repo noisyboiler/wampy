@@ -4,10 +4,8 @@
 
 import random
 
-from wampy.messages.message import Message
 
-
-class Register(Message):
+class Register(object):
     """ A Callee announces the availability of an endpoint implementing
     a procedure with a Dealer by sending a "REGISTER" message.
 
@@ -34,7 +32,10 @@ class Register(Message):
         self.procedure = procedure
         self.options = options or {}
         self.request_id = random.getrandbits(32)
-        self.message = [
-            Message.REGISTER, self.request_id, self.options,
+
+    @property
+    def message(self):
+        return [
+            self.WAMP_CODE, self.request_id, self.options,
             self.procedure
         ]

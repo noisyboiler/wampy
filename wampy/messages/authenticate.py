@@ -2,10 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from wampy.messages.message import Message
 
-
-class Authenticate(Message):
+class Authenticate(object):
     WAMP_CODE = 5
     name = "authenticate"
 
@@ -21,6 +19,9 @@ class Authenticate(Message):
 
         self.signature = signature
         self.kwargs_dict = kwargs_dict or {}
-        self.message = [
-            Message.AUTHENTICATE, self.signature, self.kwargs_dict
+
+    @property
+    def message(self):
+        return [
+            self.WAMP_CODE, self.signature, self.kwargs_dict
         ]

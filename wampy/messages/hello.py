@@ -2,10 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from wampy.messages.message import Message
 
-
-class Hello(Message):
+class Hello(object):
     """ Send a HELLO message to the Router.
 
     Message is of the format ``[HELLO, Realm|uri, Details|dict]``, e.g. ::
@@ -28,6 +26,8 @@ class Hello(Message):
         self.realm = realm
         self.roles = roles
 
-        self.message = [
-            Message.HELLO, self.realm, self.roles
+    @property
+    def message(self):
+        return [
+            self.WAMP_CODE, self.realm, self.roles
         ]

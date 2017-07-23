@@ -2,16 +2,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import logging
-
 from wampy.errors import WampyError
-from wampy.messages.message import Message
 
 
-logger = logging.getLogger('wampy.messages.error')
-
-
-class Error(Message):
+class Error(object):
     WAMP_CODE = 8
     name = "error"
 
@@ -44,6 +38,7 @@ class Error(Message):
 
         """
         assert wamp_code == self.WAMP_CODE
+        super(Error, self).__init__()
 
         self.wamp_code = wamp_code
         self.request_type = request_type
@@ -61,7 +56,9 @@ class Error(Message):
             )
         self.details = {}
 
-        self.message = [
+    @property
+    def message(self):
+        return [
             self.WAMP_CODE, self.request_type, self.request_id,
             self.details, self.error, self.args_list, self.kwargs_dict,
         ]
