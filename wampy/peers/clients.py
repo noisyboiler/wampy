@@ -38,7 +38,31 @@ class Client(object):
             self, router=None, roles=None, message_handler=None,
             transport="websocket", use_tls=False, name=None,
     ):
+        """ A WAMP Client "Peer".
 
+        WAMP is designed for application code to run within Clients, i.e. Peers
+        having the roles Callee, Caller, Publisher, and Subscriber. Subclass
+        this base class to implemente these roles with wampy's ``callee``,
+        ``call``, ``subscribe`` and ``publish`` decorators and APIs.
+
+        :Parameters:
+            router : instance
+                An instance of a Router Peer, e.g. ``wampy.peers.routers.Crossbar``
+            roles : dictionary
+                Description of the Roles implemented by the ``Client``
+            message_handler : instance
+                An instance of ``wampy.message_handler.MessageHandler``, or
+                a subclass of.
+            transport : string
+                The default transport binding for WAMP is WebSocket
+            use_tls : boolean
+                Optional Transport Layer Security (must be supported by the
+                Router Peer). Defaults to ``False``.
+            name : string
+                Optional name for your ``Client``. Useful for when testing
+                your app or for logging.
+
+        """
         self.router = router or Crossbar()
         self.roles = roles or self.DEFAULT_ROLES
         # only support one realm per Router, and we implicitly assume that
