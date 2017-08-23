@@ -35,10 +35,11 @@ class Client(object):
     ):
         """ A WAMP Client "Peer".
 
-        WAMP is designed for application code to run within Clients, i.e. Peers
-        having the roles Callee, Caller, Publisher, and Subscriber. Subclass
-        this base class to implemente these roles with wampy's ``callee``,
-        ``call``, ``subscribe`` and ``publish`` decorators and APIs.
+        WAMP is designed for application code to run within Clients, i.e. Peers.
+
+        Peers have the roles Callee, Caller, Publisher, and Subscriber.
+
+        Subclass this base class to implemente the Roles for your application.
 
         :Parameters:
             realm : str
