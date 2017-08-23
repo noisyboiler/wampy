@@ -43,9 +43,15 @@ class Session(object):
 
         :Parameters:
             client : instance
-                An instance of :class:`peers.Client`.
+                An instance of :class:`peers.Client`
             router : instance
-                An instance of :class:`peers.Router`.
+                An instance of :class:`peers.Router`
+            transport : instance
+                An instance of ``wampy.transports``.
+                Defaults to ``wampy.transports.WebSocket``
+            message_handler : instance
+                An instance of ``wampy.message_handler.MessageHandler``,
+                or a subclass of
 
         """
         self.client = client
