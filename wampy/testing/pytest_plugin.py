@@ -7,6 +7,7 @@ import logging
 import os
 import psutil
 import signal
+import sys
 import subprocess
 from time import sleep
 
@@ -14,10 +15,11 @@ import colorlog
 import pytest
 
 from wampy.constants import DEFAULT_HOST, DEFAULT_PORT
+from wampy.errors import ConnectionError
 from wampy.peers.clients import Client
 from wampy.peers.routers import Crossbar
 from wampy.session import Session
-from wampy.transports.websocket.connection import WampWebSocket as WebSocket
+from wampy.transports import WebSocket
 
 
 logger = logging.getLogger('wampy.testing')
@@ -126,6 +128,18 @@ def get_process_ids():
     return pids
 
 
+def assert_not_running(crossbar):
+    try:
+        crossbar.try_connection()
+    except ConnectionError:
+        pass
+    else:
+        sys.exit(
+            "Crossbar is already running with unknown configuration, "
+            "meaning the tests cannot reliably run - aborting!"
+        )
+
+
 def kill(pid):
     process = psutil.Process(pid)
     for proc in process.children(recursive=True):
@@ -141,13 +155,17 @@ def kill_crossbar(try_again=True):
         )
 
     for pid_as_str in pids:
-        pid = int(pid_as_str)
+        try:
+            pid = os.getpgid(int(pid_as_str))
+        except OSError:
+            continue
+
+        logger.warning("OS sending SIGTERM to crossbar pid: %s", pid)
 
         try:
-            logger.warning("OS sending SIGTERM to crossbar pid: %s", pid)
-            os.kill(os.getpgid(pid), signal.SIGTERM)
-        except OSError:
-            logger.error(
+            os.kill(pid, signal.SIGTERM)
+        except:  # anything Twisted raises
+            logger.exception(
                 "Failed to terminate router process: %s", pid
             )
 
@@ -184,6 +202,7 @@ def router(config_path):
         crossbar_directory='./',
     )
 
+    assert_not_running(crossbar)
     crossbar.start()
 
     yield crossbar
