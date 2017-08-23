@@ -40,7 +40,7 @@ class TopicSubscriber(Client):
     }
 
     def __init__(
-        self, topics, callback, router, roles=None, name=None,
+        self, topics, callback, router=None, roles=None, name=None,
     ):
         """ Subscribe to a one or more topics.
 
@@ -53,19 +53,13 @@ class TopicSubscriber(Client):
             roles: dictionary
 
         """
+        roles = roles or self.DEFAULT_ROLES
         super(TopicSubscriber, self).__init__(
-            router, roles or self.DEFAULT_ROLES, name=name,
+            router=router, roles=roles, name=name,
         )
 
         self.topics = topics
         self.callback = callback
-
-    def __enter__(self):
-        self.start()
-        return self
-
-    def __exit__(self, exception_type, exception_value, traceback):
-        self.stop()
 
     def start(self):
         self.session.begin()

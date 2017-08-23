@@ -75,10 +75,12 @@ class TestSecureWebSocket(object):
         except AttributeError:
             pytest.skip('Python Environment does not support TLS')
 
-        with DateService(router=router, transport=SecureWebSocket) as service:
+        with DateService(
+                router=router, transport=SecureWebSocket()
+        ) as service:
             wait_for_registrations(service, 1)
 
-            client = Client(router=router, transport=SecureWebSocket)
+            client = Client(router=router, transport=SecureWebSocket())
             with client:
                 wait_for_session(client)
                 result = client.rpc.get_todays_date()

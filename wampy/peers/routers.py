@@ -65,6 +65,7 @@ class Crossbar(ParseUrlMixin):
             self.certificate = None
 
         self.proc = None
+        self.started = False
 
     @property
     def can_use_tls(self):
@@ -96,7 +97,7 @@ class Crossbar(ParseUrlMixin):
 
             try:
                 self.try_connection()
-            except socket.error:
+            except ConnectionError:
                 pass
             else:
                 ready = True
@@ -106,6 +107,9 @@ class Crossbar(ParseUrlMixin):
     def start(self):
         """ Start Crossbar.io in a subprocess.
         """
+        if self.started is True:
+            raise WampyError("Router already started")
+
         # will attempt to connect or start up the CrossBar
         crossbar_config_path = self.config_path
         cbdir = self.crossbar_directory
@@ -125,32 +129,27 @@ class Crossbar(ParseUrlMixin):
             self.url, self.ipv
         )
 
+        self.started = True
+
     def stop(self):
         logger.warning("stopping crossbar")
 
         # handles gracefully a user already terminated server, the auto
         # termination failing and killing the process to ensure has died.
+
         try:
             self.proc.terminate()
         except OSError as exc:
-            if "no such process" in str(exc):
+            if "no such process" in str(exc).lower():
                 logger.warning("process died already: %s", self.proc)
                 return
             logger.warning("process %s did not terminate", self.proc)
-
-        try:
-            self.proc.wait()
-        except OSError:
-            pass
         else:
-            try:
-                self.proc.kill()
-            except OSError:
-                pass
+            # wait for a graceful shutdown
+            logger.info("sleeping while Crossbar shuts down")
+            sleep(2)
 
-        # wait for a graceful shutdown
-        logger.info("sleeping while Crossbar shuts down")
-        sleep(2)
+        self.started = False
 
     def try_connection(self):
         if self.ipv == 4:
@@ -159,7 +158,7 @@ class Crossbar(ParseUrlMixin):
             try:
                 _socket.connect((self.host, self.port))
             except socket_error:
-                pass
+                raise ConnectionError("Could not connect")
 
         elif self.ipv == 6:
             _socket = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
@@ -167,7 +166,7 @@ class Crossbar(ParseUrlMixin):
             try:
                 _socket.connect(("::", self.port))
             except socket_error:
-                pass
+                raise ConnectionError("Could not connect")
 
         else:
             raise WampyError(

@@ -3,13 +3,11 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import logging
-import socket
 from functools import partial
 
 import eventlet
 
-from wampy.errors import (
-    ConnectionError, WampError, WampProtocolError, WampyError)
+from wampy.errors import ConnectionError, WampProtocolError
 from wampy.messages import Message
 from wampy.messages import MESSAGE_TYPE_MAP
 from wampy.messages.hello import Hello
@@ -17,34 +15,8 @@ from wampy.messages.goodbye import Goodbye
 from wampy.messages.register import Register
 from wampy.messages.subscribe import Subscribe
 from wampy.serializers import json_serialize
-from wampy.transports.websocket.connection import (
-    WampWebSocket, TLSWampWebSocket)
-
 
 logger = logging.getLogger('wampy.session')
-
-
-def session_builder(
-        client, router, transport="websocket", use_tls=False,
-        message_handler=None, ipv=4
-):
-    if message_handler is None:
-        raise WampyError(
-            "A ``MessageHandler`` is needed by each ``Session``"
-        )
-
-    if transport == "websocket":
-        if use_tls:
-            transport = TLSWampWebSocket(router)
-        else:
-            transport = WampWebSocket(router)
-    else:
-        raise WampError("transport not supported: {}".format(transport))
-
-    return Session(
-        client=client, router=router, transport=transport,
-        message_handler=message_handler,
-    )
 
 
 class Session(object):
@@ -88,7 +60,6 @@ class Session(object):
         self.session_id = None
         # spawn a green thread to listen for incoming messages over
         # a connection and put them on a queue to be processed
-        self._connection = None
         self._managed_thread = None
         self._message_queue = eventlet.Queue()
 
@@ -127,14 +98,11 @@ class Session(object):
         serialized_message = json_serialize(message)
         message_type = MESSAGE_TYPE_MAP[message.WAMP_CODE]
 
-        if self._connection is None:
-            raise WampError("WAMP Connection Not Established")
-
         logger.debug(
             'sending "%s" message: %s', message_type, serialized_message
         )
 
-        self._connection.send_websocket_frame(serialized_message)
+        self.transport.send(serialized_message)
 
     def recv_message(self, timeout=5):
         try:
@@ -151,30 +119,19 @@ class Session(object):
         return message
 
     def _connect(self):
-        connection = self.transport
-
         try:
-            connection.connect()
+            self.transport.connect()
         except Exception as exc:
             raise ConnectionError(
                 'cannot connect to: "{}": {}'.format(self.transport.url, exc)
             )
 
-        self._listen_on_connection(connection, self._message_queue)
-        self._connection = connection
+        self._listen(self.transport, self._message_queue)
 
     def _disconnet(self):
-        _socket = self.transport.socket
-
-        try:
-            _socket.shutdown(socket.SHUT_RDWR)
-        except socket.error:
-            pass
-
-        _socket.close()
+        self.transport.disconnect()
 
         self._managed_thread.kill()
-        self._connection = None
         self.session = None
 
         logger.debug('disconnected from %s', self.host)
@@ -206,12 +163,12 @@ class Session(object):
                 # Server already gone away?
                 pass
 
-    def _listen_on_connection(self, connection, message_queue):
+    def _listen(self, connection, message_queue):
 
         def connection_handler():
             while True:
                 try:
-                    frame = connection.read_websocket_frame()
+                    frame = connection.receive()
                     if frame:
                         message = frame.payload
                         handler = partial(

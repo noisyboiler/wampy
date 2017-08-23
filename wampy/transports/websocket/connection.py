@@ -15,15 +15,16 @@ from wampy.constants import WEBSOCKET_SUBPROTOCOLS, WEBSOCKET_VERSION
 from wampy.errors import (
     IncompleteFrameError, ConnectionError, WampProtocolError, WampyError)
 from wampy.mixins import ParseUrlMixin
+from wampy.transports.interface import Transport
 
 from . frames import ClientFrame, ServerFrame
 
 logger = logging.getLogger(__name__)
 
 
-class WampWebSocket(ParseUrlMixin):
+class WebSocket(Transport, ParseUrlMixin):
 
-    def __init__(self, router):
+    def register_router(self, router):
         self.url = router.url
 
         self.host = None
@@ -35,6 +36,60 @@ class WampWebSocket(ParseUrlMixin):
         self.websocket_location = self.resource
         self.key = encodestring(uuid.uuid4().bytes).decode('utf-8').strip()
         self.socket = None
+
+    def connect(self):
+        self._connect()
+        self._upgrade()
+
+    def disconnect(self):
+        try:
+            self.socket.shutdown(socket.SHUT_RDWR)
+        except socket.error:
+            pass
+
+        self.socket.close()
+
+    def send(self, message):
+        frame = ClientFrame(message)
+        self.socket.sendall(frame.payload)
+
+    def receive(self, bufsize=1):
+        frame = None
+        received_bytes = bytearray()
+
+        while True:
+            logger.debug("waiting for %s bytes", bufsize)
+
+            try:
+                bytes = self.socket.recv(bufsize)
+            except eventlet.greenlet.GreenletExit as exc:
+                raise ConnectionError('Connection closed: "{}"'.format(exc))
+            except socket.timeout as e:
+                message = str(e)
+                raise ConnectionError('timeout: "{}"'.format(message))
+            except Exception as exc:
+                raise ConnectionError(
+                    'unexpected error reading from socket: "{}"'.format(exc)
+                )
+
+            if not bytes:
+                break
+
+            logger.debug("received %s bytes", bufsize)
+            received_bytes.extend(bytes)
+
+            try:
+                frame = ServerFrame(received_bytes)
+            except IncompleteFrameError as exc:
+                bufsize = exc.required_bytes
+                logger.debug('now requesting the missing %s bytes', bufsize)
+            else:
+                break
+
+        if frame is None:
+            raise WampProtocolError("No frame returned")
+
+        return frame
 
     def _connect(self):
         if self.ipv == 4:
@@ -174,56 +229,10 @@ class WampWebSocket(ParseUrlMixin):
 
         return status, headers
 
-    def connect(self):
-        self._connect()
-        self._upgrade()
 
-    def read_websocket_frame(self, bufsize=1):
-        frame = None
-        received_bytes = bytearray()
-
-        while True:
-            logger.debug("waiting for %s bytes", bufsize)
-
-            try:
-                bytes = self.socket.recv(bufsize)
-            except eventlet.greenlet.GreenletExit as exc:
-                raise ConnectionError('Connection closed: "{}"'.format(exc))
-            except socket.timeout as e:
-                message = str(e)
-                raise ConnectionError('timeout: "{}"'.format(message))
-            except Exception as exc:
-                raise ConnectionError(
-                    'unexpected error reading from socket: "{}"'.format(exc)
-                )
-
-            if not bytes:
-                break
-
-            logger.debug("received %s bytes", bufsize)
-            received_bytes.extend(bytes)
-
-            try:
-                frame = ServerFrame(received_bytes)
-            except IncompleteFrameError as exc:
-                bufsize = exc.required_bytes
-                logger.debug('now requesting the missing %s bytes', bufsize)
-            else:
-                break
-
-        if frame is None:
-            raise WampProtocolError("No frame returned")
-
-        return frame
-
-    def send_websocket_frame(self, message):
-        frame = ClientFrame(message)
-        self.socket.sendall(frame.payload)
-
-
-class TLSWampWebSocket(WampWebSocket):
-    def __init__(self, router):
-        super(TLSWampWebSocket, self).__init__(router)
+class SecureWebSocket(WebSocket):
+    def register_router(self, router):
+        super(SecureWebSocket, self).register_router(router)
 
         self.ipv = router.ipv
 

@@ -28,6 +28,7 @@ DEFAULT_ROLES = {
         },
         'caller': {},
     },
+    'authmethods': ['anonymous']
 }
 
 SUBSCRIBER = "subscriber"

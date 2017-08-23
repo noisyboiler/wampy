@@ -6,14 +6,16 @@ import inspect
 import logging
 import os
 
+from wampy.constants import DEFAULT_ROLES, DEFAULT_REALM
 from wampy.errors import (
     WampProtocolError, WampyError, WelcomeAbortedError)
-from wampy.session import session_builder
+from wampy.session import Session
 from wampy.messages import Message
 from wampy.message_handler import MessageHandler
 from wampy.peers.routers import Crossbar
 from wampy.roles.caller import CallProxy, RpcProxy
 from wampy.roles.publisher import PublishProxy
+from wampy.transports import WebSocket
 
 logger = logging.getLogger("wampy.clients")
 
@@ -21,22 +23,15 @@ logger = logging.getLogger("wampy.clients")
 class Client(object):
     """ A WAMP Client for use in Python applications, scripts and shells.
     """
-    DEFAULT_REALM = "realm1"
-    DEFAULT_ROLES = {
-        'roles': {
-            'subscriber': {},
-            'publisher': {},
-            'callee': {
-                'shared_registration': True,
-            },
-            'caller': {},
-        },
-        'authmethods': ['anonymous']
-    }
 
     def __init__(
-            self, router=None, roles=None, message_handler=None,
-            transport="websocket", use_tls=False, name=None,
+            self,
+            realm=DEFAULT_REALM,
+            roles=DEFAULT_ROLES,
+            router=None,
+            message_handler=None,
+            transport=None,
+            name=None,
     ):
         """ A WAMP Client "Peer".
 
@@ -46,40 +41,43 @@ class Client(object):
         ``call``, ``subscribe`` and ``publish`` decorators and APIs.
 
         :Parameters:
-            router : instance
-                An instance of a Router Peer, e.g. ``wampy.peers.routers.Crossbar``
+            realm : str
+                The routing namespace to construct the ``Session`` over.
+                Defaults to ``realm1``.
             roles : dictionary
-                Description of the Roles implemented by the ``Client``
+                Description of the Roles implemented by the ``Client``.
+                Defaults to ``wampy.constants.DEFAULT_ROLES``.
+            router : instance
+                An instance of a Router Peer, e.g.
+                ``wampy.peers.routers.Crossbar``
             message_handler : instance
                 An instance of ``wampy.message_handler.MessageHandler``, or
                 a subclass of.
-            transport : string
-                The default transport binding for WAMP is WebSocket
-            use_tls : boolean
-                Optional Transport Layer Security (must be supported by the
-                Router Peer). Defaults to ``False``.
+            transport : instance
+                An instance of ``wampy.transports``.
+                Defaults to ``wampy.transports.WebSocket``
             name : string
                 Optional name for your ``Client``. Useful for when testing
                 your app or for logging.
 
         """
-        self.router = router or Crossbar()
-        self.roles = roles or self.DEFAULT_ROLES
-        # only support one realm per Router, and we implicitly assume that
-        # is the one a client is interested in here. this possibly could be
-        # improved....
-        self.realm = router.realm
+        # required when sending a WAMP Message
+        self.roles = roles
+        self.realm = realm
+        # generally for debuggubg and logging only
+        self.name = name or self.__class__.__name__
+
+        router = router or Crossbar()
+        transport = transport or WebSocket()
+        transport.register_router(router)
         message_handler = message_handler or MessageHandler()
 
-        self.session = session_builder(
+        self.session = Session(
             client=self,
-            router=self.router,
+            router=router,
             transport=transport,
             message_handler=message_handler,
-            use_tls=use_tls,
         )
-
-        self.name = name or self.__class__.__name__
 
     def __enter__(self):
         self.start()
