@@ -25,11 +25,10 @@ class Event(object):
     name = "event"
 
     def __init__(
-            self, wamp_code, subscription_id, publication_id, details_dict,
+            self, subscription_id, publication_id, details_dict,
             publish_args=None, publish_kwargs=None,
     ):
 
-        assert wamp_code == self.WAMP_CODE
         super(Event, self).__init__()
 
         self.subscription_id = subscription_id

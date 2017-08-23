@@ -7,7 +7,7 @@ class Abort(object):
     WAMP_CODE = 3
     name = "abort"
 
-    def __init__(self, wamp_code, details=None, uri=None):
+    def __init__(self, details=None, uri=None):
         """ Sent by a Peer*to abort the opening of a WAMP session.
 
         No response is expected.
@@ -19,7 +19,6 @@ class Abort(object):
         [ABORT, Details|dict, Reason|uri]
 
         """
-        assert wamp_code == self.WAMP_CODE
         super(Abort, self).__init__()
 
         self.details = details

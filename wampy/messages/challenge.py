@@ -7,7 +7,7 @@ class Challenge(object):
     WAMP_CODE = 4
     name = "challenge"
 
-    def __init__(self, wamp_code, auth_method, kwargs_dict):
+    def __init__(self, auth_method, kwargs_dict):
         """ The "CHALLENGE" message is used with certain Authentication
         Methods. During authenticated session establishment, a *Router*
         sends a challenge message.
@@ -15,7 +15,6 @@ class Challenge(object):
             [CHALLENGE, AuthMethod|string, Extra|dict]
 
         """
-        assert wamp_code == self.WAMP_CODE
         super(Challenge, self).__init__()
 
         self.auth_method = auth_method

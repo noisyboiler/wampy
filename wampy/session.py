@@ -8,7 +8,6 @@ from functools import partial
 import eventlet
 
 from wampy.errors import ConnectionError, WampProtocolError
-from wampy.messages import Message
 from wampy.messages import MESSAGE_TYPE_MAP
 from wampy.messages.hello import Hello
 from wampy.messages.goodbye import Goodbye
@@ -149,7 +148,7 @@ class Session(object):
         return response
 
     def _say_goodbye(self):
-        message = Goodbye(wamp_code=Message.GOODBYE)
+        message = Goodbye()
         try:
             self.send_message(message)
         except Exception as exc:
@@ -159,7 +158,7 @@ class Session(object):
         else:
             try:
                 message = self.recv_message(timeout=2)
-                if message.WAMP_CODE != Message.GOODBYE:
+                if message.WAMP_CODE != Goodbye.WAMP_CODE:
                     raise WampProtocolError(
                         "Unexpected response from GOODBYE message: {}".format(
                             message

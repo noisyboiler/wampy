@@ -11,7 +11,6 @@ from . event import Event
 from . hello import Hello
 from . invocation import Invocation
 from . goodbye import Goodbye
-from . message import Message
 from . publish import Publish
 from . register import Register
 from . registered import Registered
@@ -24,7 +23,7 @@ from . welcome import Welcome
 
 __all__ = [
     Abort, Authenticate, Call, Challenge, Error, Event, Goodbye, Hello,
-    Invocation, Message, Publish, Register, Registered, Result, Subscribe,
+    Invocation, Publish, Register, Registered, Result, Subscribe,
     Subscribed, Welcome, Yield
 ]
 

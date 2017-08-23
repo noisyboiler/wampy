@@ -19,9 +19,9 @@ class Goodbye(object):
     name = "goodbye"
 
     def __init__(
-            self, wamp_code, details=None, reason=DEFAULT_REASON,
+            self, details=None, reason=DEFAULT_REASON,
     ):
-        assert wamp_code == self.WAMP_CODE
+
         super(Goodbye, self).__init__()
 
         self.details = details or {}

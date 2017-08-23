@@ -23,11 +23,10 @@ class Result(object):
     name = "result"
 
     def __init__(
-            self, wamp_code, request_id, details_dict, yield_args=None,
+            self, request_id, details_dict, yield_args=None,
             yield_kwargs=None
     ):
 
-        assert wamp_code == self.WAMP_CODE
         super(Result, self).__init__()
 
         self.request_id = request_id

@@ -4,12 +4,10 @@
 
 import logging
 
-from wampy.messages.message import Message
-
 logger = logging.getLogger(__name__)
 
 
-class Welcome(Message):
+class Welcome(object):
     """ A _Router_ completes the opening of a WAMP session by sending a
    "WELCOME" reply message to the _Client_.
 
@@ -19,10 +17,7 @@ class Welcome(Message):
     WAMP_CODE = 2
     name = "welcome"
 
-    def __init__(self, wamp_code, session_id, details_dict):
-        assert wamp_code == self.WAMP_CODE
-
-        self.wamp_code = wamp_code
+    def __init__(self, session_id, details_dict):
         self.session_id = session_id
         self.details = details_dict
 

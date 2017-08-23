@@ -10,7 +10,7 @@ from wampy.constants import DEFAULT_ROLES, DEFAULT_REALM
 from wampy.errors import (
     WampProtocolError, WampyError, WelcomeAbortedError)
 from wampy.session import Session
-from wampy.messages import Message
+from wampy.messages import Abort, Challenge, Welcome
 from wampy.message_handler import MessageHandler
 from wampy.peers.routers import Crossbar
 from wampy.roles.caller import CallProxy, RpcProxy
@@ -28,14 +28,12 @@ class Client(object):
             self,
             realm=DEFAULT_REALM,
             roles=DEFAULT_ROLES,
-            router=None,
-            message_handler=None,
-            transport=None,
-            name=None,
+            router=None, message_handler=None, transport=None, name=None,
     ):
         """ A WAMP Client "Peer".
 
-        WAMP is designed for application code to run within Clients, i.e. Peers.
+        WAMP is designed for application code to run within Clients,
+        i.e. Peers.
 
         Peers have the roles Callee, Caller, Publisher, and Subscriber.
 
@@ -101,10 +99,10 @@ class Client(object):
 
     def start(self):
         response = self.session.begin()
-        if response.WAMP_CODE == Message.ABORT:
+        if response.WAMP_CODE == Abort.WAMP_CODE:
             raise WelcomeAbortedError(response.message)
 
-        if response.WAMP_CODE == Message.CHALLENGE:
+        if response.WAMP_CODE == Challenge.WAMP_CODE:
             if 'WAMPYSECRET' not in os.environ:
                 raise WampyError(
                     "Wampy requires a client's secret to be "
@@ -113,7 +111,7 @@ class Client(object):
 
             raise WampyError("Failed to handle CHALLENGE")
 
-        if response.WAMP_CODE == Message.WELCOME:
+        if response.WAMP_CODE == Welcome.WAMP_CODE:
             logger.info("client %s has connected", self.name)
 
     def stop(self):

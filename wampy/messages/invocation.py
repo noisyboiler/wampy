@@ -20,10 +20,10 @@ class Invocation(object):
     name = "invocation"
 
     def __init__(
-            self, wamp_code, request_id, registration_id, details,
+            self, request_id, registration_id, details,
             call_args=None, call_kwargs=None,
     ):
-        assert wamp_code == self.WAMP_CODE
+
         super(Invocation, self).__init__()
 
         self.request_id = request_id

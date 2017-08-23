@@ -71,7 +71,9 @@ class MessageHandler(object):
         )
 
         message_class = self.messages[wamp_code]
-        message_obj = message_class(*message)
+        # instantiate our Message obj using the incoming payload - but slicing
+        # off the WAMP code, which we already know
+        message_obj = message_class(*message[1:])
 
         handler_name = "handle_{}".format(message_obj.name)
         handler = getattr(self, handler_name)
@@ -172,7 +174,6 @@ class MessageHandler(object):
             from wampy.messages import Error
 
             error_message = Error(
-                wamp_code=Error.WAMP_CODE,
                 request_type=68,  # the failing message wamp code
                 request_id=message_obj.request_id,
                 error=procedure_name,

@@ -13,16 +13,14 @@ class Subscribed(object):
     WAMP_CODE = 33
     name = "subscribed"
 
-    def __init__(self, wamp_code, request_id, subscription_id):
-        assert wamp_code == self.WAMP_CODE
+    def __init__(self, request_id, subscription_id):
         super(Subscribed, self).__init__()
 
-        self.wamp_code = wamp_code
         self.request_id = request_id
         self.subscription_id = subscription_id
 
     @property
     def message(self):
         return [
-            self.wamp_code, self.request_id, self.subscription_id,
+            self.WAMP_CODE, self.request_id, self.subscription_id,
         ]

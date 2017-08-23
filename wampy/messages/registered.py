@@ -9,11 +9,10 @@ class Registered(object):
     WAMP_CODE = 65
     name = "registered"
 
-    def __init__(self, wamp_code, request_id, registration_id):
-        assert wamp_code == self.WAMP_CODE
+    def __init__(self, request_id, registration_id):
+
         super(Registered, self).__init__()
 
-        self.wamp_code = wamp_code
         self.request_id = request_id
         self.registration_id = registration_id
 

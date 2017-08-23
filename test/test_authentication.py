@@ -8,7 +8,7 @@ import pytest
 
 from wampy.errors import (
     NotAuthorisedError, WelcomeAbortedError, WampyError)
-from wampy.messages.message import Message
+from wampy.messages import Challenge, Error, Welcome, Goodbye
 from wampy.peers.clients import Client
 from wampy.roles.callee import callee
 
@@ -128,16 +128,16 @@ def test_connection_is_challenged(router):
     messages = wait_for_messages(client, 2)
 
     # expect a Challenge and Welcome message
-    assert messages[0][0] == Message.CHALLENGE
-    assert messages[1][0] == Message.WELCOME
+    assert messages[0][0] == Challenge.WAMP_CODE
+    assert messages[1][0] == Welcome.WAMP_CODE
 
     client.stop()
 
     # now also expect a Goodbye message
     assert len(messages) == 3
-    assert messages[0][0] == Message.CHALLENGE
-    assert messages[1][0] == Message.WELCOME
-    assert messages[2][0] == Message.GOODBYE
+    assert messages[0][0] == Challenge.WAMP_CODE
+    assert messages[1][0] == Welcome.WAMP_CODE
+    assert messages[2][0] == Goodbye.WAMP_CODE
 
 
 def test_incorrect_secret(router):
@@ -205,7 +205,7 @@ def test_peter_cannot_call_get_foo(router, foo_service):
 
     # now also expect a Goodbye message
     assert len(messages) == 4
-    assert messages[0][0] == Message.CHALLENGE
-    assert messages[1][0] == Message.WELCOME
-    assert messages[2][0] == Message.ERROR
-    assert messages[3][0] == Message.GOODBYE
+    assert messages[0][0] == Challenge.WAMP_CODE
+    assert messages[1][0] == Welcome.WAMP_CODE
+    assert messages[2][0] == Error.WAMP_CODE
+    assert messages[3][0] == Goodbye.WAMP_CODE

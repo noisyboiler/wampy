@@ -10,7 +10,7 @@ class Error(object):
     name = "error"
 
     def __init__(
-            self, wamp_code, request_type, request_id,
+            self, request_type, request_id,
             details=None, error="", args_list=None, kwargs_dict=None
     ):
         """ Error reply sent by a Peer as an error response to
@@ -37,10 +37,8 @@ class Error(object):
                 Error|uri, Arguments|list, ArgumentsKw|dict]
 
         """
-        assert wamp_code == self.WAMP_CODE
         super(Error, self).__init__()
 
-        self.wamp_code = wamp_code
         self.request_type = request_type
         self.request_id = request_id
         self.error = error

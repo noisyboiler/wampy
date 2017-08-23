@@ -6,8 +6,8 @@ import logging
 
 from wampy.constants import NOT_AUTHORISED
 from wampy.errors import RemoteError, WampProtocolError, NotAuthorisedError
+from wampy.messages import Error, Result
 from wampy.messages import MESSAGE_TYPE_MAP
-from wampy.messages import Message
 from wampy.messages.call import Call
 
 logger = logging.getLogger('wampy.rpc')
@@ -33,10 +33,10 @@ class CallProxy:
         response = self.client.make_rpc(message)
         wamp_code = response.WAMP_CODE
 
-        if wamp_code == Message.ERROR:
+        if wamp_code == Error.WAMP_CODE:
             logger.error("call returned an error: %s", response)
             return response
-        elif wamp_code == Message.RESULT:
+        elif wamp_code == Result.WAMP_CODE:
             return response.value
 
         raise WampProtocolError("unexpected response: %s", response)
@@ -63,7 +63,7 @@ class RpcProxy:
             response = self.client.make_rpc(message)
 
             wamp_code = response.WAMP_CODE
-            if wamp_code == Message.ERROR:
+            if wamp_code == Error.WAMP_CODE:
                 _, _, request_id, _, endpoint, exc_args, exc_kwargs = (
                     response.message)
 
@@ -76,7 +76,7 @@ class RpcProxy:
                     endpoint, request_id, *exc_args, **exc_kwargs
                 )
 
-            if wamp_code != Message.RESULT:
+            if wamp_code != Result.WAMP_CODE:
                 raise WampProtocolError(
                     'unexpected message code: "%s (%s) %s"',
                     wamp_code, MESSAGE_TYPE_MAP[wamp_code],
