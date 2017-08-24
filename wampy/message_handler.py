@@ -65,7 +65,7 @@ class MessageHandler(object):
         self.client = client
         self.session = client.session
 
-        logger.info(
+        logger.debug(
             "received message: %s (%s)",
             MESSAGE_TYPE_MAP[wamp_code], message
         )
@@ -88,7 +88,7 @@ class MessageHandler(object):
         self.session._message_queue.put(message_obj)
 
     def handle_challenge(self, message_obj):
-        logger.info("client has been Challenged")
+        logger.debug("client has been Challenged")
         if 'WAMPYSECRET' not in os.environ:
             # unable to handle this so delegate to the Client
             self.session._message_queue.put(message_obj)
@@ -201,5 +201,5 @@ class MessageHandler(object):
                 result_args=result_args,
                 result_kwargs=result_kwargs,
             )
-            logger.info("yielding response: %s", yield_message)
+            logger.debug("yielding response: %s", yield_message)
             self.session.send_message(yield_message)
