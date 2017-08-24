@@ -19,7 +19,7 @@ class Transport(object):
         pass
 
     @abc.abstractmethod
-    def send(self):
+    def send(self, message):
         pass
 
     @abc.abstractmethod
