@@ -217,8 +217,9 @@ class Session(object):
 
         self.request_ids[request_id] = message, handler
 
-    def _register_procedure(self, procedure, invocation_policy="single"):
-        procedure_name = procedure.__name__
+    def _register_procedure(self, procedure_name, invocation_policy="single"):
+        """ Register a "procedure" on a Client as callable over the Router.
+        """
         options = {"invoke": invocation_policy}
         message = Register(procedure=procedure_name, options=options)
         request_id = message.request_id
@@ -230,4 +231,4 @@ class Session(object):
                 "failed to register callee: %s", procedure_name
             )
 
-        self.request_ids[request_id] = procedure
+        self.request_ids[request_id] = procedure_name
