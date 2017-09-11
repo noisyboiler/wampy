@@ -153,7 +153,9 @@ class Client(object):
     def publish(self):
         return PublishProxy(client=self)
 
-    def _register_roles(self):
+    def register_roles(self):
+        # over-ride this if you want to customise how your client regisers
+        # its Roles
         logger.info("registering roles for: %s", self.name)
 
         maybe_roles = []
@@ -169,11 +171,9 @@ class Client(object):
 
             if hasattr(maybe_role, 'callee'):
                 procedure_name = maybe_role.__name__
-                # maybe_role is not bound
-                procedure = getattr(self, procedure_name)
                 invocation_policy = maybe_role.invocation_policy
                 self.session._register_procedure(
-                    procedure, invocation_policy)
+                    procedure_name, invocation_policy)
 
                 logger.info(
                     '%s registered callee "%s"', self.name, procedure_name,

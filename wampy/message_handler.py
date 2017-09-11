@@ -136,12 +136,13 @@ class MessageHandler(object):
         args = message_obj.call_args
         kwargs = message_obj.call_kwargs
 
-        procedure = session.registration_map[message_obj.registration_id]
+        procedure_name = session.registration_map[message_obj.registration_id]
+        procedure = getattr(self.client, procedure_name)
 
         try:
             result = procedure(*args, **kwargs)
         except Exception as exc:
-            logger.exception("error calling: %s", procedure.__name__)
+            logger.exception("error calling: %s", procedure_name)
             result = None
             error = exc
         else:
@@ -161,14 +162,13 @@ class MessageHandler(object):
         logger.info("client %s has been welcomed", self.client.name)
         self.session.session_id = message_obj.session_id
         self.session._message_queue.put(message_obj)
-        self.client._register_roles()
+        self.client.register_roles()
 
     def process_result(self, message_obj, result, exc=None):
         result_kwargs = {}
 
-        procedure = self.session.registration_map[
+        procedure_name = self.session.registration_map[
             message_obj.registration_id]
-        procedure_name = procedure.__name__
 
         if exc is not None:
             from wampy.messages import Error
