@@ -142,7 +142,7 @@ class MessageHandler(object):
         try:
             result = procedure(*args, **kwargs)
         except Exception as exc:
-            logger.exception("error calling: %s", procedure.__name__)
+            logger.exception("error calling: %s", procedure_name)
             result = None
             error = exc
         else:
