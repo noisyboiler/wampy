@@ -12,7 +12,7 @@ from wampy.errors import (
 from wampy.session import Session
 from wampy.messages import Abort, Challenge, Welcome
 from wampy.message_handler import MessageHandler
-from wampy.peers.routers import Crossbar
+from wampy.peers.routers import Router
 from wampy.roles.caller import CallProxy, RpcProxy
 from wampy.roles.publisher import PublishProxy
 from wampy.transports import WebSocket
@@ -26,9 +26,10 @@ class Client(object):
 
     def __init__(
             self,
-            realm=DEFAULT_REALM,
-            roles=DEFAULT_ROLES,
-            router=None, message_handler=None, transport=None, name=None,
+            host=None, port=None,
+            realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
+            message_handler=None, transport=None, name=None,
+            router=None
     ):
         """ A WAMP Client "Peer".
 
@@ -46,12 +47,15 @@ class Client(object):
             roles : dictionary
                 Description of the Roles implemented by the ``Client``.
                 Defaults to ``wampy.constants.DEFAULT_ROLES``.
-            router : instance
-                An instance of a Router Peer, e.g.
-                ``wampy.peers.routers.Crossbar``
+            host: str
+                The endpoint of the Router, e.g. "ws://example.com" or
+                "wss://example.com"
+            port: int
+                The port on the endpoint that provides the WAMP connection.
             message_handler : instance
                 An instance of ``wampy.message_handler.MessageHandler``, or
-                a subclass of.
+                a subclass of. This controls the conversation between the
+                two Peers.
             transport : instance
                 An instance of ``wampy.transports``.
                 Defaults to ``wampy.transports.WebSocket``
@@ -60,23 +64,28 @@ class Client(object):
                 your app or for logging.
 
         """
-        # required when sending a WAMP Message
-        self.roles = roles
+        # the ``realm`` is the administrive domain to route messages over.
         self.realm = realm
-        # generally for debuggubg and logging only
+        # the ``roles`` define what Roles (features) the Client can act,
+        # but also configure behaviour such as auth
+        self.roles = roles
+
+        # a Session is a transient conversation between two Peers - a Client
+        # and a Router. Here we model the Peer we are going to connect to.
+        self.router = router or Router(host=host, port=port)
+        # wampy uses a decoupled "messge handler" to process incoming messages.
+        # wampy also provides a very adequate default.
+        self.message_handler = message_handler or MessageHandler()
+        # this conversation is over a transport. WAMP messages are transmitted
+        # as WebSocket messages by default.
+        self.transport = transport or WebSocket()
+        # the transport is responsible for the connection.
+        self.transport.register_router(self.router)
+
+        # generally ``name`` is used for debuggubg and logging only
         self.name = name or self.__class__.__name__
 
-        router = router or Crossbar()
-        transport = transport or WebSocket()
-        transport.register_router(router)
-        message_handler = message_handler or MessageHandler()
-
-        self.session = Session(
-            client=self,
-            router=router,
-            transport=transport,
-            message_handler=message_handler,
-        )
+        self._session = None
 
     def __enter__(self):
         self.start()
@@ -84,6 +93,10 @@ class Client(object):
 
     def __exit__(self, exception_type, exception_value, traceback):
         self.stop()
+
+    @property
+    def session(self):
+        return self._session
 
     @property
     def subscription_map(self):
@@ -98,7 +111,26 @@ class Client(object):
         return self.session.request_ids
 
     def start(self):
+        # establish the underlying connection. this will raise on error.
+        connection = self.transport.connect()
+
+        # create a Session repr between ourselves and the Router.
+        # pass in the live connection, over a transport that the Session
+        # doesn't need to know about - it only knows how to receieve
+        # over this.
+        # pass in out ``MessageHandler`` which will process messages
+        # before they are passed back to the client.
+        self._session = Session(
+            client=self,
+            router=self.router,
+            connection=connection,
+            message_handler=self.message_handler,
+        )
+
+        # establish the session
         response = self.session.begin()
+
+        # TODO: THIS SHOULD ALL BE IN THE MESSAGE HANDLER OR SESSION
         if response.WAMP_CODE == Abort.WAMP_CODE:
             raise WelcomeAbortedError(response.message)
 
@@ -117,6 +149,9 @@ class Client(object):
     def stop(self):
         if self.session and self.session.id:
             self.session.end()
+
+        self.transport.disconnect()
+        self._session = None
 
     def send_message(self, message):
         self.session.send_message(message)

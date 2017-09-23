@@ -16,6 +16,12 @@ from wampy.mixins import ParseUrlMixin
 logger = logging.getLogger('wampy.peers.routers')
 
 
+class Router(ParseUrlMixin):
+    def __init__(self, host, port):
+        self.host = host
+        self.port = port
+
+
 class Crossbar(ParseUrlMixin):
 
     def __init__(

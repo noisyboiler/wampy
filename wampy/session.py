@@ -37,7 +37,7 @@ class Session(object):
 
     """
 
-    def __init__(self, client, router, transport, message_handler):
+    def __init__(self, client, router, connection, message_handler):
         """ A Session between a Client and a Router.
 
         :Parameters:
@@ -45,7 +45,7 @@ class Session(object):
                 An instance of :class:`peers.Client`
             router : instance
                 An instance of :class:`peers.Router`
-            transport : instance
+            connection : instance
                 An instance of ``wampy.transports``.
                 Defaults to ``wampy.transports.WebSocket``
             message_handler : instance
@@ -55,7 +55,7 @@ class Session(object):
         """
         self.client = client
         self.router = router
-        self.transport = transport
+        self.connection = connection
         self.message_handler = message_handler
 
         self.request_ids = {}
@@ -67,6 +67,7 @@ class Session(object):
         # a connection and put them on a queue to be processed
         self._managed_thread = None
         self._message_queue = eventlet.Queue()
+        self._listen(self.connection, self._message_queue)
 
     @property
     def host(self):
@@ -89,15 +90,15 @@ class Session(object):
         return self.session_id
 
     def begin(self):
-        self._connect()
         return self._say_hello()
 
     def end(self):
         self._say_goodbye()
-        self._disconnet()
         self.subscription_map = {}
         self.registration_map = {}
         self.session_id = None
+        self._managed_thread.kill()
+        self._managed_thread = None
 
     def send_message(self, message):
         serialized_message = json_serialize(message)
@@ -107,7 +108,7 @@ class Session(object):
             'sending "%s" message: %s', message_type, serialized_message
         )
 
-        self.transport.send(serialized_message)
+        self.connection.send(serialized_message)
 
     def recv_message(self, timeout=5):
         try:
@@ -122,24 +123,6 @@ class Session(object):
         )
 
         return message
-
-    def _connect(self):
-        try:
-            self.transport.connect()
-        except Exception as exc:
-            raise ConnectionError(
-                'cannot connect to: "{}": {}'.format(self.transport.url, exc)
-            )
-
-        self._listen(self.transport, self._message_queue)
-
-    def _disconnet(self):
-        self.transport.disconnect()
-
-        self._managed_thread.kill()
-        self.session = None
-
-        logger.debug('disconnected from %s', self.host)
 
     def _say_hello(self):
         message = Hello(self.realm, self.roles)

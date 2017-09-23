@@ -74,7 +74,7 @@ def test_client_connects_to_router(router):
 
     client = MyClient(router=router)
 
-    assert client.session.id is None
+    assert client.session is None
 
     client.start()
     wait_for_session(client)
@@ -85,7 +85,7 @@ def test_client_connects_to_router(router):
 
     client.stop()
 
-    assert client.session.id is None
+    assert client.session is None
 
 
 def test_can_start_two_clients(router):
