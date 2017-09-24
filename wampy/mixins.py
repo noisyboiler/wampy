@@ -17,6 +17,14 @@ class ParseUrlMixin(object):
         - ws+unix:///path/to/my.socket
 
         """
+        self.scheme = None
+        self.resource = None
+        self.host = None
+        self.port = None
+
+        if self.url is None:
+            return
+
         scheme, url = self.url.split(":", 1)
         parsed = urlsplit(url, scheme="http")
         if parsed.hostname:

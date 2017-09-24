@@ -6,12 +6,16 @@ import inspect
 import logging
 import os
 
-from wampy.constants import DEFAULT_ROLES, DEFAULT_REALM
+from wampy.constants import (
+    CROSSBAR_DEFAULT, DEFAULT_ROLES, DEFAULT_REALM
+)
 from wampy.errors import (
-    WampProtocolError, WampyError, WelcomeAbortedError)
+    WampProtocolError, WampyError, WelcomeAbortedError
+)
 from wampy.session import Session
 from wampy.messages import Abort, Challenge
 from wampy.message_handler import MessageHandler
+from wampy.mixins import ParseUrlMixin
 from wampy.peers.routers import Router
 from wampy.roles.caller import CallProxy, RpcProxy
 from wampy.roles.publisher import PublishProxy
@@ -20,16 +24,16 @@ from wampy.transports import WebSocket
 logger = logging.getLogger("wampy.clients")
 
 
-class Client(object):
+class Client(ParseUrlMixin):
     """ A WAMP Client for use in Python applications, scripts and shells.
     """
 
     def __init__(
             self,
-            host=None, port=None,
+            url=None,
             realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
             message_handler=None, transport=None, name=None,
-            router=None
+            router=None,
     ):
         """ A WAMP Client "Peer".
 
@@ -41,12 +45,19 @@ class Client(object):
         Subclass this base class to implemente the Roles for your application.
 
         :Parameters:
+            url : string
+                The URL of the Router Peer.
+                This must include protocol, host and port and an optional path,
+                e.g. "ws://example.com:8080" or "wss://example.com:8080/ws".
+
             realm : str
                 The routing namespace to construct the ``Session`` over.
                 Defaults to ``realm1``.
             roles : dictionary
                 Description of the Roles implemented by the ``Client``.
                 Defaults to ``wampy.constants.DEFAULT_ROLES``.
+
+
             host: str
                 The endpoint of the Router, e.g. "ws://example.com" or
                 "wss://example.com"
@@ -63,7 +74,16 @@ class Client(object):
                 Optional name for your ``Client``. Useful for when testing
                 your app or for logging.
 
+            router : instance
+                This is for backwards compatability only. This will be removed
+                on v1.0.
+
+                An instance of a Router Peer, e.g. ``wampy.peers.routers.Crossbar``
+
         """
+        self.url = url or CROSSBAR_DEFAULT
+        self.parse_url()
+
         # the ``realm`` is the administrive domain to route messages over.
         self.realm = realm
         # the ``roles`` define what Roles (features) the Client can act,
@@ -72,7 +92,7 @@ class Client(object):
 
         # a Session is a transient conversation between two Peers - a Client
         # and a Router. Here we model the Peer we are going to connect to.
-        self.router = router or Router(host=host, port=port)
+        self.router = router or Router(host=self.host, port=self.port)
         # wampy uses a decoupled "messge handler" to process incoming messages.
         # wampy also provides a very adequate default.
         self.message_handler = message_handler or MessageHandler()
