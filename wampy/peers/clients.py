@@ -10,7 +10,7 @@ from wampy.constants import DEFAULT_ROLES, DEFAULT_REALM
 from wampy.errors import (
     WampProtocolError, WampyError, WelcomeAbortedError)
 from wampy.session import Session
-from wampy.messages import Abort, Challenge, Welcome
+from wampy.messages import Abort, Challenge
 from wampy.message_handler import MessageHandler
 from wampy.peers.routers import Router
 from wampy.roles.caller import CallProxy, RpcProxy
@@ -128,13 +128,14 @@ class Client(object):
         )
 
         # establish the session
-        response = self.session.begin()
+        message_obj = self.session.begin()
 
-        # TODO: THIS SHOULD ALL BE IN THE MESSAGE HANDLER OR SESSION
-        if response.WAMP_CODE == Abort.WAMP_CODE:
-            raise WelcomeAbortedError(response.message)
+        # raise if Router aborts handshake or we cannot respond to a
+        # Challenge.
+        if message_obj.WAMP_CODE == Abort.WAMP_CODE:
+            raise WelcomeAbortedError(message_obj.message)
 
-        if response.WAMP_CODE == Challenge.WAMP_CODE:
+        if message_obj.WAMP_CODE == Challenge.WAMP_CODE:
             if 'WAMPYSECRET' not in os.environ:
                 raise WampyError(
                     "Wampy requires a client's secret to be "
@@ -143,15 +144,16 @@ class Client(object):
 
             raise WampyError("Failed to handle CHALLENGE")
 
-        if response.WAMP_CODE == Welcome.WAMP_CODE:
-            logger.info("client %s has connected", self.name)
+        logger.info(
+            'client %s has established a session with id "%s"',
+            self.name, self.session.id
+        )
 
     def stop(self):
         if self.session and self.session.id:
             self.session.end()
 
         self.transport.disconnect()
-        self._session = None
 
     def send_message(self, message):
         self.session.send_message(message)
