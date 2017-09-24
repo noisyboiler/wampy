@@ -49,20 +49,12 @@ class Client(ParseUrlMixin):
                 The URL of the Router Peer.
                 This must include protocol, host and port and an optional path,
                 e.g. "ws://example.com:8080" or "wss://example.com:8080/ws".
-
             realm : str
                 The routing namespace to construct the ``Session`` over.
                 Defaults to ``realm1``.
             roles : dictionary
                 Description of the Roles implemented by the ``Client``.
                 Defaults to ``wampy.constants.DEFAULT_ROLES``.
-
-
-            host: str
-                The endpoint of the Router, e.g. "ws://example.com" or
-                "wss://example.com"
-            port: int
-                The port on the endpoint that provides the WAMP connection.
             message_handler : instance
                 An instance of ``wampy.message_handler.MessageHandler``, or
                 a subclass of. This controls the conversation between the
@@ -73,11 +65,9 @@ class Client(ParseUrlMixin):
             name : string
                 Optional name for your ``Client``. Useful for when testing
                 your app or for logging.
-
             router : instance
                 This is for backwards compatability only. This will be removed
                 on v1.0.
-
                 An instance of a Router Peer, e.g.
                 ``wampy.peers.routers.Crossbar``
 

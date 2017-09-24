@@ -14,7 +14,7 @@ logger = logging.getLogger('wampy.messagehandler')
 class MessageHandler(object):
     """ Responsible for processing incoming WAMP messages.
 
-    The ``Session`` object receieves Messages on behalf of a
+    The ``Session`` object receives Messages on behalf of a
     ``Client`` and passes them into a ``MessageHandler``.
 
     The ``MessageHandler`` is designed to be extensible and be
