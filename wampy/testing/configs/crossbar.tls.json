@@ -33,9 +33,9 @@
          "transports":[
             {
                "type":"websocket",
-               "endpoint":{
-                  "type":"tcp",
-                  "port":9443,
+               "endpoint": {
+                  "type": "tcp",
+                  "port": 9443,
                   "version": 4,
                   "interface": "localhost",
                   "tls":{
