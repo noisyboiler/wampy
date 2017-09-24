@@ -61,7 +61,7 @@ def test_connection_is_aborted_when_not_authorised(router):
     }
 
     client = Client(
-        router=router, roles=roles, name="unauthenticated-client")
+        router=router, roles=roles, name="unauthenticated-client-one")
 
     with pytest.raises(WelcomeAbortedError) as exc_info:
         client.start()
@@ -92,7 +92,7 @@ def test_connection_exits_if_missing_client_secret(router):
     }
 
     client = Client(
-        router=router, roles=roles, name="unauthenticated-client")
+        router=router, roles=roles, name="unauthenticated-client-two")
 
     with pytest.raises(WampyError) as exc_info:
         client.start()
@@ -192,11 +192,12 @@ def test_peter_cannot_call_get_foo(router, foo_service):
         router=router,
         roles=roles,
         message_handler=message_handler,
-        name="unauthenticated-client",
+        name="unauthenticated-client-three",
     )
 
+    client.start()
+
     with pytest.raises(NotAuthorisedError):
-        client.start()
         client.rpc.get_foo()
 
     client.stop()
