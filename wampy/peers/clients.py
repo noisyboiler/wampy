@@ -78,7 +78,8 @@ class Client(ParseUrlMixin):
                 This is for backwards compatability only. This will be removed
                 on v1.0.
 
-                An instance of a Router Peer, e.g. ``wampy.peers.routers.Crossbar``
+                An instance of a Router Peer, e.g.
+                ``wampy.peers.routers.Crossbar``
 
         """
         self.url = url or CROSSBAR_DEFAULT
@@ -135,9 +136,9 @@ class Client(ParseUrlMixin):
         connection = self.transport.connect()
 
         # create a Session repr between ourselves and the Router.
-        # pass in the live connection, over a transport that the Session
-        # doesn't need to know about - it only knows how to receieve
-        # over this.
+        # pass in the live connection over a transport that the Session
+        # doesn't need to care about - it only cares how to receive
+        # messages over this.
         # pass in out ``MessageHandler`` which will process messages
         # before they are passed back to the client.
         self._session = Session(
