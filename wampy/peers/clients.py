@@ -15,7 +15,6 @@ from wampy.errors import (
 from wampy.session import Session
 from wampy.messages import Abort, Challenge
 from wampy.message_handler import MessageHandler
-from wampy.mixins import ParseUrlMixin
 from wampy.peers.routers import Router
 from wampy.roles.caller import CallProxy, RpcProxy
 from wampy.roles.publisher import PublishProxy
@@ -24,7 +23,7 @@ from wampy.transports import WebSocket
 logger = logging.getLogger("wampy.clients")
 
 
-class Client(ParseUrlMixin):
+class Client(object):
     """ A WAMP Client for use in Python applications, scripts and shells.
     """
 
@@ -71,9 +70,8 @@ class Client(ParseUrlMixin):
                 ``wampy.peers.routers.Crossbar``
 
         """
+        # the endpoint of a WAMP Router
         self.url = url or CROSSBAR_DEFAULT
-        self.parse_url()
-
         # the ``realm`` is the administrive domain to route messages over.
         self.realm = realm
         # the ``roles`` define what Roles (features) the Client can act,
@@ -118,6 +116,18 @@ class Client(ParseUrlMixin):
     @property
     def request_ids(self):
         return self.session.request_ids
+
+    @property
+    def call(self):
+        return CallProxy(client=self)
+
+    @property
+    def rpc(self):
+        return RpcProxy(client=self)
+
+    @property
+    def publish(self):
+        return PublishProxy(client=self)
 
     def start(self):
         # establish the underlying connection. this will raise on error.
@@ -186,18 +196,6 @@ class Client(ParseUrlMixin):
             raise
 
         return response
-
-    @property
-    def call(self):
-        return CallProxy(client=self)
-
-    @property
-    def rpc(self):
-        return RpcProxy(client=self)
-
-    @property
-    def publish(self):
-        return PublishProxy(client=self)
 
     def register_roles(self):
         # over-ride this if you want to customise how your client regisers
