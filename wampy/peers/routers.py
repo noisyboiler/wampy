@@ -17,9 +17,10 @@ logger = logging.getLogger('wampy.peers.routers')
 
 
 class Router(ParseUrlMixin):
-    def __init__(self, host, port):
-        self.host = host
-        self.port = port
+    def __init__(self, url, ipv=4):
+        self.url = url
+        self.ipv = ipv
+        self.parse_url()
 
 
 class Crossbar(ParseUrlMixin):

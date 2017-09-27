@@ -66,9 +66,8 @@ class Client(ParseUrlMixin):
                 Optional name for your ``Client``. Useful for when testing
                 your app or for logging.
             router : instance
-                This is for backwards compatability only. This will be removed
-                on v1.0.
-                An instance of a Router Peer, e.g.
+                Deprecaterd. This is for backwards compatability only. This
+                will be removed on v1.0. An instance of a Router Peer, e.g.
                 ``wampy.peers.routers.Crossbar``
 
         """
@@ -80,10 +79,9 @@ class Client(ParseUrlMixin):
         # the ``roles`` define what Roles (features) the Client can act,
         # but also configure behaviour such as auth
         self.roles = roles
-
         # a Session is a transient conversation between two Peers - a Client
         # and a Router. Here we model the Peer we are going to connect to.
-        self.router = router or Router(host=self.host, port=self.port)
+        self.router = router or Router(url=self.url)
         # wampy uses a decoupled "messge handler" to process incoming messages.
         # wampy also provides a very adequate default.
         self.message_handler = message_handler or MessageHandler()

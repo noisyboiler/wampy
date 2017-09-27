@@ -44,35 +44,27 @@ class BinaryNumberService(Client):
 
 @pytest.yield_fixture
 def date_service(router):
-    with DateService(router=router):
+    with DateService(url=router.url):
         yield
 
 
 @pytest.yield_fixture
 def hello_service(router):
-    with HelloService(router=router):
+    with HelloService(url=router.url):
         yield
 
 
 @pytest.yield_fixture
 def binary_number_service(router):
-    with BinaryNumberService(router=router):
+    with BinaryNumberService(url=router.url):
         yield
-
-
-def make_service_clients(router, ids):
-    clients = []
-    for id_ in ids:
-        clients.append(Client(router=router, id=id_))
-
-    return clients
 
 
 def test_client_connects_to_router(router):
     class MyClient(Client):
         pass
 
-    client = MyClient(router=router)
+    client = MyClient(url=router.url)
 
     assert client.session is None
 
@@ -93,13 +85,13 @@ def test_can_start_two_clients(router):
     class MyClient(Client):
         pass
 
-    app_one = MyClient(router=router)
+    app_one = MyClient(url=router.url)
     app_one.start()
     wait_for_session(app_one)
 
     assert app_one.session.id
 
-    app_two = MyClient(router=router)
+    app_two = MyClient(url=router.url)
     app_two.start()
     wait_for_session(app_two)
 

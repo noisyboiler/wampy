@@ -83,7 +83,7 @@ class Session(object):
 
     @property
     def realm(self):
-        return self.router.realm['name']
+        return self.client.realm
 
     @property
     def id(self):
