@@ -73,6 +73,13 @@ class Client(object):
                 in single host setups or testing.
 
         """
+        if url and router:
+            raise WampyError(
+                "Both ``url`` and ``router`` decide how your client connects "
+                "to the Router, and so only one can be defined on "
+                "instantiation. Please choose one or the other."
+            )
+
         # the endpoint of a WAMP Router
         self.url = url or CROSSBAR_DEFAULT
         # the ``realm`` is the administrive domain to route messages over.
