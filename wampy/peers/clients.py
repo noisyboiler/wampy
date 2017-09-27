@@ -65,9 +65,12 @@ class Client(object):
                 Optional name for your ``Client``. Useful for when testing
                 your app or for logging.
             router : instance
-                Deprecaterd. This is for backwards compatability only. This
-                will be removed on v1.0. An instance of a Router Peer, e.g.
+                An alternative way to connect to a Router rather than ``url``.
+                An instance of a Router Peer, e.g.
                 ``wampy.peers.routers.Crossbar``
+                This is more configurable and powerful, but requires a copy
+                of the Router's config file, making this only really useful
+                in single host setups or testing.
 
         """
         # the endpoint of a WAMP Router

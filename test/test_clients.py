@@ -60,11 +60,31 @@ def binary_number_service(router):
         yield
 
 
-def test_client_connects_to_router(router):
+def test_client_connects_to_router_by_url(router):
     class MyClient(Client):
         pass
 
     client = MyClient(url=router.url)
+
+    assert client.session is None
+
+    client.start()
+    wait_for_session(client)
+
+    session = client.session
+    assert session.id is not None
+    assert session.client is client
+
+    client.stop()
+
+    assert client.session.id is None
+
+
+def test_client_connects_to_router_by_instance(router):
+    class MyClient(Client):
+        pass
+
+    client = MyClient(router=router)
 
     assert client.session is None
 
