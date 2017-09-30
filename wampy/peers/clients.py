@@ -185,7 +185,7 @@ class Client(object):
 
             raise WampyError("Failed to handle CHALLENGE")
 
-        logger.info(
+        logger.debug(
             'client %s has established a session with id "%s"',
             self.name, self.session.id
         )
@@ -241,7 +241,7 @@ class Client(object):
                 self.session._register_procedure(
                     procedure_name, invocation_policy)
 
-                logger.info(
+                logger.debug(
                     '%s registered callee "%s"', self.name, procedure_name,
                 )
 
@@ -250,6 +250,7 @@ class Client(object):
                 handler_name = maybe_role.handler.__name__
                 handler = getattr(self, handler_name)
                 self.session._subscribe_to_topic(handler, topic)
-                logger.info(
+
+                logger.debug(
                     '%s subscribed to topic "%s"', self.name, topic,
                 )
