@@ -37,7 +37,7 @@ If you're working from a Python shell or script you can connect to a Router as f
 
     # exits as normal
 
-Under the hood wampy creates an instance a a representaion of a Router Peer because a Session is a managed conversation between two Peers - a Client and a Router. Because wampy treats a Session like this, there is actually also a fourth method of connection as you can create the Router instance yourself and pass this into a Client directly. This is bascically most useful for test and CI environments, or local setups during development. See the wampy tests for examples and the wampy wrapper around the Crossbar.io Router.
+Under the hood wampy creates an instance of a Router representaion because a Session is a managed conversation between two Peers - a Client and a Router. Because wampy treats a Session like this, there is actually also a *fourth* method of connection, as you can create the Router instance yourself and pass this into a Client directly. This is bascically only useful for test and CI environments, or local setups during development, or for fun. See the wampy tests for examples and the wampy wrapper around the Crossbar.io Router.
 
 Sending a Message
 =================

@@ -52,7 +52,7 @@ QuickStart - Connect and Go!
 
 If you've already got access to a running **Router** which has other **Peers** connected, then stay here. If not, jump to the next section. If you're still here, open a Python shell.
 
-The example here assumes a **Peer** connected to a **Router** on ``localhost``, port ``8080``, that has registered a remote procedure called ``get_foobar``, and you want to *call* that proceure.
+The example here assumes a **Peer** connected to a **Router** on ``localhost``, port ``8080``, that has registered a remote procedure called ``get_foobar``, and you want to *call* that procedure.
 
 ::
 
@@ -74,7 +74,7 @@ The same example here, but the **Router** is on a *remote* host.
 
     # do something with the response here
 
-The WAMP Session is context-managed, meaning it begins as you enter, and ends as you exit the context-managed scope.
+The WAMP Session is "context managed", meaning it begins as you enter, and ends as you exit the scope of the client instance.
 
 See `ReadTheDocs`_ for much more detail on this.
 
