@@ -17,8 +17,9 @@ logger = logging.getLogger('wampy.peers.routers')
 
 
 class Router(ParseUrlMixin):
-    def __init__(self, url, ipv=4):
+    def __init__(self, url, cert_path=None, ipv=4):
         self.url = url
+        self.certificate = cert_path
         self.ipv = ipv
         self.parse_url()
 
