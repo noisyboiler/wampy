@@ -39,7 +39,7 @@ class ParseUrlMixin(object):
 
         if scheme == "ws":
             if not self.port:
-                self.port = 80
+                self.port = 8080
         elif scheme == "wss":
             if not self.port:
                 self.port = 443

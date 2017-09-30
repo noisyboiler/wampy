@@ -48,6 +48,8 @@ class Client(object):
                 The URL of the Router Peer.
                 This must include protocol, host and port and an optional path,
                 e.g. "ws://example.com:8080" or "wss://example.com:8080/ws".
+                Note though that "ws" protocol defaults to port 8080, an "wss"
+                to 443.
             realm : str
                 The routing namespace to construct the ``Session`` over.
                 Defaults to ``realm1``.

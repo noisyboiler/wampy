@@ -60,6 +60,14 @@ def binary_number_service(router):
         yield
 
 
+@pytest.fixture
+def client_cls():
+    class MyClient(Client):
+        pass
+
+    return MyClient
+
+
 def test_client_connects_to_router_by_url(router):
     class MyClient(Client):
         pass
@@ -78,6 +86,20 @@ def test_client_connects_to_router_by_url(router):
     client.stop()
 
     assert client.session.id is None
+
+
+def test_url_without_protocol(router, client_cls):
+    with pytest.raises(ValueError):
+        client_cls(url="localhost:8080")
+
+
+def test_url_without_port_uses_default(router, client_cls):
+    client = client_cls(url="ws://localhost")
+
+    # should not raise
+    client.start()
+    wait_for_session(client)
+    client.stop()
 
 
 def test_client_connects_to_router_by_instance(router):
