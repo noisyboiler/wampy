@@ -47,7 +47,39 @@ wampy features
 - Pytest fixtures to use when testing your projects
 - nameko_ integration with nameko_wamp_
 
-Quickstart: wampy from the command line
+QuickStart - Connect and Go!
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you've already got access to a running **Router** which has other **Peers** connected, then stay here. If not, jump to the next section. If you're still here, open a Python shell.
+
+The example here assumes a **Peer** connected to a **Router** on ``localhost``, port ``8080``, that has registered a remote procedure called ``get_foobar``, and you want to *call* that proceure.
+
+::
+
+    from wampy.peers import Client
+
+    with Client() as client:
+        resposne = client.rpc.get_foobar()
+
+    # do something with the response here
+
+The same example here, but the **Router** is on a *remote* host.
+
+::
+
+    from wampy.peers import Client
+
+    with Client(url="ws://example.com:8080") as client:
+        response = client.rpc.get_foobar()
+
+    # do something with the response here
+
+The WAMP Session is context-managed, meaning it begins as you enter, and ends as you exit the context-managed scope.
+
+See `ReadTheDocs`_ for much more detail on this.
+
+
+Running and Calling a wampy Application 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Before any messaging can happen you need a **Router**. Messages are then routed between **Clients** over an administrative domain on the **Router** called a **Realm**.
@@ -101,27 +133,11 @@ Now, open a Python console in a new terminal, allowing the ``BinaryNumberService
 
     In [1]: from wampy.peers.clients import Client
 
-    In [2]: from wampy.peers.routers import Crossbar
-
-    In [3]: router = Crossbar(config_path='./wampy/testing/configs/crossbar.json')
-
-    In [4]: with Client(router=router) as client:
+    In [2]: with Client(url="ws://localhost:8080") as client:
                 result = client.rpc.get_binary_number(number=100)
 
-    In [5]: result
-    Out[5]: u'0b1100100'
-
-Note here that a ``Client`` takes a ``router`` argument which defaults to Crossbar. Crossbar then defaults to ``realm1`` on ``localhost:8080``. To use different values you'll need to configure and pass in the router object to the client yourself. This isn't hard, but when you're developing locally these defaults are there to help you get up and running quickly.
-
-In fact, the ``router`` was just there in this example to make it clear that a ``Client`` takes a ``router`` parameter. Developing locally, this is all you need:
-
-::
-
-    In [1]: from wampy.peers.clients import Client
-
-    In [2]: with Client() as client:
-                result = client.rpc.get_binary_number(number=100)
-
+    In [3]: result
+    Out[3]: u'0b1100100'
 
 wampy RPC for Crossbar.io
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -171,9 +187,9 @@ In another terminal, with a **wampy** virtualenv, you can create a **Publisher**
 
 ::
 
-    In [1]: from wampy.peers import Client, Crossbar
+    In [1]: from wampy.peers import Client
 
-    In [2]: with Client(router=Crossbar()) as client:
+    In [2]: with Client() as client:
                 result = client.publish(topic="foo", message="spam")
 
 Hopefully you'll see any message you send printed to the screen where the example service is running. You'll also see the meta data that **wampy** chooses to send.
