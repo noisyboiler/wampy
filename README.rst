@@ -44,6 +44,7 @@ wampy features
 - Publish and Subscribe over websockets
 - Client Authentication
 - Transport Layer Security
+- CLI for easy and rapid development
 - Pytest fixtures to use when testing your projects
 - nameko_ integration with nameko_wamp_
 
