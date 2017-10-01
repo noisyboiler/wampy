@@ -10,7 +10,6 @@ import pytest
 
 from wampy.peers.clients import Client
 from wampy.roles.callee import callee
-from wampy.transports import SecureWebSocket
 from wampy.testing.helpers import wait_for_session, wait_for_registrations
 
 
@@ -69,18 +68,44 @@ class TestSecureWebSocket(object):
     def config_path(self):
         return './wampy/testing/configs/crossbar.tls.json'
 
-    def test_ipv4_secure_websocket_connection(self, config_path, router):
+    def test_ipv4_secure_websocket_connection_by_router_instance(
+        self, config_path, router
+    ):
+        try:
+            ssl.PROTOCOL_TLSv1_2
+        except AttributeError:
+            pytest.skip('Python Environment does not support TLS')
+
+        with DateService(router=router) as service:
+            wait_for_registrations(service, 1)
+
+            client = Client(router=router)
+            with client:
+                wait_for_session(client)
+                result = client.rpc.get_todays_date()
+
+        today = date.today()
+
+        assert result == today.isoformat()
+
+    def test_ipv4_secure_websocket_connection_by_router_url(self, router):
+        assert router.url == "wss://localhost:9443"
+
         try:
             ssl.PROTOCOL_TLSv1_2
         except AttributeError:
             pytest.skip('Python Environment does not support TLS')
 
         with DateService(
-                router=router, transport=SecureWebSocket()
+            url="wss://localhost:9443",
+            cert_path="./wampy/testing/keys/server_cert.pem",
         ) as service:
             wait_for_registrations(service, 1)
 
-            client = Client(router=router, transport=SecureWebSocket())
+            client = Client(
+                url="wss://localhost:9443",
+                cert_path="./wampy/testing/keys/server_cert.pem",
+            )
             with client:
                 wait_for_session(client)
                 result = client.rpc.get_todays_date()

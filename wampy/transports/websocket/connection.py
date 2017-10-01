@@ -40,6 +40,7 @@ class WebSocket(Transport, ParseUrlMixin):
     def connect(self):
         self._connect()
         self._upgrade()
+        return self
 
     def disconnect(self):
         try:

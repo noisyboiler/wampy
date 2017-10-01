@@ -6,71 +6,44 @@ import logging
 import os
 
 from wampy.auth import compute_wcs
-from wampy.errors import WampyError
-from wampy.messages import MESSAGE_TYPE_MAP
-from wampy.messages import (
-    Abort, Authenticate, Challenge, Goodbye, Error, Event, Invocation,
-    Registered, Result, Subscribed, Welcome, Yield)
+from wampy.messages import Authenticate, MESSAGE_TYPE_MAP
 
 logger = logging.getLogger('wampy.messagehandler')
 
 
 class MessageHandler(object):
+    """ Responsible for processing incoming WAMP messages.
 
-    # the minimum messages to perform WAMP RPC and PubSub
-    DEFAULT_MESSAGES_TO_HANDLE = [
-        Welcome, Abort, Goodbye, Registered, Invocation, Yield, Result,
-        Error, Subscribed, Event, Challenge
-    ]
+    The ``Session`` object receives Messages on behalf of a
+    ``Client`` and passes them into a ``MessageHandler``.
 
-    def __init__(self, messages_to_handle=None):
-        """ Responsible for processing incoming WAMP messages.
+    The ``MessageHandler`` is designed to be extensible and be
+    configured so that a wampy client can be used as part of
+    larger applications. To do this subclass ``MessageHandler``
+    and override the ``handle_`` methods you wish to customise,
+    then instantiate your ``Client`` with your ``MessageHandler``
+    instance.
 
-        The ``Session`` object receieves Messages on behalf of a
-        ``Client`` and passes them into a ``MessageHandler``.
+    .. warning ::
+        When subclassing ``MessageHandler`` avoid raising Exceptions
+        since messages are handled in a background "green" thread
+        and unless you're very careful, you won't see your error
+        and you'll lose your background worker too.
 
-        The ``MessageHandler`` is designed to be extensible and be
-        configured so that a wampy client can be used as part of
-        larger applications. To do this subclass ``MessageHandler``
-        and override the ``handle_`` methods you wish to customise,
-        then instantiate your ``Client`` with your ``MessageHandler``
-        instance.
-
-        :Parameters:
-            messages_to_handle : list
-                A list of Message classes. Only Messages described in
-                this list will be accepted.
-
-        """
-        self.messages_to_handle = (
-            messages_to_handle or self.DEFAULT_MESSAGES_TO_HANDLE
-        )
-
-        self.messages = {}
-        self._configure_messages()
-
-    def _configure_messages(self):
-        messages = self.messages
-        for message in self.messages_to_handle:
-            messages[message.WAMP_CODE] = message
+    """
 
     def handle_message(self, message, client):
         wamp_code = message[0]
-        if wamp_code not in self.messages:
-            raise WampyError(
-                "No message handler is configured for: {}".format(
-                    MESSAGE_TYPE_MAP[wamp_code])
-            )
-
-        self.client = client
-        self.session = client.session
 
         logger.debug(
             "received message: %s (%s)",
             MESSAGE_TYPE_MAP[wamp_code], message
         )
 
-        message_class = self.messages[wamp_code]
+        self.client = client
+        self.session = client.session
+
+        message_class = MESSAGE_TYPE_MAP[wamp_code]
         # instantiate our Message obj using the incoming payload - but slicing
         # off the WAMP code, which we already know
         message_obj = message_class(*message[1:])
@@ -102,6 +75,7 @@ class MessageHandler(object):
         self.session.send_message(message)
 
     def handle_error(self, message_obj):
+        logger.error("received error: %s", message_obj.message)
         self.session._message_queue.put(message_obj)
 
     def handle_event(self, message_obj):

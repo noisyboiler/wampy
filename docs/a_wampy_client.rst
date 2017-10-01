@@ -1,19 +1,46 @@
 A wampy Client
 ==============
 
-If you're working from a Python shell or script you have the convieiance of using the wampy client directly without having to start up an application.
+If you're working from a Python shell or script you can connect to a Router as follows.
+
+1. Router is running on localhost, port 8080, start and stop manually.
 
 ::
 
     from wampy.peers import Client
-    from wampy.peers.routers import Crossbar
 
-    with Client(router=Crossbar()) as client:
-        result = client.call("example.app.com")
-        client.publish(topic="foo", message=result)
+    client = Client()
+    client.start()  # connects to the Router & establishes a WAMP Session
+    # send some WAMP messages here
+    client.stop()  # ends Session, disconnects from Router
 
 
-Note that the Crossbar router does require a path to an expected ``config,.yaml``, but here a default value is used. The default for Crossbar is ``"./crossbar/config.json"``.
+2. Router is running on localhost, port 8080, context-manage the Session
+
+::
+
+    from wampy.peers import Client
+
+    with Client() as client:
+        # send some WAMP messages here
+
+    # on exit, the Session and connection are gracefully closed
+
+3. Router is on example.com, port 8080, context-managed client again
+
+::
+
+    from wampy.peers import Client
+
+    with Client(url="ws://example.com:8080") as client:
+        # send some WAMP messages here
+
+    # exits as normal
+
+Under the hood wampy creates an instance of a Router representaion because a Session is a managed conversation between two Peers - a Client and a Router. Because wampy treats a Session like this, there is actually also a *fourth* method of connection, as you can create the Router instance yourself and pass this into a Client directly. This is bascically only useful for test and CI environments, or local setups during development, or for fun. See the wampy tests for examples and the wampy wrapper around the Crossbar.io Router.
+
+Sending a Message
+=================
 
 When a **wampy** client starts up it will send the **HELLO** message for you and begin a **Session**. Once you have the **Session** you can construct and send a **WAMP** message yourself, if you so choose. But **wampy** has the ``publish`` and ``rpc`` APIs so you don't have to.
 
@@ -25,27 +52,28 @@ Given a **Crossbar.io** server running on localhost on port 8080, a **realm** of
 
     In [1]: from wampy.peers.clients import Client
 
-    In [2]: from wampy.peers.routers import Crossbar
+    In [2]: from wampy.messages.call import Call
 
-    In [3]: from wampy.messages.call import Call
+    In [3]: client = Client()
 
-    In [4]: router = Crossbar(config_path="./crossbar/config.json")
+    In [4]: message = Call(procedure="foobar", args=(), kwargs={})
 
-    In [5]: client = Client(router=router)
-
-    In [6]: message = Call(procedure="foobar", args=(), kwargs={})
-
-    In [7]: with client:
+    In [5]: with client:
                 client.send_message(message)
 
-This is quite verbose and unnecessary with the core **wampy** API. With **wampy** you don't actually have to manually craft any messages. And of course, without another **Peer** having registered "foobar" on the same **realm**, this example will achieve little. And even if there were, you'd still have to do work to receive, unpack and interpret the response.
+This example assumes a Router running on localhost and a second Peer attached over the same realm who hjas registered the callee "foobar"
 
-Note that in the example, as you leave the context managed function call, the client will send a **GOODBYE** message and your **Session** will end. And that ``./crossbar/config.json`` is the default value for ``config_path``.
+Note that in the example, as you leave the context managed function call, the client will send a **GOODBYE** message and your **Session** will end.
 
-Because the procedure name is not a dot delimeted string, the above can essentially be replaced with:
+wampy does not want you to waste time constructing messages by hand, so the above can be replaced with:
 
 ::
 
-    In [X]: respones = client.rpc.foobar(*args, **kwargs)
+    In [1]: from wampy.peers.clients import Client
+
+    In [2]: client = Client()
+
+    In [5]: with client:
+                client.rpc.foobar(*args, **kwargs)
 
 Under the hood, **wampy** has the ``RpcProxy`` object that implements the ``rpc`` API.

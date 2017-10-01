@@ -33,9 +33,9 @@
          "transports":[
             {
                "type":"websocket",
-               "endpoint":{
-                  "type":"tcp",
-                  "port":9443,
+               "endpoint": {
+                  "type": "tcp",
+                  "port": 9443,
                   "version": 4,
                   "interface": "localhost",
                   "tls":{
@@ -45,7 +45,7 @@
                      "ciphers":"ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AES:RSA+3DES:!ADH:!AECDH:!MD5:!DSS"
                   }
                },
-               "url": "ws://localhost:9443"
+               "url": "wss://localhost:9443"
             }
          ]
       }

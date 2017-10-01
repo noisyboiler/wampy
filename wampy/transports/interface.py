@@ -12,7 +12,7 @@ class Transport(object):
 
     @abc.abstractmethod
     def connect(self):
-        pass
+        """ should return ``self`` as the "connection" object """
 
     @abc.abstractmethod
     def disconnect(self):

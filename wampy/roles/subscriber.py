@@ -5,7 +5,6 @@
 import logging
 
 from wampy.errors import WampyError
-from wampy.peers.clients import Client
 
 logger = logging.getLogger(__name__)
 

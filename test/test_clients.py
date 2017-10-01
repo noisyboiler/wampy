@@ -44,37 +44,71 @@ class BinaryNumberService(Client):
 
 @pytest.yield_fixture
 def date_service(router):
-    with DateService(router=router):
+    with DateService(url=router.url):
         yield
 
 
 @pytest.yield_fixture
 def hello_service(router):
-    with HelloService(router=router):
+    with HelloService(url=router.url):
         yield
 
 
 @pytest.yield_fixture
 def binary_number_service(router):
-    with BinaryNumberService(router=router):
+    with BinaryNumberService(url=router.url):
         yield
 
 
-def make_service_clients(router, ids):
-    clients = []
-    for id_ in ids:
-        clients.append(Client(router=router, id=id_))
+@pytest.fixture
+def client_cls():
+    class MyClient(Client):
+        pass
 
-    return clients
+    return MyClient
 
 
-def test_client_connects_to_router(router):
+def test_client_connects_to_router_by_url(router):
+    class MyClient(Client):
+        pass
+
+    client = MyClient(url=router.url)
+
+    assert client.session is None
+
+    client.start()
+    wait_for_session(client)
+
+    session = client.session
+    assert session.id is not None
+    assert session.client is client
+
+    client.stop()
+
+    assert client.session.id is None
+
+
+def test_url_without_protocol(router, client_cls):
+    with pytest.raises(ValueError):
+        client_cls(url="localhost:8080")
+
+
+def test_url_without_port_uses_default(router, client_cls):
+    client = client_cls(url="ws://localhost")
+
+    # should not raise
+    client.start()
+    wait_for_session(client)
+    client.stop()
+
+
+def test_client_connects_to_router_by_instance(router):
     class MyClient(Client):
         pass
 
     client = MyClient(router=router)
 
-    assert client.session.id is None
+    assert client.session is None
 
     client.start()
     wait_for_session(client)
@@ -93,13 +127,13 @@ def test_can_start_two_clients(router):
     class MyClient(Client):
         pass
 
-    app_one = MyClient(router=router)
+    app_one = MyClient(url=router.url)
     app_one.start()
     wait_for_session(app_one)
 
     assert app_one.session.id
 
-    app_two = MyClient(router=router)
+    app_two = MyClient(url=router.url)
     app_two.start()
     wait_for_session(app_two)
 
