@@ -16,13 +16,13 @@ with open(path.join(here, 'README.rst')) as f:
 
 setup(
     name='wampy',
-    version='0.9.8',
+    version='0.9.9',
     description='WAMP RPC and Pub/Sub for python apps and microservices',
     long_description=long_description,
     url='https://github.com/noisyboiler/wampy',
     author='Simon Harrison',
     author_email='noisyboiler@googlemail.com',
-    license='GNU GPLv3',
+    license='Mozilla Public License 2.0',
     classifiers=[
         'Development Status :: 4 - Beta',
         'License :: OSI Approved :: GNU General Public License (GPL)',
