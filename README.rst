@@ -50,11 +50,13 @@ wampy features
 QuickStart - Connect and Go!
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you've already got access to a running **Router** which has other **Peers** connected, then stay here. If not, jump to the next section. If you're still here, open a Python shell.
+If you've already got access to a running **Router** which has other **Peers** connected, then stay here. If not, jump to the next section. If you're still here...
 
 ::
 
     pip install wampy
+
+...and then open a Python shell.
 
 The example here assumes a **Peer** connected to a **Router** on ``localhost``, port ``8080``, that has registered a remote procedure called ``get_foobar``, and you want to *call* that procedure.
 
