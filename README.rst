@@ -37,7 +37,7 @@ With **wampy** you can quickly and easily create your own **WAMP** clients, whet
 
 See `ReadTheDocs`_ for more detailed documentation.
 
-Please be aware that I am (gratefully) receieving ongoing feedback on the API, and whilst it has been mostly stable, we have made some improvements which are _breaking_ changes. On the 1.0 release there will be no more tweaks to the public API. See the release notes for all changes.
+Please be aware that I am (gratefully) receieving ongoing feedback on the API, and whilst it has been mostly stable, we have made some improvements which are *breaking* changes. On the 1.0 release there will be no more unexpected tweaks out of the blue to the public API. See the release notes for all changes.
 
 wampy features
 ~~~~~~~~~~~~~~
