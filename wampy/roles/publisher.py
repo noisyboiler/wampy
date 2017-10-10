@@ -29,7 +29,9 @@ class PublishProxy:
                 "wampy requires at least one message to publish to a topic"
             )
 
-        message = Publish(topic=topic, options={}, **kwargs)
+        if "options" not in kwargs:
+            kwargs["options"] = {}
+        message = Publish(topic=topic, **kwargs)
         logger.info('publishing message: "%s"', message)
 
         self.client.send_message(message)
