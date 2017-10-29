@@ -4,7 +4,23 @@
 
 import pytest
 
+from wampy.peers.clients import Client
+from wampy.roles.callee import callee
+
 
 @pytest.fixture
 def config_path():
     return './wampy/testing/configs/crossbar.json'
+
+
+@pytest.yield_fixture
+def echo_service(router):
+
+    class EchoService(Client):
+
+        @callee
+        def echo(self, *args, **kwargs):
+            return "{} {}".format(*args, **kwargs)
+
+    with EchoService(url=router.url):
+        yield
