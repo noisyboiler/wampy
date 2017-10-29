@@ -25,8 +25,7 @@ setup(
     license='Mozilla Public License 2.0',
     classifiers=[
         'Development Status :: 4 - Beta',
-        'License :: OSI Approved :: GNU General Public License (GPL)',
-        'Programming Language :: Python :: 2',
+        'License :: OSI Approved :: Mozilla Public License 2.0',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
