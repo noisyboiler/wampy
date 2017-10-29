@@ -19,8 +19,8 @@ def echo_service(router):
     class EchoService(Client):
 
         @callee
-        def echo(self, *args, **kwargs):
-            return "{} {}".format(*args, **kwargs)
+        def echo(self, **kwargs):
+            return kwargs
 
     with EchoService(url=router.url):
         yield
