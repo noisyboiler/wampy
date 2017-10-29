@@ -47,6 +47,7 @@ setup(
             "mock==1.3.0",
             "pytest==2.9.1",
             "pytest-capturelog==0.7",
+            "simplejson==3.11.1",
             "colorlog",
             "flake8",
         ],
