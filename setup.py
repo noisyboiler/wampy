@@ -35,10 +35,15 @@ setup(
     keywords='WAMP RPC',
     packages=find_packages(),
     install_requires=[
-        "eventlet==0.21.0",
         "six==1.10.0",
     ],
     extras_require={
+        ':python_version == "2.7"': [
+            "eventlet<0.21.0",
+        ],
+        ':python_version >= "3"': [
+            "eventlet>=0.21.0",
+        ],
         'dev': [
             "crossbar==0.15.0",
             "autobahn==0.17.2",
