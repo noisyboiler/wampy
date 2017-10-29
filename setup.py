@@ -48,7 +48,7 @@ setup(
             "pytest-capturelog==0.7",
             "simplejson==3.11.1",
             "colorlog",
-            "flake8",
+            "flake8==3.5.0",
         ],
         'docs': [
             "Sphinx==1.4.5",
