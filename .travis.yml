@@ -10,5 +10,7 @@ python:
   - "3.6"
 
 script:
+  - pip install --upgrade setuptools
+  - pip install .
   - pip install --editable .[dev]
   - py.test ./test -s -vv
