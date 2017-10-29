@@ -13,7 +13,6 @@ from wampy.messages.hello import Hello
 from wampy.messages.goodbye import Goodbye
 from wampy.messages.register import Register
 from wampy.messages.subscribe import Subscribe
-from wampy.serializers import json_serialize
 
 logger = logging.getLogger('wampy.session')
 
@@ -100,15 +99,15 @@ class Session(object):
         self._managed_thread.kill()
         self._managed_thread = None
 
-    def send_message(self, message):
-        serialized_message = json_serialize(message)
-        message_type = MESSAGE_TYPE_MAP[message.WAMP_CODE]
+    def send_message(self, message_obj):
+        message_type = MESSAGE_TYPE_MAP[message_obj.WAMP_CODE]
+        message = message_obj.message
 
         logger.debug(
-            'sending "%s" message: %s', message_type, serialized_message
+            'sending "%s" message: %s', message_type, message
         )
 
-        self.connection.send(serialized_message)
+        self.connection.send(message)
 
     def recv_message(self, timeout=5):
         try:
