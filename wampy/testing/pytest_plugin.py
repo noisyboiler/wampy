@@ -123,7 +123,7 @@ def find_processes(process_name):
 
 
 def get_process_ids():
-    output = find_processes("crossbar")
+    output = find_processes("crossbar-controller")
     pids = [o for o in output.decode().split('\n') if o]
     return pids
 
