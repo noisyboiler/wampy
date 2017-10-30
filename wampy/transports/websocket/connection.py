@@ -53,7 +53,7 @@ class WebSocket(Transport, ParseUrlMixin):
 
     def send(self, message):
         serialized_message = json_serialize(message)
-        frame = ClientFrame(unicode(serialized_message))
+        frame = ClientFrame(serialized_message)
         websocket_message = frame.payload
         self.socket.sendall(websocket_message)
 

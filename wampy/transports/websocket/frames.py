@@ -91,6 +91,9 @@ class Frame(object):
             unicode_body = self.body.decode("utf-8")
         except UnicodeError:
             unicode_body = self.body
+        except AttributeError:
+            # already decodede, hence no "decode" attribute
+            unicode_body = self.body
 
         return len(unicode_body.encode('utf-8'))
 
@@ -246,7 +249,8 @@ class ServerFrame(Frame):
 
         self.opcode = bytes[0] & 0b1111
         try:
-            self.payload = json.loads(str(self.body))
+            # decode required before loading JSON for python 2 only
+            self.payload = json.loads(self.body.decode('utf-8'))
         except Exception:
             raise WebsocktProtocolError(
                 'Failed to load JSON object from: "%s"', self.body

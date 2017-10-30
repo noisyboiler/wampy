@@ -3,21 +3,20 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import simplejson as json
-
 from wampy.errors import WampProtocolError
 
 
-def json_serialize(message_str):
+def json_serialize(message):
     # WAMP serialization insists on UTF-8 encoded Unicode
     try:
         data = json.dumps(
-            message_str, separators=(',', ':'), ensure_ascii=False,
+            message, separators=(',', ':'), ensure_ascii=False,
             encoding='utf8',
         )
     except TypeError as exc:
         raise WampProtocolError(
             "Message not serialized: {} - {}".format(
-                message_str, str(exc)
+                message, str(exc)
             )
         )
 
