@@ -85,7 +85,17 @@ class Frame(object):
         self.body = bytes
 
     def __len__(self):
-        return len(self.body)
+        # UTF-8 is an unicode encoding which uses more than one byte for
+        # special characters. calculating the length needs consideration.
+        try:
+            unicode_body = self.body.decode("utf-8")
+        except UnicodeError:
+            unicode_body = self.body
+        except AttributeError:
+            # already decoded, hence no "decode" attribute
+            unicode_body = self.body
+
+        return len(unicode_body.encode('utf-8'))
 
     def __str__(self):
         return self.body
@@ -105,8 +115,6 @@ class ClientFrame(Frame):
         self.opcode = self.OPCODE_TEXT
         self.payload = self.generate_payload()
 
-    # be carefule here: Python 2 a string is a byte string, but beyond this
-    # it is not
     def generate_mask(self, mask_key, data):
         """ Mask data.
 
@@ -127,8 +135,10 @@ class ClientFrame(Frame):
         if data is None:
             data = ""
 
+        data_bytes = bytearray(data, 'utf-8')
+
         _m = array.array("B", mask_key)
-        _d = array.array("B", data.encode())
+        _d = array.array("B", data_bytes)
 
         for i in range(len(_d)):
             _d[i] ^= _m[i % 4]
@@ -192,11 +202,14 @@ class ClientFrame(Frame):
             payload += pack('!B', (mask_bit | 127)) + pack('!Q', length)
 
         # we always mask frames from the client to server
+        # use a string of n random bytes for the mask
         mask_key = os.urandom(4)
-        mask_data = self.generate_mask(mask_key, self.body)
+
+        mask_data = self.generate_mask(mask_key=mask_key, data=self.body)
         mask = mask_key + mask_data
         payload += mask
 
+        # this is a bytes string being returned here
         return payload
 
 
@@ -236,7 +249,8 @@ class ServerFrame(Frame):
 
         self.opcode = bytes[0] & 0b1111
         try:
-            self.payload = json.loads(str(self.body.decode()))
+            # decode required before loading JSON for python 2 only
+            self.payload = json.loads(self.body.decode('utf-8'))
         except Exception:
             raise WebsocktProtocolError(
                 'Failed to load JSON object from: "%s"', self.body

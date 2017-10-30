@@ -2,19 +2,22 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import json
-
+import simplejson as json
 from wampy.errors import WampProtocolError
 
 
-def json_serialize(message_obj):
+def json_serialize(message):
+    # WAMP serialization insists on UTF-8 encoded Unicode
     try:
-        return json.dumps(
-            message_obj.message, separators=(',', ':'), ensure_ascii=False,
+        data = json.dumps(
+            message, separators=(',', ':'), ensure_ascii=False,
+            encoding='utf8',
         )
     except TypeError as exc:
         raise WampProtocolError(
             "Message not serialized: {} - {}".format(
-                message_obj.message, str(exc)
+                message, str(exc)
             )
         )
+
+    return data

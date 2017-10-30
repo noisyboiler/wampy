@@ -16,6 +16,7 @@ from wampy.errors import (
     IncompleteFrameError, ConnectionError, WampProtocolError, WampyError)
 from wampy.mixins import ParseUrlMixin
 from wampy.transports.interface import Transport
+from wampy.serializers import json_serialize
 
 from . frames import ClientFrame, ServerFrame
 
@@ -51,8 +52,10 @@ class WebSocket(Transport, ParseUrlMixin):
         self.socket.close()
 
     def send(self, message):
-        frame = ClientFrame(message)
-        self.socket.sendall(frame.payload)
+        serialized_message = json_serialize(message)
+        frame = ClientFrame(serialized_message)
+        websocket_message = frame.payload
+        self.socket.sendall(websocket_message)
 
     def receive(self, bufsize=1):
         frame = None
