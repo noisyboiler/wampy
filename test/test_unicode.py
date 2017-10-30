@@ -17,4 +17,7 @@ def test_client_sending_unicode(router, echo_service):
     client.start()
     wait_for_session(client)
 
-    client.rpc.echo(weird_text="100éfa")
+    expected_response = {'weird_text': '100éfa'}
+    response = client.rpc.echo(weird_text="100éfa")
+
+    assert response == expected_response
