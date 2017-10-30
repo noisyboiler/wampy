@@ -36,6 +36,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         "six==1.10.0",
+        "simplejson==3.11.1",
     ],
     extras_require={
         ':python_version == "2.7"': [
@@ -51,7 +52,6 @@ setup(
             "mock==1.3.0",
             "pytest==2.9.1",
             "pytest-capturelog==0.7",
-            "simplejson==3.11.1",
             "colorlog",
             "flake8==3.5.0",
         ],
