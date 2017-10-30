@@ -92,7 +92,7 @@ class Frame(object):
         except UnicodeError:
             unicode_body = self.body
         except AttributeError:
-            # already decodede, hence no "decode" attribute
+            # already decoded, hence no "decode" attribute
             unicode_body = self.body
 
         return len(unicode_body.encode('utf-8'))
