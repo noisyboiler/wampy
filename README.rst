@@ -68,7 +68,7 @@ The example here assumes a **Peer** connected to a **Router** on ``localhost``, 
     from wampy.peers import Client
 
     with Client() as client:
-        resposne = client.rpc.get_foobar()
+        response = client.rpc.get_foobar()
 
     # do something with the response here
 
