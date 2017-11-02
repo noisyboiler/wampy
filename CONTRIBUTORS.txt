@@ -1,5 +1,6 @@
 Contributions have been made by:
 
 Alexandre Bulté (@abulte)
-@jwg4
 Thibault Cohen (@titilambert)
+Joe Pinsonault (@)jpinsonault)
+@jwg4
