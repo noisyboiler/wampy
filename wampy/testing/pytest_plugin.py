@@ -164,7 +164,7 @@ def kill_crossbar(try_again=True):
 
         try:
             os.kill(pid, signal.SIGTERM)
-        except:  # anything Twisted raises
+        except Exception:  # anything Twisted raises
             logger.exception(
                 "Failed to terminate router process: %s", pid
             )

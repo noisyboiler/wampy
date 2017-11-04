@@ -104,7 +104,10 @@ class Session(object):
         message = message_obj.message
 
         logger.debug(
-            'sending "%s" message: %s', message_type, message
+            'sending "%s" message: "%s" for client "%s"',
+            message_type,
+            message,
+            self.client.name,
         )
 
         self.connection.send(message)
@@ -118,7 +121,9 @@ class Session(object):
             )
 
         logger.debug(
-            'received message: "{}"'.format(message.name)
+            'received message: "%s" for client "%s"',
+            message.name,
+            self.client.name,
         )
 
         return message
