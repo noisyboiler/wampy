@@ -10,6 +10,8 @@ import subprocess
 from socket import error as socket_error
 from time import time as now, sleep
 
+from tenacity import retry, stop_after_attempt, wait_fixed
+
 from wampy.errors import ConnectionError, WampyError
 from wampy.mixins import ParseUrlMixin
 
@@ -97,8 +99,10 @@ class Crossbar(ParseUrlMixin):
             if timeout < 0:
                 if raise_if_not_ready:
                     raise ConnectionError(
-                        'Failed to connect to CrossBar over {}: {}:{}'.format(
-                            self.ipv, self.host, self.port)
+                        'Failed to connect to CrossBar over IPV{}: '
+                        '{}:{}'.format(
+                            self.ipv, self.host, self.port,
+                        )
                     )
                 else:
                     return ready
@@ -112,6 +116,7 @@ class Crossbar(ParseUrlMixin):
 
         return ready
 
+    @retry(stop=stop_after_attempt(2), wait=wait_fixed(2))
     def start(self):
         """ Start Crossbar.io in a subprocess.
         """
@@ -129,10 +134,11 @@ class Crossbar(ParseUrlMixin):
             '--config', crossbar_config_path,
         ]
 
+        logger.debug('starting Crosbar"%s"', cmd)
         self.proc = subprocess.Popen(cmd, preexec_fn=os.setsid)
-
+        logger.info('waiting for Crosbar: "%s"', self.proc)
         self._wait_until_ready()
-        logger.info(
+        logger.debug(
             "Crosbar.io is ready for connections on %s (IPV%s)",
             self.url, self.ipv
         )
@@ -156,6 +162,15 @@ class Crossbar(ParseUrlMixin):
             # wait for a graceful shutdown
             logger.info("sleeping while Crossbar shuts down")
             sleep(2)
+
+        if self.proc.stdout:
+            logger.info('crossbar process output: "%s"', self.proc.stdout)
+
+        if self.proc.stderr:
+            logger.error('crossbar process errors: "%s"', self.proc.stderr)
+
+        if self.proc.poll() is None:
+            logger.warning('crossbar has NOT shut down, sorry.')
 
         self.started = False
 

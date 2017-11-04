@@ -17,7 +17,6 @@ def test_client_sending_unicode_does_not_raise(router, echo_service):
     client.start()
     wait_for_session(client)
 
-    expected_response = {'weird_text': '100éfa'}
     response = client.rpc.echo(weird_text="100éfa")
 
     assert response is not None
