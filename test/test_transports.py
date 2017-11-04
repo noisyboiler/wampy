@@ -47,7 +47,7 @@ class TestIP6(object):
     def config_path(self):
         return './wampy/testing/configs/crossbar.ipv6.json'
 
-    def test_ipv6_websocket_connection(self, config_path, router):
+    def ___test_ipv6_websocket_connection(self, config_path, router):
         service = DateService(router=router)
         with service:
             wait_for_registrations(service, 1)
