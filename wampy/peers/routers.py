@@ -162,6 +162,15 @@ class Crossbar(ParseUrlMixin):
             logger.info("sleeping while Crossbar shuts down")
             sleep(2)
 
+        if self.proc.stdout:
+            logger.info('crossbar process output: "%s"', self.proc.stdout)
+
+        if self.proc.stderr:
+            logger.error('crossbar process errors: "%s"', self.proc.stderr)
+
+        if self.proc.poll() is None:
+            logger.warning('crossbar has NOT shut down, sorry.')
+
         self.started = False
 
     def try_connection(self):
