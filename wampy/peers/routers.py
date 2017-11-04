@@ -134,10 +134,11 @@ class Crossbar(ParseUrlMixin):
             '--config', crossbar_config_path,
         ]
 
+        logger.debug('starting Crosbar"%s"', cmd)
         self.proc = subprocess.Popen(cmd, preexec_fn=os.setsid)
-
+        logger.info('waiting for Crosbar: "%s"', self.proc)
         self._wait_until_ready()
-        logger.info(
+        logger.debug(
             "Crosbar.io is ready for connections on %s (IPV%s)",
             self.url, self.ipv
         )
