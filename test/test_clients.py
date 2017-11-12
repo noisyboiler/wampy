@@ -9,7 +9,7 @@ import pytest
 from wampy.peers.clients import Client
 from wampy.roles.callee import callee
 from wampy.testing.helpers import wait_for_session
-
+from time import sleep
 
 class DateService(Client):
 
@@ -144,3 +144,32 @@ def test_can_start_two_clients(router):
 
     assert app_one.session.id is None
     assert app_two.session.id is None
+
+@pytest.fixture(scope="function")
+def config_path():
+    return './wampy/testing/configs/crossbar.timeout.json'
+
+
+def test_respond_to_ping_with_pong(config_path, router):
+
+    class MyClient(Client):
+        pass
+
+    exceptionless = True
+
+    try:
+        client = MyClient(url=router.url)
+
+        client.start()
+        wait_for_session(client)
+
+        sleep(5)
+
+        client.publish(topic="test", message="test")
+
+        client.stop()
+    except Exception as e:
+        print(e)
+        exceptionless = False
+
+    assert exceptionless
