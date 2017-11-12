@@ -19,16 +19,20 @@ from . subscribe import Subscribe
 from . subscribed import Subscribed
 from . yield_ import Yield
 from . welcome import Welcome
+from . ping import Ping
+from . pong import Pong
 
 
 __all__ = [
     Abort, Authenticate, Call, Challenge, Error, Event, Goodbye, Hello,
     Invocation, Publish, Register, Registered, Result, Subscribe,
-    Subscribed, Welcome, Yield
+    Subscribed, Welcome, Yield, Ping, Pong
 ]
 
 
 MESSAGE_TYPE_MAP = {
+    -2: Pong,
+    -1: Ping,
     1: Hello,
     2: Welcome,
     3: Abort,

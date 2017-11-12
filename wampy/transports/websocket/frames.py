@@ -11,6 +11,7 @@ from struct import pack, unpack_from
 from wampy.errors import (
     WampyError, WebsocktProtocolError, IncompleteFrameError
 )
+from wampy.messages import Ping
 
 
 logger = logging.getLogger('wampy.networking.frames')
@@ -115,6 +116,9 @@ class ClientFrame(Frame):
         self.opcode = self.OPCODE_TEXT
         self.payload = self.generate_payload()
 
+    def dataToBytes(self, data):
+        return bytearray(data, 'utf-8')
+
     def generate_mask(self, mask_key, data):
         """ Mask data.
 
@@ -135,7 +139,7 @@ class ClientFrame(Frame):
         if data is None:
             data = ""
 
-        data_bytes = bytearray(data, 'utf-8')
+        data_bytes = self.dataToBytes(data)
 
         _m = array.array("B", mask_key)
         _d = array.array("B", data_bytes)
@@ -212,6 +216,14 @@ class ClientFrame(Frame):
         # this is a bytes string being returned here
         return payload
 
+class PongFrame(ClientFrame):
+    def __init__(self, *args):
+        super(PongFrame, self).__init__(*args)
+        self.opcode = 0xa
+        self.payload = self.generate_payload()
+
+    def dataToBytes(self, data):
+        return data
 
 class ServerFrame(Frame):
     """ Represent incoming Server -> Client messages
@@ -248,13 +260,17 @@ class ServerFrame(Frame):
             )
 
         self.opcode = bytes[0] & 0b1111
-        try:
-            # decode required before loading JSON for python 2 only
-            self.payload = json.loads(self.body.decode('utf-8'))
-        except Exception:
-            raise WebsocktProtocolError(
-                'Failed to load JSON object from: "%s"', self.body
-            )
+
+        if self.opcode != 9:
+            try:
+                # decode required before loading JSON for python 2 only
+                self.payload = json.loads(self.body.decode('utf-8'))
+            except Exception:
+                raise WebsocktProtocolError(
+                    'Failed to load JSON object from: "%s"', self.body
+                )
+        else:
+            self.payload = [Ping.WAMP_CODE, self.body]
 
     def ensure_complete_frame(self, buffered_bytes):
         # we need a minimum of 2 bytes to determine the payload length and

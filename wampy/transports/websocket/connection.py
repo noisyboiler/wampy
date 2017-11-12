@@ -18,7 +18,8 @@ from wampy.mixins import ParseUrlMixin
 from wampy.transports.interface import Transport
 from wampy.serializers import json_serialize
 
-from . frames import ClientFrame, ServerFrame
+from . frames import ClientFrame, ServerFrame, PongFrame
+from wampy.messages import Pong
 
 logger = logging.getLogger(__name__)
 
@@ -52,8 +53,11 @@ class WebSocket(Transport, ParseUrlMixin):
         self.socket.close()
 
     def send(self, message):
-        serialized_message = json_serialize(message)
-        frame = ClientFrame(serialized_message)
+        if message[0] == Pong.WAMP_CODE:
+            frame = PongFrame(message[1])
+        else:
+            serialized_message = json_serialize(message)
+            frame = ClientFrame(serialized_message)
         websocket_message = frame.payload
         self.socket.sendall(websocket_message)
 
