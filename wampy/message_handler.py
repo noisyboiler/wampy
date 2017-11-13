@@ -177,9 +177,3 @@ class MessageHandler(object):
             )
             logger.debug("yielding response: %s", yield_message)
             self.session.send_message(yield_message)
-
-    def handle_ping(self, message_obj):
-        from wampy.messages import Pong
-
-        message = Pong(message_obj.challenge)
-        self.session.send_message(message)

@@ -19,7 +19,6 @@ from wampy.transports.interface import Transport
 from wampy.serializers import json_serialize
 
 from . frames import ClientFrame, ServerFrame, PongFrame
-from wampy.messages import Pong
 
 logger = logging.getLogger(__name__)
 
@@ -53,12 +52,12 @@ class WebSocket(Transport, ParseUrlMixin):
         self.socket.close()
 
     def send(self, message):
-        if message[0] == Pong.WAMP_CODE:
-            frame = PongFrame(message[1])
-        else:
-            serialized_message = json_serialize(message)
-            frame = ClientFrame(serialized_message)
+        serialized_message = json_serialize(message)
+        frame = ClientFrame(serialized_message)
         websocket_message = frame.payload
+        self._send_raw(websocket_message)
+
+    def _send_raw(self, websocket_message):
         self.socket.sendall(websocket_message)
 
     def receive(self, bufsize=1):
@@ -88,6 +87,12 @@ class WebSocket(Transport, ParseUrlMixin):
 
             try:
                 frame = ServerFrame(received_bytes)
+
+                if frame.opcode == 9:
+                    self._send_raw(PongFrame(frame.payload).payload)
+                    received_bytes = bytearray()
+                    continue
+
             except IncompleteFrameError as exc:
                 bufsize = exc.required_bytes
                 logger.debug('now requesting the missing %s bytes', bufsize)

@@ -11,7 +11,6 @@ from struct import pack, unpack_from
 from wampy.errors import (
     WampyError, WebsocktProtocolError, IncompleteFrameError
 )
-from wampy.messages import Ping
 
 
 logger = logging.getLogger('wampy.networking.frames')
@@ -270,7 +269,7 @@ class ServerFrame(Frame):
                     'Failed to load JSON object from: "%s"', self.body
                 )
         else:
-            self.payload = [Ping.WAMP_CODE, self.body]
+            self.payload = self.body
 
     def ensure_complete_frame(self, buffered_bytes):
         # we need a minimum of 2 bytes to determine the payload length and
