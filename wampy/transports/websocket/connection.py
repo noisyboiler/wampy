@@ -87,16 +87,16 @@ class WebSocket(Transport, ParseUrlMixin):
 
             try:
                 frame = ServerFrame(received_bytes)
-
-                if frame.opcode == 9:
-                    self._send_raw(PongFrame(frame.payload).payload)
-                    received_bytes = bytearray()
-                    continue
-
             except IncompleteFrameError as exc:
                 bufsize = exc.required_bytes
                 logger.debug('now requesting the missing %s bytes', bufsize)
             else:
+                if frame.opcode == 9:
+                    # Opcode 0x9 marks a ping frame. It does not contain wamp data, so the frame is not returned.
+                    # Still it must be handled or the server will close the connection.
+                    self._send_raw(PongFrame(frame.payload).payload)
+                    received_bytes = bytearray()
+                    continue
                 break
 
         if frame is None:

@@ -3,13 +3,13 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import datetime
+from time import sleep
 
 import pytest
 
 from wampy.peers.clients import Client
 from wampy.roles.callee import callee
 from wampy.testing.helpers import wait_for_session
-from time import sleep
 
 class DateService(Client):
 
@@ -151,6 +151,10 @@ def config_path():
 
 
 def test_respond_to_ping_with_pong(config_path, router):
+    # This test shows proper handling of ping/pong keep-alives
+    # by connecting to a pong-demanding server (crossbar.timeout.json)
+    # and keeping the connection open for longer than the server's timeout.
+    # Failure would be an exception being thrown because of the server closing the connection.
 
     class MyClient(Client):
         pass
@@ -159,14 +163,12 @@ def test_respond_to_ping_with_pong(config_path, router):
 
     try:
         client = MyClient(url=router.url)
-
         client.start()
         wait_for_session(client)
 
         sleep(5)
 
         client.publish(topic="test", message="test")
-
         client.stop()
     except Exception as e:
         print(e)

@@ -115,7 +115,7 @@ class ClientFrame(Frame):
         self.opcode = self.OPCODE_TEXT
         self.payload = self.generate_payload()
 
-    def dataToBytes(self, data):
+    def data_to_bytes(self, data):
         return bytearray(data, 'utf-8')
 
     def generate_mask(self, mask_key, data):
@@ -138,7 +138,7 @@ class ClientFrame(Frame):
         if data is None:
             data = ""
 
-        data_bytes = self.dataToBytes(data)
+        data_bytes = self.data_to_bytes(data)
 
         _m = array.array("B", mask_key)
         _d = array.array("B", data_bytes)
@@ -221,7 +221,7 @@ class PongFrame(ClientFrame):
         self.opcode = 0xa
         self.payload = self.generate_payload()
 
-    def dataToBytes(self, data):
+    def data_to_bytes(self, data):
         return data
 
 class ServerFrame(Frame):
@@ -261,6 +261,8 @@ class ServerFrame(Frame):
         self.opcode = bytes[0] & 0b1111
 
         if self.opcode != 9:
+            # Wamp data frames contain a json-encoded payload.
+            # The other kind of frame we handle (opcode 0x9) is a ping and it has a non-json payload
             try:
                 # decode required before loading JSON for python 2 only
                 self.payload = json.loads(self.body.decode('utf-8'))
