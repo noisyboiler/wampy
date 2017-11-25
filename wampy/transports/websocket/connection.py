@@ -18,7 +18,7 @@ from wampy.mixins import ParseUrlMixin
 from wampy.transports.interface import Transport
 from wampy.serializers import json_serialize
 
-from . frames import ClientFrame, ServerFrame
+from . frames import ClientFrame, ServerFrame, PongFrame
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +55,9 @@ class WebSocket(Transport, ParseUrlMixin):
         serialized_message = json_serialize(message)
         frame = ClientFrame(serialized_message)
         websocket_message = frame.payload
+        self._send_raw(websocket_message)
+
+    def _send_raw(self, websocket_message):
         self.socket.sendall(websocket_message)
 
     def receive(self, bufsize=1):
@@ -88,6 +91,12 @@ class WebSocket(Transport, ParseUrlMixin):
                 bufsize = exc.required_bytes
                 logger.debug('now requesting the missing %s bytes', bufsize)
             else:
+                if frame.opcode == 9:
+                    # Opcode 0x9 marks a ping frame. It does not contain wamp data, so the frame is not returned.
+                    # Still it must be handled or the server will close the connection.
+                    self._send_raw(PongFrame(frame.payload).payload)
+                    received_bytes = bytearray()
+                    continue
                 break
 
         if frame is None:
