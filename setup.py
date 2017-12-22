@@ -54,7 +54,6 @@ setup(
             "pytest-capturelog==0.7",
             "colorlog",
             "flake8==3.5.0",
-            "tenacity==4.5.0",
         ],
         'docs': [
             "Sphinx==1.4.5",
