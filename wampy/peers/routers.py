@@ -10,8 +10,6 @@ import subprocess
 from socket import error as socket_error
 from time import time as now, sleep
 
-from tenacity import retry, stop_after_attempt, wait_fixed
-
 from wampy.errors import ConnectionError, WampyError
 from wampy.mixins import ParseUrlMixin
 
@@ -116,7 +114,6 @@ class Crossbar(ParseUrlMixin):
 
         return ready
 
-    @retry(stop=stop_after_attempt(2), wait=wait_fixed(2))
     def start(self):
         """ Start Crossbar.io in a subprocess.
         """
