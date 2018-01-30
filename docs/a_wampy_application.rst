@@ -7,7 +7,7 @@ This is a fully fledged example of a wampy application that implements all 4 WAM
 
     from wampy.peers.clients import Client
     from wampy.roles import callee
-    from wampy.roles import subscribe
+    from wampy.roles import subscriber
 
 
     class WampyApp(Client):
