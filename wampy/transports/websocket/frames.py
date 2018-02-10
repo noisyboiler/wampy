@@ -215,7 +215,9 @@ class ClientFrame(Frame):
         # this is a bytes string being returned here
         return payload
 
+
 class PongFrame(ClientFrame):
+
     def __init__(self, *args):
         super(PongFrame, self).__init__(*args)
         self.opcode = 0xa
@@ -223,6 +225,7 @@ class PongFrame(ClientFrame):
 
     def data_to_bytes(self, data):
         return data
+
 
 class ServerFrame(Frame):
     """ Represent incoming Server -> Client messages
@@ -262,7 +265,8 @@ class ServerFrame(Frame):
 
         if self.opcode != 9:
             # Wamp data frames contain a json-encoded payload.
-            # The other kind of frame we handle (opcode 0x9) is a ping and it has a non-json payload
+            # The other kind of frame we handle (opcode 0x9) is a ping and it
+            # has a non-json payload
             try:
                 # decode required before loading JSON for python 2 only
                 self.payload = json.loads(self.body.decode('utf-8'))

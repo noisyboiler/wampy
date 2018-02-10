@@ -11,6 +11,7 @@ from wampy.peers.clients import Client
 from wampy.roles.callee import callee
 from wampy.testing.helpers import wait_for_session
 
+
 class DateService(Client):
 
     @callee
@@ -145,6 +146,7 @@ def test_can_start_two_clients(router):
     assert app_one.session.id is None
     assert app_two.session.id is None
 
+
 @pytest.fixture(scope="function")
 def config_path():
     return './wampy/testing/configs/crossbar.timeout.json'
@@ -154,7 +156,8 @@ def test_respond_to_ping_with_pong(config_path, router):
     # This test shows proper handling of ping/pong keep-alives
     # by connecting to a pong-demanding server (crossbar.timeout.json)
     # and keeping the connection open for longer than the server's timeout.
-    # Failure would be an exception being thrown because of the server closing the connection.
+    # Failure would be an exception being thrown because of the server
+    # closing the connection.
 
     class MyClient(Client):
         pass

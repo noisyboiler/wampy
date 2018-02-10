@@ -44,7 +44,6 @@
                       "version": 4,
                       "interface": "localhost"
                    },
-                   "url": "ws://localhost:8080",
                    "auth": {
                         "wampcra": {
                             "type": "static",
