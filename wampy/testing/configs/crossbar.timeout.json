@@ -41,7 +41,6 @@
                   "version": 4,
                   "interface": "localhost"
                },
-               "url": "ws://localhost:8080",
                "options": {
                   "fail_by_drop": true,
                   "auto_ping_interval": 2000,

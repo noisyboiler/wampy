@@ -92,8 +92,10 @@ class WebSocket(Transport, ParseUrlMixin):
                 logger.debug('now requesting the missing %s bytes', bufsize)
             else:
                 if frame.opcode == 9:
-                    # Opcode 0x9 marks a ping frame. It does not contain wamp data, so the frame is not returned.
-                    # Still it must be handled or the server will close the connection.
+                    # Opcode 0x9 marks a ping frame. It does not contain wamp
+                    # data, so the frame is not returned.
+                    # Still it must be handled or the server will close the
+                    # connection.
                     self._send_raw(PongFrame(frame.payload).payload)
                     received_bytes = bytearray()
                     continue

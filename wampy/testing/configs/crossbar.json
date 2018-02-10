@@ -40,8 +40,7 @@
                   "port": 8080,
                   "version": 4,
                   "interface": "localhost"
-               },
-               "url": "ws://localhost:8080"
+               }
             }
          ]
       }

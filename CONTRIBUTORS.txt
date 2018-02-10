@@ -3,5 +3,6 @@ Contributions have been made by:
 Alexandre Bulté (@abulte)
 Thibault Cohen (@titilambert)
 Joe Pinsonault (@)jpinsonault)
-@jwg4
 Marcus Hunger (@fnordian)
+@jwg4
+@FoxMaSk

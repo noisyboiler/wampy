@@ -27,9 +27,19 @@ class Router(ParseUrlMixin):
 class Crossbar(ParseUrlMixin):
 
     def __init__(
-        self, config_path="./crossbar/config.json", crossbar_directory=None,
+        self,
+        url="ws://localhost:8080",
+        config_path="./crossbar/config.json",
+        crossbar_directory=None,
     ):
+        """ A wrapper around a Crossbar Server. Wampy uses this when
+        executing its test suite.
 
+        Typically used in test cases, local dev and scripts rather than
+        with production applications. For Production, just deploy and
+        connect to as you would any other server.
+
+        """
         with open(config_path) as data_file:
             config_data = json.load(data_file)
 
@@ -47,12 +57,7 @@ class Crossbar(ParseUrlMixin):
             )
 
         self.transport = config['transports'][0]
-        self.url = self.transport.get("url")
-        if self.url is None:
-            raise WampyError(
-                "The ``url`` value is required by Wampy. "
-                "Please add to your configuration file. Thanks."
-            )
+        self.url = url
 
         self.ipv = self.transport['endpoint'].get("version", None)
         if self.ipv is None:
@@ -97,10 +102,8 @@ class Crossbar(ParseUrlMixin):
             if timeout < 0:
                 if raise_if_not_ready:
                     raise ConnectionError(
-                        'Failed to connect to CrossBar over IPV{}: '
-                        '{}:{}'.format(
-                            self.ipv, self.host, self.port,
-                        )
+                        'Failed to connect to CrossBar over {}: {}:{}'.format(
+                            self.ipv, self.host, self.port)
                     )
                 else:
                     return ready
@@ -131,11 +134,10 @@ class Crossbar(ParseUrlMixin):
             '--config', crossbar_config_path,
         ]
 
-        logger.debug('starting Crosbar"%s"', cmd)
         self.proc = subprocess.Popen(cmd, preexec_fn=os.setsid)
-        logger.info('waiting for Crosbar: "%s"', self.proc)
+
         self._wait_until_ready()
-        logger.debug(
+        logger.info(
             "Crosbar.io is ready for connections on %s (IPV%s)",
             self.url, self.ipv
         )
@@ -159,15 +161,6 @@ class Crossbar(ParseUrlMixin):
             # wait for a graceful shutdown
             logger.info("sleeping while Crossbar shuts down")
             sleep(2)
-
-        if self.proc.stdout:
-            logger.info('crossbar process output: "%s"', self.proc.stdout)
-
-        if self.proc.stderr:
-            logger.error('crossbar process errors: "%s"', self.proc.stderr)
-
-        if self.proc.poll() is None:
-            logger.warning('crossbar has NOT shut down, sorry.')
 
         self.started = False
 

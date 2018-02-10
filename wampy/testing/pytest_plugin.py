@@ -123,8 +123,16 @@ def find_processes(process_name):
 
 
 def get_process_ids():
-    output = find_processes("crossbar-controller")
-    pids = [o for o in output.decode().split('\n') if o]
+    pids = []
+    pids.extend([
+        o for o in
+        find_processes("crossbar-controller").decode().split('\n') if o
+    ])
+    pids.extend([
+        o for o in
+        find_processes("crossbar-worker").decode().split('\n') if o
+    ])
+
     return pids
 
 
@@ -150,8 +158,9 @@ def kill(pid):
 def kill_crossbar(try_again=True):
     pids = get_process_ids()
     if pids and try_again is True:
-        logger.error(
-            "Crossbar.io did not stop when sig term issued!"
+        logger.warning(
+            "Crossbar.io did not stop when sig term issued! "
+            "Will try again."
         )
 
     for pid_as_str in pids:
@@ -196,8 +205,17 @@ class ConfigurationError(Exception):
 
 
 @pytest.yield_fixture
-def router(config_path):
+def url():
+    return "ws://localhost:8080"
+
+
+@pytest.yield_fixture
+def router(config_path, url):
+    logger.info('config for test run: %s', config_path)
+    logger.info('url for test run: %s', url)
+
     crossbar = Crossbar(
+        url=url,
         config_path=config_path,
         crossbar_directory='./',
     )
