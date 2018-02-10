@@ -14,4 +14,4 @@ To publish to a topic you simply call the ``publish`` API on any wampy client wi
 
 The message can be whatever JSON serializable object you choose.
 
-Note that the Crossbar router does require a path to an expected ``config,.yaml``, but here a default value is used. The default for Crossbar is ``"./crossbar/config.json"``.
+Note that the Crossbar router does require a path to an expected ``config.yaml``, but here a default value is used. The default for Crossbar is ``"./crossbar/config.json"``.
