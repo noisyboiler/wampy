@@ -22,7 +22,7 @@ class DateService(Client):
 
 class TestIP4(object):
 
-    @pytest.fixture(scope="function")
+    @pytest.fixture
     def config_path(self):
         return './wampy/testing/configs/crossbar.json'
 
@@ -43,7 +43,7 @@ class TestIP4(object):
 
 class TestIP6(object):
 
-    @pytest.fixture(scope="function")
+    @pytest.fixture
     def config_path(self):
         return './wampy/testing/configs/crossbar.ipv6.json'
 
@@ -65,12 +65,16 @@ class TestIP6(object):
 
 class TestSecureWebSocket(object):
 
-    @pytest.fixture(scope="function")
+    @pytest.fixture
     def config_path(self):
         return './wampy/testing/configs/crossbar.tls.json'
 
+    @pytest.fixture
+    def url(self):
+        return 'wss://localhost:9443'
+
     def test_ipv4_secure_websocket_connection_by_router_instance(
-        self, config_path, router
+        self, config_path, url, router
     ):
         try:
             ssl.PROTOCOL_TLSv1_2
@@ -89,7 +93,9 @@ class TestSecureWebSocket(object):
 
         assert result == today.isoformat()
 
-    def test_ipv4_secure_websocket_connection_by_router_url(self, router):
+    def test_ipv4_secure_websocket_connection_by_router_url(
+        self, config_path, router
+    ):
         assert router.url == "wss://localhost:9443"
 
         try:
