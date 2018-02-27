@@ -227,7 +227,7 @@ Build the docs
 Contributing
 ************
 
-Thank you everyone who does. And everyone is welcome to. And you all for reading `CONTRIBUTING`_. And for adding yourselves to the contributors list on your PR! Many thanks. It's great to hear how everyone uses wampy so please do share with me if it is helpful.
+Thank you everyone who does. And everyone is welcome to. And for reading `CONTRIBUTING`_. And for adding yourselves to the contributors list on your PR - you should! Many thanks. It's great to hear how everyone uses wampy so please do share with me on your PR.
 
 Thanks world.
 
