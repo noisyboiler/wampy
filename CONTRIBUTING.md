@@ -9,6 +9,10 @@ wampy follows the standard [PEP8 style guide for Python](http://www.python.org/d
 
 All source code is linted using the default configuration of [flake8](https://pypi.python.org/pypi/flake8).
 
+wampy prefers standard [guidlines](https://www.python.org/dev/peps/pep-0008/#programming-recommendations).
+
+For example, wampy loves trailing commas and doesn't really like backslashes.
+
 ### Imports
 
 Please follow the following convention:
