@@ -29,6 +29,8 @@ wampy
 
     WAMP RPC and Pub/Sub for your Python apps and microservices
 
+Hello world.
+
 This is a Python implementation of `WAMP`_ not requiring `Twisted`_ or asyncio, enabling use within classic blocking Python applications. It is a light-weight alternative to `autobahn`_.
 
 With **wampy** you can quickly and easily create your own **WAMP** clients, whether this is in a web app, a microservice, a script or just in a Python shell.
@@ -220,7 +222,15 @@ Build the docs
     $ pip install -r rtd_requirements.txt
     $ sphinx-build -E -b html ./docs/ ./docs/_build/
 
-If you like this project, then Thank You, and you're welcome to get involved.
+**If you like this project, then Thank You, and you're welcome to get involved.**
+
+Contributing
+************
+
+Thank you everyone who does. And everyone is welcome to. And you all for reading `CONTRIBUTING`_. And for adding yourselves to the contributors list on your PR! Many thanks. It's great to hear how everyone uses wampy so please do share with me if it is helpful.
+
+Thanks world.
+
 
 .. _Crossbar.io docs: http://crossbar.io/docs/Quick-Start/
 .. _ReadTheDocs: http://wampy.readthedocs.io/en/latest/
@@ -231,3 +241,4 @@ If you like this project, then Thank You, and you're welcome to get involved.
 .. _nameko_wamp: https://github.com/noisyboiler/nameko-wamp
 .. _Twisted: https://twistedmatrix.com/trac/
 .. _WAMP: http://wamp-proto.org/static/rfc/draft-oberstet-hybi-crossbar-wamp.html
+.. _CONTRIBUTING: https://github.com/noisyboiler/wampy/blob/master/CONTRIBUTING.md
