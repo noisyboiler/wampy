@@ -227,7 +227,7 @@ Build the docs
 Contributing
 ************
 
-Thank you everyone who does. And *everyone* is welcome to. And thanks for reading the `CONTRIBUTING`_ guidelines. And for adding yourselves to the contributors list on your PR - you should! Many thanks. It's also great to hear how everyone uses wampy, so please do share how with me on your PR in comments.
+Thank you everyone who does. And *everyone* is welcome to. And thanks for reading the `CONTRIBUTING`_ guidelines. And for adding yourselves to the `CONTRIBUTORS`_ list on your PR - you should! Many thanks. It's also great to hear how everyone uses wampy, so please do share how with me on your PR in comments.
 
 Thanks world.
 
@@ -242,3 +242,4 @@ Thanks world.
 .. _Twisted: https://twistedmatrix.com/trac/
 .. _WAMP: http://wamp-proto.org/static/rfc/draft-oberstet-hybi-crossbar-wamp.html
 .. _CONTRIBUTING: https://github.com/noisyboiler/wampy/blob/master/CONTRIBUTING.md
+.. _CONTRIBUTORS: https://github.com/noisyboiler/wampy/blob/master/CONTRIBUTORS.txt
