@@ -5,7 +5,8 @@
 import logging
 from functools import partial
 
-import eventlet
+import gevent
+import gevent.queue
 
 from wampy.errors import ConnectionError, WampProtocolError
 from wampy.messages import MESSAGE_TYPE_MAP
@@ -65,7 +66,7 @@ class Session(object):
         # spawn a green thread to listen for incoming messages over
         # a connection and put them on a queue to be processed
         self._managed_thread = None
-        self._message_queue = eventlet.Queue()
+        self._message_queue = gevent.queue.Queue()
         self._listen(self.connection, self._message_queue)
 
     @property
@@ -114,8 +115,8 @@ class Session(object):
 
     def recv_message(self, timeout=5):
         try:
-            message = self._wait_for_message(timeout)
-        except eventlet.Timeout:
+            message = self._message_queue.get(timeout=timeout)
+        except gevent.queue.Empty:
             raise WampProtocolError(
                 "no message returned (timed-out in {})".format(timeout)
             )
@@ -163,32 +164,16 @@ class Session(object):
                     frame = connection.receive()
                     if frame:
                         message = frame.payload
-                        handler = partial(
-                            self.message_handler.handle_message,
-                            message,
-                            self.client
-                        )
-                        eventlet.spawn(handler)
+                        gevent.spawn(self.message_handler.handle_message,
+                                     message, self.client)
                 except (
                         SystemExit, KeyboardInterrupt, ConnectionError,
                         WampProtocolError,
                 ):
                     break
 
-        gthread = eventlet.spawn(connection_handler)
+        gthread = gevent.spawn(connection_handler)
         self._managed_thread = gthread
-
-    def _wait_for_message(self, timeout):
-        q = self._message_queue
-
-        with eventlet.Timeout(timeout):
-            while q.qsize() == 0:
-                # if the expected message is not there, switch context to
-                # allow other threads to continue working to fetch it for us
-                eventlet.sleep()
-
-        message = q.get()
-        return message
 
     def _subscribe_to_topic(self, handler, topic):
         message = Subscribe(topic=topic)
