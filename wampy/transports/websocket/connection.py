@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 class WebSocket(Transport, ParseUrlMixin):
 
-    def register_router(self, router):
+    def register_server(self, router):
         self.url = router.url
 
         self.host = None
@@ -38,9 +38,10 @@ class WebSocket(Transport, ParseUrlMixin):
         self.key = encodestring(uuid.uuid4().bytes).decode('utf-8').strip()
         self.socket = None
 
-    def connect(self):
+    def connect(self, upgrade=False):
         self._connect()
-        self._upgrade()
+        if upgrade is True:
+            self._upgrade()
         return self
 
     def disconnect(self):
@@ -91,7 +92,8 @@ class WebSocket(Transport, ParseUrlMixin):
                 bufsize = exc.required_bytes
                 logger.debug('now requesting the missing %s bytes', bufsize)
             else:
-                if frame.opcode == 9:
+
+                if frame.opcode == frame.OPCODE_PING:
                     # Opcode 0x9 marks a ping frame. It does not contain wamp
                     # data, so the frame is not returned.
                     # Still it must be handled or the server will close the
@@ -246,8 +248,8 @@ class WebSocket(Transport, ParseUrlMixin):
 
 
 class SecureWebSocket(WebSocket):
-    def register_router(self, router):
-        super(SecureWebSocket, self).register_router(router)
+    def register_server(self, router):
+        super(SecureWebSocket, self).register_server(router)
 
         self.ipv = router.ipv
 

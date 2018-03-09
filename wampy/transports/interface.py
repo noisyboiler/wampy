@@ -7,7 +7,7 @@ import six
 class Transport(object):
 
     @abc.abstractmethod
-    def register_router(self, router):
+    def register_server(self, router):
         pass
 
     @abc.abstractmethod

@@ -109,7 +109,7 @@ class Client(object):
             )
 
         # the transport is responsible for the connection.
-        self.transport.register_router(self.router)
+        self.transport.register_server(self.router)
 
         # generally ``name`` is used for debuggubg and logging only
         self.name = name or self.__class__.__name__
@@ -152,8 +152,8 @@ class Client(object):
         return PublishProxy(client=self)
 
     def start(self):
-        # establish the underlying connection. this will raise on error.
-        connection = self.transport.connect()
+        # establish the underlying connection and upgrade it to WAMP.
+        connection = self.transport.connect(upgrade=True)
 
         # create a Session repr between ourselves and the Router.
         # pass in the live connection over a transport that the Session
