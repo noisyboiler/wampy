@@ -5,7 +5,7 @@
 # Set default logging handler to avoid "No handler found" warnings.
 import logging
 
-import eventlet
+import gevent.monkey
 
 
 try:  # Python 2.7+
@@ -21,5 +21,5 @@ from wampy.peers.clients import Client  # noqa
 root = logging.getLogger(__name__)
 root.addHandler(NullHandler())
 
-root.warning('eventlet about to monkey patched your environment')
-eventlet.monkey_patch()
+root.warning('gevent about to monkey patched your environment')
+gevent.monkey.patch_all()
