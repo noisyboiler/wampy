@@ -87,15 +87,19 @@ class Frame(object):
     def __len__(self):
         # UTF-8 is an unicode encoding which uses more than one byte for
         # special characters. calculating the length needs consideration.
+        encode = True
         try:
             unicode_body = self.body.decode("utf-8")
         except UnicodeError:
             unicode_body = self.body
+            encode = False
         except AttributeError:
             # already decoded, hence no "decode" attribute
             unicode_body = self.body
-
-        return len(unicode_body.encode('utf-8'))
+        if encode:
+            return len(unicode_body.encode('utf-8'))
+        else: #Binary object, for example number on CLOSE message FIXME
+            return len(unicode_body)
 
     def __str__(self):
         return self.body
@@ -263,7 +267,8 @@ class ServerFrame(Frame):
 
         self.opcode = bytes[0] & 0b1111
 
-        if self.opcode != 9:
+        # 8 is server CLOSE message
+        if self.opcode not in [8, 9]:
             # Wamp data frames contain a json-encoded payload.
             # The other kind of frame we handle (opcode 0x9) is a ping and it
             # has a non-json payload

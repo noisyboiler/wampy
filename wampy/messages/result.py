@@ -43,4 +43,7 @@ class Result(object):
 
     @property
     def value(self):
+        if ((not self.yield_kwargs is None) \
+            and ('message' in self.yield_kwargs.keys())):
+            return self.yield_args
         return self.yield_kwargs['message']
