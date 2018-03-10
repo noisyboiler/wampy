@@ -25,12 +25,12 @@ logger = logging.getLogger(__name__)
 
 class WebSocket(Transport, ParseUrlMixin):
 
-    def register_server(self, router):
-        self.url = router.url
+    def __init__(self, server_url, ipv=4):
+        self.url = server_url
+        self.ipv = ipv
 
         self.host = None
         self.port = None
-        self.ipv = router.ipv
         self.resource = None
 
         self.parse_url()
@@ -248,8 +248,8 @@ class WebSocket(Transport, ParseUrlMixin):
 
 
 class SecureWebSocket(WebSocket):
-    def register_server(self, router):
-        super(SecureWebSocket, self).register_server(router)
+    def register_router(self, router):
+        super(SecureWebSocket, self).register_router(router)
 
         self.ipv = router.ipv
 

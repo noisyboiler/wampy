@@ -100,16 +100,13 @@ class Client(object):
         # as WebSocket messages by default (well, actually... that's because no
         # other transports are supported!)
         if self.router.scheme == "ws":
-            self.transport = WebSocket()
+            self.transport = WebSocket(server_url=self.router.url, ipv=self.router.ipv)
         elif self.router.scheme == "wss":
-            self.transport = SecureWebSocket()
+            self.transport = SecureWebSocket(server_url=self.router.url, ipv=self.router.ipv)
         else:
             raise WampyError(
                 'Network protocl must be "ws" or "wss"'
             )
-
-        # the transport is responsible for the connection.
-        self.transport.register_server(self.router)
 
         # generally ``name`` is used for debuggubg and logging only
         self.name = name or self.__class__.__name__
