@@ -54,6 +54,7 @@ setup(
             "pytest-capturelog==0.7",
             "colorlog",
             "flake8==3.5.0",
+            "gevent-websocket==0.10.1",
         ],
         'docs': [
             "Sphinx==1.4.5",

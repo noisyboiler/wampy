@@ -1,25 +1,27 @@
-import socket
 from threading import Thread
 
 import pytest
-from wampy.testing.websocket_server import WebsocketServer
+from geventwebsocket import WebSocketServer, Resource
 
 from wampy.transports.websocket.connection import WebSocket
 
-HOST, PORT = "localhost", 9999
 
 @pytest.fixture(scope='function')
 def server():
-    s = WebsocketServer(url="ws://localhost:9999")
+    s = WebSocketServer(
+        ('0.0.0.0', 8000),
+        Resource([]),
+        debug=False,
+    )
+
     server_thread = Thread(target=s.serve_forever)
     server_thread.daemon = True
     server_thread.start()
     yield s
-    import pdb
-    pdb.set_trace()
-    s.server_close()
+    s.stop()
 
 
 def test_websocket_connects_to_server(server):
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
+    websocket = WebSocket(server_url='ws://0.0.0.0:8000')
+    websocket.connect()
+    websocket.disconnect()

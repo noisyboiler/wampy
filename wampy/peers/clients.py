@@ -100,9 +100,11 @@ class Client(object):
         # as WebSocket messages by default (well, actually... that's because no
         # other transports are supported!)
         if self.router.scheme == "ws":
-            self.transport = WebSocket(server_url=self.router.url, ipv=self.router.ipv)
+            self.transport = WebSocket(
+                server_url=self.router.url, ipv=self.router.ipv)
         elif self.router.scheme == "wss":
-            self.transport = SecureWebSocket(server_url=self.router.url, ipv=self.router.ipv)
+            self.transport = SecureWebSocket(
+                server_url=self.router.url, ipv=self.router.ipv)
         else:
             raise WampyError(
                 'Network protocl must be "ws" or "wss"'
