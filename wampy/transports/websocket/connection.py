@@ -9,7 +9,7 @@ import uuid
 from base64 import encodestring
 from socket import error as socket_error
 
-import eventlet
+import gevent
 
 from wampy.constants import WEBSOCKET_SUBPROTOCOLS, WEBSOCKET_VERSION
 from wampy.errors import (
@@ -70,7 +70,7 @@ class WebSocket(Transport, ParseUrlMixin):
 
             try:
                 bytes = self.socket.recv(bufsize)
-            except eventlet.greenlet.GreenletExit as exc:
+            except gevent.greenlet.GreenletExit as exc:
                 raise ConnectionError('Connection closed: "{}"'.format(exc))
             except socket.timeout as e:
                 message = str(e)
@@ -152,9 +152,9 @@ class WebSocket(Transport, ParseUrlMixin):
         self.socket.send(handshake.encode())
 
         try:
-            with eventlet.Timeout(5):
+            with gevent.Timeout(5):
                 self.status, self.headers = self._read_handshake_response()
-        except eventlet.Timeout:
+        except gevent.Timeout:
             raise WampyError(
                 'No response after handshake "{}"'.format(handshake)
             )
@@ -210,7 +210,7 @@ class WebSocket(Transport, ParseUrlMixin):
         while True:
             # we need this to guarantee we can context switch back to the
             # Timeout.
-            eventlet.sleep()
+            gevent.sleep(0.01)
 
             received_bytes = read_line()
             if received_bytes == b'\r\n':

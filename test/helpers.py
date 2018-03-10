@@ -2,13 +2,13 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import eventlet
+import gevent
 
 
 def assert_stops_raising(
         fn, exception_type=Exception, timeout=5, interval=0.1):
 
-    with eventlet.Timeout(timeout):
+    with gevent.Timeout(timeout):
         while True:
             try:
                 fn()
@@ -16,4 +16,4 @@ def assert_stops_raising(
                 pass
             else:
                 return
-            eventlet.sleep(interval)
+            gevent.sleep(interval)

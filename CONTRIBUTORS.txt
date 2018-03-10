@@ -1,8 +1,9 @@
 Contributions have been made by:
 
-Alexandre Bulté (@abulte)
-Thibault Cohen (@titilambert)
-Joe Pinsonault (@)jpinsonault)
-Marcus Hunger (@fnordian)
+@abulte Alexandre Bulté
+@titilambert Thibault Cohen
+@jpinsonault Joe Pinsonault
+@fnordian Marcus Hunger
 @jwg4
 @FoxMaSk
+@chadrik Chad Dombrova
