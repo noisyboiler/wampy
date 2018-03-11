@@ -340,20 +340,3 @@ class Ping(Frame):
 
     def data_to_bytes(self, data):
         return data
-
-    def generate_ping(key, timestamp=False):
-        data = ['0x89','0x8a'] # 0x89 = fin, ping 0x8a = masked,len=10
-        data.extend(key)
-        if timestamp:
-            t = str(timestamp)
-        else:
-            t = str(int(time()))
-        for i in range(10):
-            masking_byte = int(key[i%4],16)
-            masked = ord(t[i])
-            data.append(hex(masked ^ masking_byte))
-        frame = ''
-        for i in range(len(data)):
-            frame += chr(int(data[i],16))
-        return frame
-

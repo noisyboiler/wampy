@@ -65,10 +65,7 @@ class WebSocket(Transport, ParseUrlMixin):
         frame = None
         received_bytes = bytearray()
         while True:
-            print('receiving...')
             logger.debug("waiting for %s bytes", bufsize)
-            import pdb
-            #pdb.set_trace()
             try:
                 bytes = self.socket.recv(bufsize)
             except gevent.greenlet.GreenletExit as exc:

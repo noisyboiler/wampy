@@ -1,17 +1,16 @@
-import json
+from collections import OrderedDict
 
 import pytest
 import gevent
 from gevent import Greenlet
-from geventwebsocket import WebSocketServer, Resource
+from geventwebsocket import (
+    WebSocketApplication, WebSocketServer, Resource,
+)
 from mock import patch
 
 from wampy.transports.websocket.connection import WebSocket
 from wampy.transports.websocket.frames import Ping
 
-
-from geventwebsocket import WebSocketServer, WebSocketApplication, Resource
-from collections import OrderedDict
 
 class TestApplication(WebSocketApplication):
     pass
@@ -28,8 +27,6 @@ def server():
     yield s
     s.stop()
     thread.kill()
-
-
 
 
 def test_websocket_connects_to_server(server):
@@ -62,7 +59,6 @@ def test_send_ping(server):
     thread = gevent.spawn(connection_handler)
 
     with patch.object(websocket, 'handle_ping') as mock_handle:
-        
         while not hasattr(server, 'socket'):
             gevent.sleep(0.01)
 
@@ -79,4 +75,4 @@ def test_send_ping(server):
 
         socket.send(payload)
 
-
+    thread.kill()
