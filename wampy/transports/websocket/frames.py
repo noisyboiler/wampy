@@ -83,6 +83,10 @@ class Frame(object):
 
     def __init__(self, bytes):
         self.body = bytes
+        self.fin_bit = 1
+        self.rsv1_bit = 0
+        self.rsv2_bit = 0
+        self.rsv3_bit = 0
 
     def __len__(self):
         # UTF-8 is an unicode encoding which uses more than one byte for
@@ -99,54 +103,6 @@ class Frame(object):
 
     def __str__(self):
         return self.body
-
-
-class ClientFrame(Frame):
-    """ Represent outgoing Client -> Server messages
-    """
-
-    def __init__(self, bytes):
-        super(ClientFrame, self).__init__(bytes)
-
-        self.fin_bit = 1
-        self.rsv1_bit = 0
-        self.rsv2_bit = 0
-        self.rsv3_bit = 0
-        self.opcode = self.OPCODE_TEXT
-        self.payload = self.generate_payload()
-
-    def data_to_bytes(self, data):
-        return bytearray(data, 'utf-8')
-
-    def generate_mask(self, mask_key, data):
-        """ Mask data.
-
-        :Parameters:
-            mask_key: byte string
-                4 byte string(byte), e.g. '\x10\xc6\xc4\x16'
-            data: str
-                data to mask
-
-        """
-        # Masking of WebSocket traffic from client to server is required
-        # because of the unlikely chance that malicious code could cause
-        # some broken proxies to do the wrong thing and use this as an
-        # attack of some kind. Nobody has proved that this could actually
-        # happen, but since the fact that it could happen was reason enough
-        # for browser vendors to get twitchy, masking was added to remove
-        # the possibility of it being used as an attack.
-        if data is None:
-            data = ""
-
-        data_bytes = self.data_to_bytes(data)
-
-        _m = array.array("B", mask_key)
-        _d = array.array("B", data_bytes)
-
-        for i in range(len(_d)):
-            _d[i] ^= _m[i % 4]
-
-        return _d.tostring()
 
     def generate_payload(self):
         """ Format data to string (bytes) to send to server.
@@ -204,10 +160,59 @@ class ClientFrame(Frame):
         else:
             payload += pack('!B', (mask_bit | 127)) + pack('!Q', length)
 
+        # this is a bytes string being returned here
+        return payload
+
+
+class ClientFrame(Frame):
+    """ Represent outgoing Client -> Server messages
+    """
+
+    def __init__(self, bytes):
+        super(ClientFrame, self).__init__(bytes)
+
+        self.opcode = self.OPCODE_TEXT
+        self.payload = self.generate_payload()
+
+    def data_to_bytes(self, data):
+        return bytearray(data, 'utf-8')
+
+    def generate_mask(self, mask_key, data):
+        """ Mask data.
+
+        :Parameters:
+            mask_key: byte string
+                4 byte string(byte), e.g. '\x10\xc6\xc4\x16'
+            data: str
+                data to mask
+
+        """
+        # Masking of WebSocket traffic from client to server is required
+        # because of the unlikely chance that malicious code could cause
+        # some broken proxies to do the wrong thing and use this as an
+        # attack of some kind. Nobody has proved that this could actually
+        # happen, but since the fact that it could happen was reason enough
+        # for browser vendors to get twitchy, masking was added to remove
+        # the possibility of it being used as an attack.
+        if data is None:
+            data = ""
+
+        data_bytes = self.data_to_bytes(data)
+
+        _m = array.array("B", mask_key)
+        _d = array.array("B", data_bytes)
+
+        for i in range(len(_d)):
+            _d[i] ^= _m[i % 4]
+
+        return _d.tostring()
+
+    def generate_payload(self):
+        payload = super(ClientFrame, self).generate_payload()
+
         # we always mask frames from the client to server
         # use a string of n random bytes for the mask
         mask_key = os.urandom(4)
-
         mask_data = self.generate_mask(mask_key=mask_key, data=self.body)
         mask = mask_key + mask_data
         payload += mask
@@ -263,7 +268,7 @@ class ServerFrame(Frame):
 
         self.opcode = bytes[0] & 0b1111
 
-        if self.opcode != 9:
+        if self.opcode == 1:
             # Wamp data frames contain a json-encoded payload.
             # The other kind of frame we handle (opcode 0x9) is a ping and it
             # has a non-json payload
@@ -324,3 +329,31 @@ class ServerFrame(Frame):
 
         self.body = body_candidate
         self.payload_length_indicator = payload_length_indicator
+
+
+class Ping(Frame):
+
+    def __init__(self):
+        super(Ping, self).__init__(bytes='0x8a')
+        self.opcode = Frame.OPCODE_PING
+        self.payload = self.generate_payload()
+
+    def data_to_bytes(self, data):
+        return data
+
+    def generate_ping(key, timestamp=False):
+        data = ['0x89','0x8a'] # 0x89 = fin, ping 0x8a = masked,len=10
+        data.extend(key)
+        if timestamp:
+            t = str(timestamp)
+        else:
+            t = str(int(time()))
+        for i in range(10):
+            masking_byte = int(key[i%4],16)
+            masked = ord(t[i])
+            data.append(hex(masked ^ masking_byte))
+        frame = ''
+        for i in range(len(data)):
+            frame += chr(int(data[i],16))
+        return frame
+

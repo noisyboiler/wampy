@@ -39,9 +39,9 @@ class WebSocket(Transport, ParseUrlMixin):
         self.socket = None
 
     def connect(self, upgrade=False):
+        # TCP connection
         self._connect()
-        if upgrade is True:
-            self._upgrade()
+        self._handshake(upgrade=upgrade)
         return self
 
     def disconnect(self):
@@ -64,10 +64,11 @@ class WebSocket(Transport, ParseUrlMixin):
     def receive(self, bufsize=1):
         frame = None
         received_bytes = bytearray()
-
         while True:
+            print('receiving...')
             logger.debug("waiting for %s bytes", bufsize)
-
+            import pdb
+            #pdb.set_trace()
             try:
                 bytes = self.socket.recv(bufsize)
             except gevent.greenlet.GreenletExit as exc:
@@ -75,6 +76,9 @@ class WebSocket(Transport, ParseUrlMixin):
             except socket.timeout as e:
                 message = str(e)
                 raise ConnectionError('timeout: "{}"'.format(message))
+            except ConnectionResetError:
+                pdb.set_trace()
+                raise ConnectionError('the connection was reset by the peer')
             except Exception as exc:
                 raise ConnectionError(
                     'unexpected error reading from socket: "{}"'.format(exc)
@@ -92,13 +96,15 @@ class WebSocket(Transport, ParseUrlMixin):
                 bufsize = exc.required_bytes
                 logger.debug('now requesting the missing %s bytes', bufsize)
             else:
-
+                print(frame.opcode)
                 if frame.opcode == frame.OPCODE_PING:
+                    import pdb
+                    pdb.set_trace()
                     # Opcode 0x9 marks a ping frame. It does not contain wamp
                     # data, so the frame is not returned.
                     # Still it must be handled or the server will close the
                     # connection.
-                    self._send_raw(PongFrame(frame.payload).payload)
+                    self.handle_ping(ping_frame=frame)
                     received_bytes = bytearray()
                     continue
                 break
@@ -145,8 +151,8 @@ class WebSocket(Transport, ParseUrlMixin):
         self.socket = _socket
         logger.debug("socket connected")
 
-    def _upgrade(self):
-        handshake_headers = self._get_handshake_headers()
+    def _handshake(self, upgrade):
+        handshake_headers = self._get_handshake_headers(upgrade=upgrade)
         handshake = '\r\n'.join(handshake_headers) + "\r\n\r\n"
 
         self.socket.send(handshake.encode())
@@ -161,7 +167,7 @@ class WebSocket(Transport, ParseUrlMixin):
 
         logger.debug("connection upgraded")
 
-    def _get_handshake_headers(self):
+    def _get_handshake_headers(self, upgrade):
         """ Do an HTTP upgrade handshake with the server.
 
         Websockets upgrade from HTTP rather than TCP largely because it was
@@ -186,8 +192,11 @@ class WebSocket(Transport, ParseUrlMixin):
         headers.append("Sec-WebSocket-Key: {}".format(self.key))
         headers.append("Origin: ws://{}:{}".format(self.host, self.port))
         headers.append("Sec-WebSocket-Version: {}".format(WEBSOCKET_VERSION))
-        headers.append("Sec-WebSocket-Protocol: {}".format(
-            WEBSOCKET_SUBPROTOCOLS))
+
+        if upgrade:
+            headers.append("Sec-WebSocket-Protocol: {}".format(
+                WEBSOCKET_SUBPROTOCOLS)
+            )
 
         logger.debug("connection headers: %s", headers)
 
@@ -202,8 +211,8 @@ class WebSocket(Transport, ParseUrlMixin):
         def read_line():
             bytes_cache = []
             received_bytes = None
-            while received_bytes != b'\r\n':
-                received_bytes = self.socket.recv(2)
+            while received_bytes not in [b'\r\n', b'\n', b'\n\r']:
+                received_bytes = self.socket.recv(1)
                 bytes_cache.append(received_bytes)
             return b''.join(bytes_cache)
 
@@ -215,6 +224,7 @@ class WebSocket(Transport, ParseUrlMixin):
             received_bytes = read_line()
             if received_bytes == b'\r\n':
                 # end of the response
+                print('end of response')
                 break
 
             bytes_as_str = received_bytes.decode()
@@ -241,10 +251,14 @@ class WebSocket(Transport, ParseUrlMixin):
 
             key, value = kv
             headers[key.lower()] = value.strip().lower()
+            print(headers)
 
         logger.info("handshake complete: %s : %s", status, headers)
 
         return status, headers
+
+    def handle_ping(self, ping_frame):
+        self._send_raw(PongFrame(ping_frame.payload).payload)
 
 
 class SecureWebSocket(WebSocket):

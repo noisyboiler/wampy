@@ -110,7 +110,7 @@ class Client(object):
                 'Network protocl must be "ws" or "wss"'
             )
 
-        # generally ``name`` is used for debuggubg and logging only
+        # generally ``name`` is used for debugging and logging only
         self.name = name or self.__class__.__name__
 
         self._session = None
