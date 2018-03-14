@@ -60,6 +60,8 @@ class WebSocket(Transport, ParseUrlMixin):
         self._send_raw(websocket_message)
 
     def _send_raw(self, websocket_message):
+        import pdb
+        pdb.set_trace()
         self.socket.sendall(websocket_message)
 
     def receive(self, bufsize=1):

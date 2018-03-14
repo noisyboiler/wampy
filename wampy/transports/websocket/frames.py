@@ -113,6 +113,89 @@ class Frame(object):
         return self.payload
 
 
+class FrameFactory(object):
+
+    @classmethod
+    def from_bytes(cls, bytes):
+        try:
+            payload_length_indicator = bytes[1] & 0b1111111
+        except Exception:
+            raise IncompleteFrameError(required_bytes=1)
+
+        available_bytes_for_body = bytes[2:]
+        if not available_bytes_for_body:
+            opcode = bytes[0] & 0xf
+            if opcode == Frame.OPCODE_BINARY:
+                # binary - the handshake response?
+                return Frame(payload=None, opcode=Frame.OPCODE_BINARY)
+
+            if opcode in Frame.CONTROL_FRAMES:
+                if opcode == Frame.OPCODE_PING:
+                    return Ping()
+
+        import pdb
+        pdb.set_trace()
+        available_bytes_for_body = bytes[2:]
+
+        try:
+            available_bytes_for_body[1]
+        except IndexError:
+            raise IncompleteFrameError(required_bytes=payload_length_indicator)
+
+        # unpack the buffered bytes into an integer
+        body_length = unpack_from(">h", available_bytes_for_body)[0]
+
+        if payload_length_indicator < 126:
+            # then we have enough knowlege about the payload length as it's
+            # contained within the 2nd byte of the header - because the
+            # trailing 7 bits of the 2 bytes tells us exactly how long the
+            # payload is
+            body_candidate = available_bytes_for_body
+            # in this case body length is represented by the indicator
+            body_length = payload_length_indicator
+
+        elif payload_length_indicator == 126:
+            # then we don't have enough knowledge yet.
+            # and actually the following two bytes indicate the payload length.
+            # get all buffered bytes beyond the header and the excluded 2 bytes
+            body_candidate = available_bytes_for_body[2:]  # require >= 2 bytes
+
+        else:
+            # actually, the following eight bytes indicate the payload length.
+            # so check we have at least as much as we need, else exit.
+            body_candidate = available_bytes_for_body[6:]  # require >= 8 bytes
+
+        if len(body_candidate) < body_length:
+            required_bytes = body_length - len(body_candidate)
+            logger.debug("missing %s bytes", required_bytes)
+            raise IncompleteFrameError(
+                required_bytes=required_bytes
+            )
+
+        # server must not mask the payload
+        mask = bytes[1] >> 7
+        assert mask == 0
+
+        # Parse the first two bytes of header.
+        fin = bytes[0] >> 7
+
+        if fin == 0:
+            logger.exception("Multiple Frames Returned: %s", bytes)
+            raise WampyError(
+                'Multiple framed responses not yet supported: {}'.format(bytes)
+            )
+
+        try:
+            # decode required before loading JSON for python 2 only
+            payload = json.loads(body_candidate.decode('utf-8'))
+        except Exception:
+            raise WebsocktProtocolError(
+                'Failed to load JSON object from: "%s"', body_candidate
+            )
+
+        return Frame(payload=payload, opcode=opcode)
+
+
 class ClientFrame(Frame):
     """ Represent outgoing Client -> Server messages
     """
@@ -216,88 +299,9 @@ class ClientFrame(Frame):
         payload += mask
 
         # this is a bytes string being returned here
-        return payload
-
-
-class FrameFactory(object):
-
-    @classmethod
-    def from_bytes(cls, bytes):
-        try:
-            payload_length_indicator = bytes[1] & 0b1111111
-        except Exception:
-            raise IncompleteFrameError(required_bytes=1)
-
-        available_bytes_for_body = bytes[2:]
-        if not available_bytes_for_body:
-            opcode = bytes[0] & 0xf
-            if opcode == Frame.OPCODE_BINARY:
-                # binary - the handshake response?
-                return Frame(payload=None, opcode=Frame.OPCODE_BINARY)
-
-            if opcode in Frame.CONTROL_FRAMES:
-                if opcode == Frame.OPCODE_PING:
-                    return Ping()
-
-        available_bytes_for_body = bytes[2:]
-
-        try:
-            available_bytes_for_body[1]
-        except IndexError:
-            raise IncompleteFrameError(required_bytes=payload_length_indicator)
-
-        # unpack the buffered bytes into an integer
-        body_length = unpack_from(">h", available_bytes_for_body)[0]
-
-        if payload_length_indicator < 126:
-            # then we have enough knowlege about the payload length as it's
-            # contained within the 2nd byte of the header - because the
-            # trailing 7 bits of the 2 bytes tells us exactly how long the
-            # payload is
-            body_candidate = available_bytes_for_body
-            # in this case body length is represented by the indicator
-            body_length = payload_length_indicator
-
-        elif payload_length_indicator == 126:
-            # then we don't have enough knowledge yet.
-            # and actually the following two bytes indicate the payload length.
-            # get all buffered bytes beyond the header and the excluded 2 bytes
-            body_candidate = available_bytes_for_body[2:]  # require >= 2 bytes
-
-        else:
-            # actually, the following eight bytes indicate the payload length.
-            # so check we have at least as much as we need, else exit.
-            body_candidate = available_bytes_for_body[6:]  # require >= 8 bytes
-
-        if len(body_candidate) < body_length:
-            required_bytes = body_length - len(body_candidate)
-            logger.debug("missing %s bytes", required_bytes)
-            raise IncompleteFrameError(
-                required_bytes=required_bytes
-            )
-
-        # server must not mask the payload
-        mask = bytes[1] >> 7
-        assert mask == 0
-
-        # Parse the first two bytes of header.
-        fin = bytes[0] >> 7
-
-        if fin == 0:
-            logger.exception("Multiple Frames Returned: %s", bytes)
-            raise WampyError(
-                'Multiple framed responses not yet supported: {}'.format(bytes)
-            )
-
-        try:
-            # decode required before loading JSON for python 2 only
-            payload = json.loads(body_candidate.decode('utf-8'))
-        except Exception:
-            raise WebsocktProtocolError(
-                'Failed to load JSON object from: "%s"', body_candidate
-            )
-
-        return Frame(payload=payload, opcode=opcode)
+        import pdb
+        pdb.set_trace()
+        return self.data_to_bytes(payload)
 
 
 class Ping(Frame):
@@ -366,7 +370,7 @@ class Ping(Frame):
         return bytes  # this is b'\x89\x00'
 
 
-class PongFrame(ClientFrame):
+class PongFrame(Frame):
 
     def __init__(self, payload=''):
         super(PongFrame, self).__init__(
