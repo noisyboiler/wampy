@@ -6,7 +6,8 @@ from gevent import Greenlet
 from geventwebsocket import (
     WebSocketApplication, WebSocketServer, Resource,
 )
-from mock import patch
+from mock import ANY
+from mock import call, patch
 
 from wampy.transports.websocket.connection import WebSocket
 from wampy.transports.websocket.frames import Ping
@@ -29,38 +30,37 @@ def server():
     thread.kill()
 
 
-def test_websocket_connects_to_server(server):
+def __test_websocket_connects_to_server(server):
     websocket = WebSocket(server_url='ws://0.0.0.0:8001')
-
-    assert not hasattr(server, 'socket')
-
     websocket.connect()
-    assert hasattr(server, 'socket')
-    assert server.clients
+
+    assert len(server.clients) == 1
 
     websocket.disconnect()
 
 
 def test_send_ping(server):
     websocket = WebSocket(server_url='ws://0.0.0.0:8001')
-    connection = websocket.connect(upgrade=False)
-
-    def connection_handler():
-        while True:
-            try:
-                message = connection.receive()
-
-            except Exception as exc:
-                print(type(exc), exc)
-                raise
-
-        return message
-
-    thread = gevent.spawn(connection_handler)
-
     with patch.object(websocket, 'handle_ping') as mock_handle:
-        while not hasattr(server, 'socket'):
-            gevent.sleep(0.01)
+        assert websocket.connected is False
+
+        websocket.connect(upgrade=False)
+
+        def connection_handler():
+            while True:
+                try:
+                    websocket.receive()
+                except Exception as exc:
+                    print(exc)
+                    raise
+
+        assert websocket.connected is True
+
+        # the first bytes sent down the connection are the response bytes
+        # to the TCP connection and upgrade. we receieve in this thread
+        # because it will block all execution
+        Greenlet.spawn(connection_handler)
+        gevent.sleep(0.01)  # enough for the upgrade to happen
 
         clients = server.clients
         assert len(clients) == 1
@@ -69,10 +69,17 @@ def test_send_ping(server):
         socket = client_handler.ws
 
         frame = Ping()
-        payload = frame.payload
-
-        ping_masked_bytes = b'0x8a0x850x370xfa0x210x3d0x7f0x9f0x4d0x510x58'
-
+        payload = frame.generate_frame()
         socket.send(payload)
 
-    thread.kill()
+        websocket.receive()
+
+        with gevent.Timeout(1):
+            while mock_handle.call_count != 1:
+                gevent.sleep(0.01)
+
+        assert mock_handle.call_count == 1
+        assert mock_handle.call_args == call(ping_frame=ANY)
+
+        call_param = mock_handle.call_args[1]['ping_frame']
+        assert isinstance(call_param, Ping)

@@ -18,7 +18,7 @@ from wampy.mixins import ParseUrlMixin
 from wampy.transports.interface import Transport
 from wampy.serializers import json_serialize
 
-from . frames import ClientFrame, ServerFrame, PongFrame
+from . frames import ClientFrame, FrameFactory, PongFrame
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +37,7 @@ class WebSocket(Transport, ParseUrlMixin):
         self.websocket_location = self.resource
         self.key = encodestring(uuid.uuid4().bytes).decode('utf-8').strip()
         self.socket = None
+        self.connected = False
 
     def connect(self, upgrade=False):
         # TCP connection
@@ -64,8 +65,10 @@ class WebSocket(Transport, ParseUrlMixin):
     def receive(self, bufsize=1):
         frame = None
         received_bytes = bytearray()
+
         while True:
             logger.debug("waiting for %s bytes", bufsize)
+
             try:
                 bytes = self.socket.recv(bufsize)
             except gevent.greenlet.GreenletExit as exc:
@@ -74,7 +77,6 @@ class WebSocket(Transport, ParseUrlMixin):
                 message = str(e)
                 raise ConnectionError('timeout: "{}"'.format(message))
             except ConnectionResetError:
-                pdb.set_trace()
                 raise ConnectionError('the connection was reset by the peer')
             except Exception as exc:
                 raise ConnectionError(
@@ -88,15 +90,12 @@ class WebSocket(Transport, ParseUrlMixin):
             received_bytes.extend(bytes)
 
             try:
-                frame = ServerFrame(received_bytes)
+                frame = FrameFactory.from_bytes(received_bytes)
             except IncompleteFrameError as exc:
                 bufsize = exc.required_bytes
                 logger.debug('now requesting the missing %s bytes', bufsize)
             else:
-                print(frame.opcode)
                 if frame.opcode == frame.OPCODE_PING:
-                    import pdb
-                    pdb.set_trace()
                     # Opcode 0x9 marks a ping frame. It does not contain wamp
                     # data, so the frame is not returned.
                     # Still it must be handled or the server will close the
@@ -155,7 +154,7 @@ class WebSocket(Transport, ParseUrlMixin):
         self.socket.send(handshake.encode())
 
         try:
-            with gevent.Timeout(5):
+            with gevent.Timeout(50):
                 self.status, self.headers = self._read_handshake_response()
         except gevent.Timeout:
             raise WampyError(
@@ -251,11 +250,11 @@ class WebSocket(Transport, ParseUrlMixin):
             print(headers)
 
         logger.info("handshake complete: %s : %s", status, headers)
-
+        self.connected = True
         return status, headers
 
     def handle_ping(self, ping_frame):
-        self._send_raw(PongFrame(ping_frame.payload).payload)
+        self._send_raw(PongFrame().generate_frame())
 
 
 class SecureWebSocket(WebSocket):
