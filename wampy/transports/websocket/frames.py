@@ -91,8 +91,15 @@ class Frame(object):
         self.payload = payload or Frame.generate_payload(bytes)
 
     def __len__(self):
-        # the lengrh of the ws frame (not just the payload)
-        return len(self.bytes)
+        try:
+            unicode_body = self.bytes.decode("utf-8")
+        except UnicodeError:
+            unicode_body = self.bytes
+        except AttributeError:
+            # already decoded, hence no "decode" attribute
+            unicode_body = self.bytes
+
+        return len(unicode_body)
 
     def __str__(self):
         return self.payload
@@ -178,9 +185,9 @@ class FrameFactory(object):
 
     @classmethod
     def from_bytes(cls, bytes):
-        opcode = bytes[0] & 0xf
         payload = Frame.generate_payload(bytes)
         if payload is None:
+            opcode = bytes[0] & 0xf
             if opcode == Frame.OPCODE_BINARY:
                 # binary - the handshake response?
                 return Frame(bytes=bytes, payload=None)
