@@ -106,7 +106,7 @@ class Frame(object):
 
     @classmethod
     def generate_payload(cls, bytes):
-        if not bytes:
+        if not bytes or len(bytes) < 2:
             raise IncompleteFrameError(required_bytes=1)
 
         # Parse the first two bytes of header.
@@ -173,6 +173,7 @@ class Frame(object):
                 'Failed to load JSON object from: "%s"', body_candidate
             )
 
+        logger.info('generated payload: %s', payload)
         return payload
 
     @property
@@ -204,7 +205,7 @@ class FrameFactory(object):
 class ClientFrame(Frame):
     """ Represent outgoing Client -> Server messages.
 
-    Takes a paylod and wraps it in a WebSocket frame.
+    Takes a payload and wraps it in a WebSocket frame.
 
     """
 

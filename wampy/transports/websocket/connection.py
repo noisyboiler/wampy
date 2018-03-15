@@ -39,7 +39,7 @@ class WebSocket(Transport, ParseUrlMixin):
         self.socket = None
         self.connected = False
 
-    def connect(self, upgrade=False):
+    def connect(self, upgrade=True):
         # TCP connection
         self._connect()
         self._handshake(upgrade=upgrade)
@@ -68,7 +68,7 @@ class WebSocket(Transport, ParseUrlMixin):
         received_bytes = bytearray()
 
         while True:
-            logger.debug("waiting for %s bytes", bufsize)
+            logger.warning("waiting for %s bytes", bufsize)
 
             try:
                 bytes = self.socket.recv(bufsize)
@@ -87,12 +87,13 @@ class WebSocket(Transport, ParseUrlMixin):
             if not bytes:
                 break
 
-            logger.debug("received %s bytes", bufsize)
+            logger.warning("received %s bytes", bufsize)
             received_bytes.extend(bytes)
 
             try:
                 frame = FrameFactory.from_bytes(received_bytes)
             except IncompleteFrameError as exc:
+                logger.warning('not good enough: %s', received_bytes)
                 bufsize = exc.required_bytes
                 logger.debug('now requesting the missing %s bytes', bufsize)
             else:
@@ -104,9 +105,13 @@ class WebSocket(Transport, ParseUrlMixin):
                     self.handle_ping(ping_frame=frame)
                     received_bytes = bytearray()
                     continue
+                if frame.opcode == frame.OPCODE_BINARY:
+                    import pdb
+                    pdb.set_trace()
                 break
 
-        logger.info(frame.frame)
+        logger.warning('happy with %s', frame.frame)
+        logger.warning(frame.frame)
 
         if frame is None:
             raise WampProtocolError("No frame returned")
