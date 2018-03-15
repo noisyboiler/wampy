@@ -33,6 +33,11 @@ class MessageHandler(object):
     """
 
     def handle_message(self, message, client):
+        if message is None:
+            logger.warning('no message to handle')
+            import sys
+            sys.exit()
+
         wamp_code = message[0]
 
         logger.debug(

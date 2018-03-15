@@ -56,12 +56,11 @@ class WebSocket(Transport, ParseUrlMixin):
     def send(self, message):
         serialized_message = json_serialize(message)
         frame = ClientFrame(serialized_message)
-        websocket_message = frame.payload
+        websocket_message = frame.frame
         self._send_raw(websocket_message)
 
     def _send_raw(self, websocket_message):
-        import pdb
-        pdb.set_trace()
+        logger.debug('send raw: %s', websocket_message)
         self.socket.sendall(websocket_message)
 
     def receive(self, bufsize=1):
@@ -106,6 +105,8 @@ class WebSocket(Transport, ParseUrlMixin):
                     received_bytes = bytearray()
                     continue
                 break
+
+        logger.info(frame.frame)
 
         if frame is None:
             raise WampProtocolError("No frame returned")
