@@ -92,12 +92,12 @@ class Frame(object):
 
     def __len__(self):
         try:
-            unicode_body = self.bytes.decode("utf-8")
+            unicode_body = self.payload.decode("utf-8")
         except UnicodeError:
-            unicode_body = self.bytes
+            unicode_body = self.payload
         except AttributeError:
             # already decoded, hence no "decode" attribute
-            unicode_body = self.bytes
+            unicode_body = self.payload
 
         return len(unicode_body)
 
@@ -106,6 +106,18 @@ class Frame(object):
 
     @classmethod
     def generate_payload(cls, bytes):
+        if not bytes:
+            raise IncompleteFrameError(required_bytes=1)
+
+        # Parse the first two bytes of header.
+        fin = bytes[0] >> 7
+
+        if fin == 0:
+            logger.exception("Multiple Frames Returned: %s", bytes)
+            raise WampyError(
+                'Multiple framed responses not yet supported: {}'.format(bytes)
+            )
+
         try:
             payload_length_indicator = bytes[1] & 0b1111111
         except Exception:
@@ -153,19 +165,6 @@ class Frame(object):
                 required_bytes=required_bytes
             )
 
-        # server must not mask the payload
-        mask = bytes[1] >> 7
-        assert mask == 0
-
-        # Parse the first two bytes of header.
-        fin = bytes[0] >> 7
-
-        if fin == 0:
-            logger.exception("Multiple Frames Returned: %s", bytes)
-            raise WampyError(
-                'Multiple framed responses not yet supported: {}'.format(bytes)
-            )
-
         try:
             # decode required before loading JSON for python 2 only
             payload = json.loads(body_candidate.decode('utf-8'))
@@ -186,6 +185,7 @@ class FrameFactory(object):
     @classmethod
     def from_bytes(cls, bytes):
         payload = Frame.generate_payload(bytes)
+        logger.info('got a frame: %s', bytes)
         if payload is None:
             opcode = bytes[0] & 0xf
             if opcode == Frame.OPCODE_BINARY:
@@ -219,6 +219,7 @@ class ClientFrame(Frame):
         """
         self.fin_bit = 1
         self.opcode = Frame.OPCODE_TEXT
+        self.payload = message
         self.bytes = self.generate_frame(message)
 
     def data_to_bytes(self, data):
@@ -297,7 +298,7 @@ class ClientFrame(Frame):
         # i.e. encoded
         mask_bit = 1 << 7
         # next we have to | this bit with the payload length, if not too long!
-        length = len(message)
+        length = len(self)
         if length >= self.MAX_LENGTH:
             raise WebsocktProtocolError("data is too long")
 
