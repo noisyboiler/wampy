@@ -227,14 +227,14 @@ class ClientFrame(Frame):
 
         :Parameters:
             message : str
-                The data to be sent to the server. Tbis will form the
+                The data to be sent to the server. Tis will form the
                 "payload" segments of the WebSocket frame(s).
 
         """
         self.fin_bit = 1
         self.opcode = Frame.OPCODE_TEXT
         self.payload = message
-        self.bytes = self.generate_frame(message)
+        self.bytes = self.generate_frame(self.payload)
 
     def data_to_bytes(self, data):
         return bytearray(data, 'utf-8')
