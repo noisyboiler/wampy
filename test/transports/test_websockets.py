@@ -1,3 +1,4 @@
+import logging
 from collections import OrderedDict
 
 import pytest
@@ -11,6 +12,8 @@ from mock import call, patch
 
 from wampy.transports.websocket.connection import WebSocket
 from wampy.transports.websocket.frames import Ping
+
+logger = logging.getLogger(__name__)
 
 
 class TestApplication(WebSocketApplication):
@@ -49,10 +52,12 @@ def test_send_ping(server):
         def connection_handler():
             while True:
                 try:
-                    websocket.receive()
-                except Exception as exc:
-                    print(exc)
+                    message = websocket.receive()
+                except Exception:
+                    logger.execption('connection handler exploded')
                     raise
+                if message:
+                    logger.info('got message: %s', message)
 
         assert websocket.connected is True
 
@@ -72,9 +77,7 @@ def test_send_ping(server):
         payload = frame.generate_frame()
         socket.send(payload)
 
-        websocket.receive()
-
-        with gevent.Timeout(1):
+        with gevent.Timeout(5):
             while mock_handle.call_count != 1:
                 gevent.sleep(0.01)
 

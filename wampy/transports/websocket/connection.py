@@ -68,8 +68,6 @@ class WebSocket(Transport, ParseUrlMixin):
         received_bytes = bytearray()
 
         while True:
-            logger.warning("waiting for %s bytes", bufsize)
-
             try:
                 bytes = self.socket.recv(bufsize)
             except gevent.greenlet.GreenletExit as exc:
@@ -87,15 +85,12 @@ class WebSocket(Transport, ParseUrlMixin):
             if not bytes:
                 break
 
-            logger.warning("received %s bytes", bufsize)
             received_bytes.extend(bytes)
 
             try:
                 frame = FrameFactory.from_bytes(received_bytes)
             except IncompleteFrameError as exc:
-                logger.warning('not good enough: %s', received_bytes)
                 bufsize = exc.required_bytes
-                logger.debug('now requesting the missing %s bytes', bufsize)
             else:
                 if frame.opcode == frame.OPCODE_PING:
                     # Opcode 0x9 marks a ping frame. It does not contain wamp
@@ -106,12 +101,9 @@ class WebSocket(Transport, ParseUrlMixin):
                     received_bytes = bytearray()
                     continue
                 if frame.opcode == frame.OPCODE_BINARY:
-                    import pdb
-                    pdb.set_trace()
-                break
+                    break
 
-        logger.warning('happy with %s', frame.frame)
-        logger.warning(frame.frame)
+                break
 
         if frame is None:
             raise WampProtocolError("No frame returned")
@@ -228,7 +220,6 @@ class WebSocket(Transport, ParseUrlMixin):
             received_bytes = read_line()
             if received_bytes == b'\r\n':
                 # end of the response
-                print('end of response')
                 break
 
             bytes_as_str = received_bytes.decode()
@@ -255,7 +246,6 @@ class WebSocket(Transport, ParseUrlMixin):
 
             key, value = kv
             headers[key.lower()] = value.strip().lower()
-            print(headers)
 
         logger.info("handshake complete: %s : %s", status, headers)
         self.connected = True

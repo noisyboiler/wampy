@@ -58,6 +58,8 @@ class Frame(object):
         OPCODE_PING, OPCODE_PONG, OPCODE_TEXT,
     )
 
+    # not intended to carr data for the application but instead for
+    # protocol-level signaling,
     CONTROL_FRAMES = [OPCODE_PING, ]
 
     # Frame Length
@@ -99,10 +101,13 @@ class Frame(object):
             # already decoded, hence no "decode" attribute
             unicode_body = self.payload
 
+        if unicode_body is None:
+            return 0
+
         return len(unicode_body)
 
     def __str__(self):
-        return self.payload
+        return str(self.payload)
 
     @classmethod
     def generate_payload(cls, bytes):
@@ -113,10 +118,19 @@ class Frame(object):
         fin = bytes[0] >> 7
 
         if fin == 0:
-            logger.exception("Multiple Frames Returned: %s", bytes)
             raise WampyError(
                 'Multiple framed responses not yet supported: {}'.format(bytes)
             )
+
+        opcode = bytes[0] & 0xf
+        # binary data interpretation is left up to th application...
+        if opcode == Frame.OPCODE_BINARY:
+            # ..and wampy ignores them
+            return None
+
+        if opcode in Frame.CONTROL_FRAMES:
+            # handled by wampy
+            return None
 
         try:
             payload_length_indicator = bytes[1] & 0b1111111
@@ -126,14 +140,9 @@ class Frame(object):
         available_bytes_for_body = bytes[2:]
 
         if not available_bytes_for_body:
-            return None
-
-        available_bytes_for_body = bytes[2:]
-
-        try:
-            available_bytes_for_body[1]
-        except IndexError:
-            raise IncompleteFrameError(required_bytes=payload_length_indicator)
+            raise IncompleteFrameError(
+                required_bytes=payload_length_indicator
+            )
 
         # unpack the buffered bytes into an integer
         body_length = unpack_from(">h", available_bytes_for_body)[0]
@@ -165,6 +174,10 @@ class Frame(object):
                 required_bytes=required_bytes
             )
 
+        opcode = bytes[0] & 0xf
+        if opcode == Frame.OPCODE_BINARY:
+            return body_candidate
+
         try:
             # decode required before loading JSON for python 2 only
             payload = json.loads(body_candidate.decode('utf-8'))
@@ -173,7 +186,7 @@ class Frame(object):
                 'Failed to load JSON object from: "%s"', body_candidate
             )
 
-        logger.info('generated payload: %s', payload)
+        logger.debug('generated payload: %s', payload)
         return payload
 
     @property
@@ -186,7 +199,6 @@ class FrameFactory(object):
     @classmethod
     def from_bytes(cls, bytes):
         payload = Frame.generate_payload(bytes)
-        logger.info('got a frame: %s', bytes)
         if payload is None:
             opcode = bytes[0] & 0xf
             if opcode == Frame.OPCODE_BINARY:
