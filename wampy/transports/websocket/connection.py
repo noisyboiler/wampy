@@ -16,31 +16,32 @@ from wampy.errors import (
     IncompleteFrameError, ConnectionError, WampProtocolError, WampyError)
 from wampy.mixins import ParseUrlMixin
 from wampy.transports.interface import Transport
-from wampy.serializers import json_serialize
 
-from . frames import ClientFrame, ServerFrame, PongFrame
+from . frames import ClientFrame, FrameFactory, PongFrame
 
 logger = logging.getLogger(__name__)
 
 
 class WebSocket(Transport, ParseUrlMixin):
 
-    def register_router(self, router):
-        self.url = router.url
+    def __init__(self, server_url, ipv=4):
+        self.url = server_url
+        self.ipv = ipv
 
         self.host = None
         self.port = None
-        self.ipv = router.ipv
         self.resource = None
 
         self.parse_url()
         self.websocket_location = self.resource
         self.key = encodestring(uuid.uuid4().bytes).decode('utf-8').strip()
         self.socket = None
+        self.connected = False
 
-    def connect(self):
+    def connect(self, upgrade=True):
+        # TCP connection
         self._connect()
-        self._upgrade()
+        self._handshake(upgrade=upgrade)
         return self
 
     def disconnect(self):
@@ -52,12 +53,12 @@ class WebSocket(Transport, ParseUrlMixin):
         self.socket.close()
 
     def send(self, message):
-        serialized_message = json_serialize(message)
-        frame = ClientFrame(serialized_message)
-        websocket_message = frame.payload
+        frame = ClientFrame(message)
+        websocket_message = frame.frame
         self._send_raw(websocket_message)
 
     def _send_raw(self, websocket_message):
+        logger.debug('send raw: %s', websocket_message)
         self.socket.sendall(websocket_message)
 
     def receive(self, bufsize=1):
@@ -65,8 +66,6 @@ class WebSocket(Transport, ParseUrlMixin):
         received_bytes = bytearray()
 
         while True:
-            logger.debug("waiting for %s bytes", bufsize)
-
             try:
                 bytes = self.socket.recv(bufsize)
             except gevent.greenlet.GreenletExit as exc:
@@ -74,31 +73,28 @@ class WebSocket(Transport, ParseUrlMixin):
             except socket.timeout as e:
                 message = str(e)
                 raise ConnectionError('timeout: "{}"'.format(message))
-            except Exception as exc:
-                raise ConnectionError(
-                    'unexpected error reading from socket: "{}"'.format(exc)
-                )
 
             if not bytes:
                 break
 
-            logger.debug("received %s bytes", bufsize)
             received_bytes.extend(bytes)
 
             try:
-                frame = ServerFrame(received_bytes)
+                frame = FrameFactory.from_bytes(received_bytes)
             except IncompleteFrameError as exc:
                 bufsize = exc.required_bytes
-                logger.debug('now requesting the missing %s bytes', bufsize)
             else:
-                if frame.opcode == 9:
+                if frame.opcode == frame.OPCODE_PING:
                     # Opcode 0x9 marks a ping frame. It does not contain wamp
                     # data, so the frame is not returned.
                     # Still it must be handled or the server will close the
                     # connection.
-                    self._send_raw(PongFrame(frame.payload).payload)
+                    self.handle_ping(ping_frame=frame)
                     received_bytes = bytearray()
                     continue
+                if frame.opcode == frame.OPCODE_BINARY:
+                    break
+
                 break
 
         if frame is None:
@@ -143,8 +139,8 @@ class WebSocket(Transport, ParseUrlMixin):
         self.socket = _socket
         logger.debug("socket connected")
 
-    def _upgrade(self):
-        handshake_headers = self._get_handshake_headers()
+    def _handshake(self, upgrade):
+        handshake_headers = self._get_handshake_headers(upgrade=upgrade)
         handshake = '\r\n'.join(handshake_headers) + "\r\n\r\n"
 
         self.socket.send(handshake.encode())
@@ -159,7 +155,7 @@ class WebSocket(Transport, ParseUrlMixin):
 
         logger.debug("connection upgraded")
 
-    def _get_handshake_headers(self):
+    def _get_handshake_headers(self, upgrade):
         """ Do an HTTP upgrade handshake with the server.
 
         Websockets upgrade from HTTP rather than TCP largely because it was
@@ -184,8 +180,11 @@ class WebSocket(Transport, ParseUrlMixin):
         headers.append("Sec-WebSocket-Key: {}".format(self.key))
         headers.append("Origin: ws://{}:{}".format(self.host, self.port))
         headers.append("Sec-WebSocket-Version: {}".format(WEBSOCKET_VERSION))
-        headers.append("Sec-WebSocket-Protocol: {}".format(
-            WEBSOCKET_SUBPROTOCOLS))
+
+        if upgrade:
+            headers.append("Sec-WebSocket-Protocol: {}".format(
+                WEBSOCKET_SUBPROTOCOLS)
+            )
 
         logger.debug("connection headers: %s", headers)
 
@@ -200,8 +199,8 @@ class WebSocket(Transport, ParseUrlMixin):
         def read_line():
             bytes_cache = []
             received_bytes = None
-            while received_bytes != b'\r\n':
-                received_bytes = self.socket.recv(2)
+            while received_bytes not in [b'\r\n', b'\n', b'\n\r']:
+                received_bytes = self.socket.recv(1)
                 bytes_cache.append(received_bytes)
             return b''.join(bytes_cache)
 
@@ -241,15 +240,19 @@ class WebSocket(Transport, ParseUrlMixin):
             headers[key.lower()] = value.strip().lower()
 
         logger.info("handshake complete: %s : %s", status, headers)
-
+        self.connected = True
         return status, headers
+
+    def handle_ping(self, ping_frame):
+        pong_frame = PongFrame(ping_frame=ping_frame)
+        bytes = pong_frame.frame
+        logger.info('sending pong: %s', bytes)
+        self._send_raw(bytes)
 
 
 class SecureWebSocket(WebSocket):
-    def register_router(self, router):
-        super(SecureWebSocket, self).register_router(router)
-
-        self.ipv = router.ipv
+    def __init__(self, server_url, certificate_path, ipv=4):
+        super(SecureWebSocket, self).__init__(server_url=server_url, ipv=ipv)
 
         # PROTOCOL_TLSv1_1 and PROTOCOL_TLSv1_2 are only available if Python is
         # linked with OpenSSL 1.0.1 or later.
@@ -258,7 +261,7 @@ class SecureWebSocket(WebSocket):
         except AttributeError:
             raise WampyError("Your Python Environment does not support TLS")
 
-        self.certificate = router.certificate
+        self.certificate = certificate_path
 
     def _connect(self):
         _socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

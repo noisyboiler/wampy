@@ -100,18 +100,20 @@ class Client(object):
         # as WebSocket messages by default (well, actually... that's because no
         # other transports are supported!)
         if self.router.scheme == "ws":
-            self.transport = WebSocket()
+            self.transport = WebSocket(
+                server_url=self.router.url, ipv=self.router.ipv,
+            )
         elif self.router.scheme == "wss":
-            self.transport = SecureWebSocket()
+            self.transport = SecureWebSocket(
+                server_url=self.router.url, ipv=self.router.ipv,
+                certificate_path=self.router.certificate,
+            )
         else:
             raise WampyError(
                 'Network protocl must be "ws" or "wss"'
             )
 
-        # the transport is responsible for the connection.
-        self.transport.register_router(self.router)
-
-        # generally ``name`` is used for debuggubg and logging only
+        # generally ``name`` is used for debugging and logging only
         self.name = name or self.__class__.__name__
 
         self._session = None
@@ -152,8 +154,8 @@ class Client(object):
         return PublishProxy(client=self)
 
     def start(self):
-        # establish the underlying connection. this will raise on error.
-        connection = self.transport.connect()
+        # establish the underlying connection and upgrade it to WAMP.
+        connection = self.transport.connect(upgrade=True)
 
         # create a Session repr between ourselves and the Router.
         # pass in the live connection over a transport that the Session

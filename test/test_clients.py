@@ -3,8 +3,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import datetime
-from time import sleep
 
+import gevent
 import pytest
 
 from wampy.peers.clients import Client
@@ -169,8 +169,10 @@ def test_respond_to_ping_with_pong(config_path, router):
         client.start()
         wait_for_session(client)
 
-        sleep(5)
+        gevent.sleep(5)
 
+        # this is purely to demonstrate we can make calls while sending
+        # pongs
         client.publish(topic="test", message="test")
         client.stop()
     except Exception as e:

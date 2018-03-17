@@ -7,10 +7,6 @@ import six
 class Transport(object):
 
     @abc.abstractmethod
-    def register_router(self, router):
-        pass
-
-    @abc.abstractmethod
     def connect(self):
         """ should return ``self`` as the "connection" object """
 
