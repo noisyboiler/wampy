@@ -152,7 +152,7 @@ class WebSocket(Transport, ParseUrlMixin):
         self.socket.send(handshake.encode())
 
         try:
-            with gevent.Timeout(50):
+            with gevent.Timeout(5):
                 self.status, self.headers = self._read_handshake_response()
         except gevent.Timeout:
             raise WampyError(

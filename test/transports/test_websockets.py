@@ -33,7 +33,7 @@ def server():
     thread.kill()
 
 
-def __test_websocket_connects_to_server(server):
+def test_websocket_connects_to_server(server):
     websocket = WebSocket(server_url='ws://0.0.0.0:8001')
     websocket.connect()
 
