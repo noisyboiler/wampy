@@ -19,5 +19,6 @@ def json_serialize(message):
                 message, str(exc)
             )
         )
-
+    import pdb
+    pdb.set_trace()
     return data

@@ -123,6 +123,7 @@ class Frame(object):
             )
 
         opcode = bytes[0] & 0xf
+
         # binary data interpretation is left up to th application...
         if opcode == Frame.OPCODE_BINARY:
             # ..and wampy ignores them
@@ -284,13 +285,12 @@ class ClientFrame(Frame):
         # | |1|2|3|       |
         # +-+-+-+-+-------+
         # note that because all RSV bits are zero, we can ignore them
-        fin_bit = 1
 
         # this shifts each bit into position and bitwise ORs them together,
         # using the struct module to pack them as incoming network bytes
         payload = pack(
             '!B', (
-                (fin_bit << 7) |
+                (self.fin_bit << 7) |
                 self.opcode
             )
         )  # which is '\x81' as a raw byte repr
