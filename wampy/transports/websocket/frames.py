@@ -116,6 +116,9 @@ class Frame(object):
         except Exception:
             raise IncompleteFrameError(required_bytes=1)
 
+        if payload_length_indicator == 0:
+            return None
+
         available_bytes_for_body = bytes[2:]
         if not available_bytes_for_body:
             raise IncompleteFrameError(
@@ -331,14 +334,14 @@ class ClientFrame(Frame):
 
 class Ping(Frame):
 
-    def __init__(self, bytes, payload=''):
+    def __init__(self, bytes=None, payload=''):
         # PING is a Control Frame denoted by the opcode 9
         # this modelsa PING from the Server -> Client, and as such does
         # not mask.
         self.fin_bit = 1
         self.opcode = Frame.OPCODE_PING
         self.bytes = bytes or self.generate_frame()
-        self.payload = payload or Frame.generate_payload(bytes)
+        self.payload = payload or Frame.generate_payload(self.bytes)
 
     def generate_frame(self):
         # This is long hand for documentation purposes
