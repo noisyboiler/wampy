@@ -73,12 +73,6 @@ class WebSocket(Transport, ParseUrlMixin):
             except socket.timeout as e:
                 message = str(e)
                 raise ConnectionError('timeout: "{}"'.format(message))
-            except ConnectionResetError:
-                raise ConnectionError('the connection was reset by the peer')
-            except Exception as exc:
-                raise ConnectionError(
-                    'unexpected error reading from socket: "{}"'.format(exc)
-                )
 
             if not bytes:
                 break

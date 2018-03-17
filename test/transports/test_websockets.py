@@ -64,9 +64,8 @@ def test_send_ping(server):
         client_handler = list(clients.values())[0]
         socket = client_handler.ws
 
-        frame = Ping()
-        payload = frame.generate_frame()
-        socket.send(payload)
+        ping_frame = Ping()
+        socket.send(ping_frame.frame)
 
         with gevent.Timeout(5):
             while mock_handle.call_count != 1:
