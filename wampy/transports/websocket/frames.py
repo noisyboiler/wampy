@@ -59,7 +59,7 @@ class Frame(object):
         OPCODE_PING, OPCODE_PONG, OPCODE_TEXT,
     )
 
-    # not intended to carr data for the application but instead for
+    # not intended to carry data for the application but instead for
     # protocol-level signaling,
     CONTROL_FRAMES = [OPCODE_PING, ]
 
@@ -346,16 +346,7 @@ class ClientFrame(Frame):
 
 class Ping(Frame):
 
-    def __init__(self, message=''):
-        """ Represent a PING Control Frame.
-
-        :Parameters:
-            message : str
-                An optional message to send along with the PING,
-                e.g. "hello". Forms the ``payload`` of the WebSocket
-                message.
-
-        """
+    def __init__(self):
         # PING is a Control Frame denoted by the opcode 9
         # this modelsa PING from the Server -> Client, and as such does
         # not mask.
@@ -421,7 +412,7 @@ class Ping(Frame):
 
 class PongFrame(Frame):
 
-    def __init__(self, payload=''):
+    def __init__(self):
         self.fin_bit = 1
         self.opcode = Frame.OPCODE_PONG
         self.bytes = self.generate_frame()
