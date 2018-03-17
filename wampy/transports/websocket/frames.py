@@ -387,7 +387,7 @@ class Ping(Frame):
         # if not too long!
         b1 = pack('!B', (mask_bit | 0))
 
-        frame_bytes = bytearray([b0, b1])
+        frame_bytes = bytearray(b''.join([b0, b1]))
         assert self.opcode == self.opcode_from_bytes(
             buffered_bytes=frame_bytes
         )
