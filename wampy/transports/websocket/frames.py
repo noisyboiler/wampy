@@ -295,7 +295,7 @@ class ClientFrame(Frame):
                 self.opcode
             )
         )  # which is '\x81' as a raw byte repr
-
+        logger.warning('initial byte: %s', payload)
         # the second byte - and maybe the 7 after this, we'll use to tell
         # the server how long our payload is.
 
@@ -314,6 +314,7 @@ class ClientFrame(Frame):
         mask_bit = 1 << 7
         # next we have to | this bit with the payload length, if not too long!
         length = len(self)
+        logger.warning('length self: %s', length)
         if length >= self.MAX_LENGTH:
             raise WebsocktProtocolError("data is too long")
 
