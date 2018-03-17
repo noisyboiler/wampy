@@ -250,7 +250,10 @@ class WebSocket(Transport, ParseUrlMixin):
         return status, headers
 
     def handle_ping(self, ping_frame):
-        self._send_raw(PongFrame().generate_frame())
+        pong_frame = PongFrame(ping_frame=ping_frame)
+        bytes = pong_frame.frame
+        logger.info('sending pong: %s', bytes)
+        self._send_raw(bytes)
 
 
 class SecureWebSocket(WebSocket):

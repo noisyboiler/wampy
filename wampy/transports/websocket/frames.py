@@ -8,9 +8,7 @@ import json
 import os
 from struct import pack, unpack_from
 
-from wampy.errors import (
-    WampyError, WebsocktProtocolError, IncompleteFrameError
-)
+from wampy.errors import WebsocktProtocolError, IncompleteFrameError
 from wampy.serializers import json_serialize
 
 
@@ -101,24 +99,17 @@ class Frame(object):
         if not bytes or len(bytes) < 2:
             raise IncompleteFrameError(required_bytes=1)
 
-        # Parse the first two bytes of header.
-        fin = bytes[0] >> 7
-
-        if fin == 0:
-            raise WampyError(
-                'Multiple framed responses not yet supported: {}'.format(bytes)
-            )
-
         opcode = bytes[0] & 0xf
-
         # binary data interpretation is left up to th application...
         if opcode == Frame.OPCODE_BINARY:
             # ..and wampy ignores them
             return None
 
-        if opcode in Frame.CONTROL_FRAMES:
-            # handled by wampy
-            return None
+        # Parse the first two bytes of header.
+        fin = bytes[0] >> 7
+
+        if fin == 0:
+            logger.warning('fragmented frame received: %s', bytes)
 
         try:
             payload_length_indicator = bytes[1] & 0b1111111
@@ -126,7 +117,6 @@ class Frame(object):
             raise IncompleteFrameError(required_bytes=1)
 
         available_bytes_for_body = bytes[2:]
-
         if not available_bytes_for_body:
             raise IncompleteFrameError(
                 required_bytes=payload_length_indicator
@@ -162,9 +152,9 @@ class Frame(object):
                 required_bytes=required_bytes
             )
 
-        opcode = bytes[0] & 0xf
-        if opcode == Frame.OPCODE_BINARY:
-            return body_candidate
+        if opcode in Frame.CONTROL_FRAMES:
+            payload = body_candidate
+            return payload
 
         try:
             # decode required before loading JSON for python 2 only
@@ -188,17 +178,11 @@ class FrameFactory(object):
     @classmethod
     def from_bytes(cls, bytes):
         payload = Frame.generate_payload(bytes)
-        if payload is None:
-            opcode = bytes[0] & 0xf
-            if opcode == Frame.OPCODE_BINARY:
-                # binary - the handshake response?
-                return Frame(bytes=bytes, payload=None)
 
-            if opcode in Frame.CONTROL_FRAMES:
-                if opcode == Frame.OPCODE_PING:
-                    return Ping()
-
-            raise IncompleteFrameError(required_bytes=1)
+        opcode = bytes[0] & 0xf
+        if opcode in Frame.CONTROL_FRAMES:
+            if opcode == Frame.OPCODE_PING:
+                return Ping(bytes=bytes, payload=payload)
 
         return Frame(bytes=bytes, payload=payload)
 
@@ -267,10 +251,11 @@ class ClientFrame(Frame):
         if data is None:
             data = ""
 
-        data_bytes = self.data_to_bytes(data)
+        if not isinstance(data, bytearray):
+            data = self.data_to_bytes(data)
 
         _m = array.array("B", mask_key)
-        _d = array.array("B", data_bytes)
+        _d = array.array("B", data)
 
         for i in range(len(_d)):
             _d[i] ^= _m[i % 4]
@@ -346,13 +331,14 @@ class ClientFrame(Frame):
 
 class Ping(Frame):
 
-    def __init__(self):
+    def __init__(self, bytes, payload=''):
         # PING is a Control Frame denoted by the opcode 9
         # this modelsa PING from the Server -> Client, and as such does
         # not mask.
         self.fin_bit = 1
         self.opcode = Frame.OPCODE_PING
-        self.bytes = self.generate_frame()
+        self.bytes = bytes or self.generate_frame()
+        self.payload = payload or Frame.generate_payload(bytes)
 
     def generate_frame(self):
         # This is long hand for documentation purposes
@@ -410,27 +396,40 @@ class Ping(Frame):
         return bytes  # this is b'\x89\x00'
 
 
-class PongFrame(Frame):
+class PongFrame(ClientFrame):
 
-    def __init__(self):
+    def __init__(self, ping_frame):
         self.fin_bit = 1
         self.opcode = Frame.OPCODE_PONG
-        self.bytes = self.generate_frame()
+        self.bytes = self.generate_frame(message=ping_frame.payload)
 
-    def generate_frame(self):
-        b0 = pack(
+    def generate_frame(self, message):
+        payload = pack(
             '!B', (
                 (self.fin_bit << 7) |
                 self.opcode
             )
         )
 
-        b1 = 0
-        mask_bit = 1 << 7  # masked, as the Client is sending
-        b1 = pack('!B', (mask_bit | 0))
-        bytes = b''.join([b0, b1])
+        mask_bit = 1 << 7
+        # next we have to | this bit with the payload length, if not too long!
+        length = len(message)
 
-        first_byte = bytes[0]
-        assert self.opcode == first_byte & 0xf
+        # the second byte contains the payload length and mask
+        if length < self.LENGTH_7:
+            # we can simply represent payload length with first 7 bits
+            payload += pack('!B', (mask_bit | length))
+        elif length < self.LENGTH_16:
+            payload += pack('!B', (mask_bit | 126)) + pack('!H', length)
+        else:
+            payload += pack('!B', (mask_bit | 127)) + pack('!Q', length)
 
-        return bytes  # this is b'\x8a\x00'
+        # we always mask frames from the client to server
+        # use a string of n random bytes for the mask
+        mask_key = os.urandom(4)
+        mask_data = self.generate_mask(mask_key=mask_key, data=message)
+        mask = mask_key + mask_data
+        payload += mask
+
+        # this is a bytes string being returned here
+        return payload
