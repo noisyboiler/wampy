@@ -38,11 +38,6 @@ class Call(object):
 
     @property
     def message(self):
-        kwargs = self.kwargs
-        #encoded_kwargs = {
-        #    key: val.encode('utf8') for key, val in kwargs.items()
-        #}
-
         return [
             self.WAMP_CODE, self.request_id, self.options, self.procedure,
             self.args, self.kwargs
