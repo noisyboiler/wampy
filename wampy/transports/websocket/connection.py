@@ -16,7 +16,6 @@ from wampy.errors import (
     IncompleteFrameError, ConnectionError, WampProtocolError, WampyError)
 from wampy.mixins import ParseUrlMixin
 from wampy.transports.interface import Transport
-from wampy.serializers import json_serialize
 
 from . frames import ClientFrame, FrameFactory, PongFrame
 
@@ -54,10 +53,7 @@ class WebSocket(Transport, ParseUrlMixin):
         self.socket.close()
 
     def send(self, message):
-        logger.warning('message: %s', message)
-        serialized_message = json_serialize(message)
-        logger.warning('serialized message: %s', serialized_message)
-        frame = ClientFrame(serialized_message)
+        frame = ClientFrame(message)
         websocket_message = frame.frame
         self._send_raw(websocket_message)
 
@@ -258,10 +254,8 @@ class WebSocket(Transport, ParseUrlMixin):
 
 
 class SecureWebSocket(WebSocket):
-    def register_router(self, router):
-        super(SecureWebSocket, self).register_router(router)
-
-        self.ipv = router.ipv
+    def __init__(self, server_url, certificate_path, ipv=4):
+        super(SecureWebSocket, self).__init__(server_url=server_url, ipv=ipv)
 
         # PROTOCOL_TLSv1_1 and PROTOCOL_TLSv1_2 are only available if Python is
         # linked with OpenSSL 1.0.1 or later.
@@ -270,7 +264,7 @@ class SecureWebSocket(WebSocket):
         except AttributeError:
             raise WampyError("Your Python Environment does not support TLS")
 
-        self.certificate = router.certificate
+        self.certificate = certificate_path
 
     def _connect(self):
         _socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

@@ -11,9 +11,10 @@ from struct import pack, unpack_from
 from wampy.errors import (
     WampyError, WebsocktProtocolError, IncompleteFrameError
 )
+from wampy.serializers import json_serialize
 
 
-logger = logging.getLogger('wampy.networking.frames')
+logger = logging.getLogger(__name__)
 
 
 class Frame(object):
@@ -91,20 +92,6 @@ class Frame(object):
         # this is just the payload, i.e. the bytes that the application cares
         # about
         self.payload = payload or Frame.generate_payload(bytes)
-
-    def __len__(self):
-        try:
-            unicode_body = self.payload.decode("utf-8")
-        except UnicodeError:
-            unicode_body = self.payload
-        except AttributeError:
-            # already decoded, hence no "decode" attribute
-            unicode_body = self.payload
-
-        if unicode_body is None:
-            return 0
-
-        return len(unicode_body)
 
     def __str__(self):
         return str(self.payload)
@@ -228,15 +215,34 @@ class ClientFrame(Frame):
 
         :Parameters:
             message : str
-                The data to be sent to the server. Tis will form the
-                "payload" segments of the WebSocket frame(s).
+                The WAMP message to be sent to the server. This will form
+                the "payload" segments of the WebSocket frame(s).
 
         """
         self.fin_bit = 1
         self.opcode = Frame.OPCODE_TEXT
-        self.payload = message
+        self.message = message
         self.bytes = self.generate_frame(self.payload)
-        logger.warning('client frame body: %s', self.bytes)
+
+    @property
+    def payload(self):
+        return json_serialize(self.message)
+
+    @property
+    def payload_length(self):
+        """ the length in bytes of the utf-8 serialized WAMP message """
+        try:
+            unicode_body = self.payload.decode("utf-8")
+        except UnicodeError:
+            unicode_body = self.payload
+        except AttributeError:
+            # already decoded, hence no "decode" attribute
+            unicode_body = self.payload
+
+        if unicode_body is None:
+            return 0
+
+        return len(self.payload.encode('utf-8'))
 
     def data_to_bytes(self, data):
         return bytearray(data, 'utf-8')
@@ -295,7 +301,7 @@ class ClientFrame(Frame):
                 self.opcode
             )
         )  # which is '\x81' as a raw byte repr
-        logger.warning('initial byte: %s', payload)
+
         # the second byte - and maybe the 7 after this, we'll use to tell
         # the server how long our payload is.
 
@@ -313,8 +319,8 @@ class ClientFrame(Frame):
         # i.e. encoded
         mask_bit = 1 << 7
         # next we have to | this bit with the payload length, if not too long!
-        length = len(self)
-        logger.warning('length self: %s', length)
+        length = self.payload_length
+
         if length >= self.MAX_LENGTH:
             raise WebsocktProtocolError("data is too long")
 
@@ -341,7 +347,7 @@ class ClientFrame(Frame):
 class Ping(Frame):
 
     def __init__(self, message=''):
-        """
+        """ Represent a PING Control Frame.
 
         :Parameters:
             message : str
