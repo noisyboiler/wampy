@@ -236,6 +236,7 @@ class ClientFrame(Frame):
         self.opcode = Frame.OPCODE_TEXT
         self.payload = message
         self.bytes = self.generate_frame(self.payload)
+        logger.warning('client frame body: %s', self.bytes)
 
     def data_to_bytes(self, data):
         return bytearray(data, 'utf-8')

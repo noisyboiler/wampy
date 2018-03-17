@@ -54,7 +54,9 @@ class WebSocket(Transport, ParseUrlMixin):
         self.socket.close()
 
     def send(self, message):
+        logger.warning('message: %s', message)
         serialized_message = json_serialize(message)
+        logger.warning('serialized message: %s', serialized_message)
         frame = ClientFrame(serialized_message)
         websocket_message = frame.frame
         self._send_raw(websocket_message)
