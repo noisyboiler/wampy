@@ -397,7 +397,7 @@ class Ping(Frame):
         return frame_bytes  # this is b'\x89\x00'
 
 
-class PongFrame(ClientFrame):
+class Pong(ClientFrame):
 
     def __init__(self, ping_frame):
         self.fin_bit = 1

@@ -17,7 +17,7 @@ from wampy.errors import (
 from wampy.mixins import ParseUrlMixin
 from wampy.transports.interface import Transport
 
-from . frames import ClientFrame, FrameFactory, PongFrame
+from . frames import ClientFrame, FrameFactory, Pong
 
 logger = logging.getLogger(__name__)
 
@@ -244,7 +244,7 @@ class WebSocket(Transport, ParseUrlMixin):
         return status, headers
 
     def handle_ping(self, ping_frame):
-        pong_frame = PongFrame(ping_frame=ping_frame)
+        pong_frame = Pong(ping_frame=ping_frame)
         bytes = pong_frame.frame
         logger.info('sending pong: %s', bytes)
         self._send_raw(bytes)
