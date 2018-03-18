@@ -95,6 +95,10 @@ class WebSocket(Transport, ParseUrlMixin):
                 if frame.opcode == frame.OPCODE_BINARY:
                     break
 
+                if frame.opcode == frame.OPCODE_CLOSE:
+                    self.handle_close(close_frame=frame)
+                    break
+
                 break
 
         if frame is None:
@@ -248,6 +252,10 @@ class WebSocket(Transport, ParseUrlMixin):
         bytes = pong_frame.frame
         logger.info('sending pong: %s', bytes)
         self._send_raw(bytes)
+
+    def handle_close(self, close_frame):
+        message = close_frame.payload
+        logger.warning('server has closed down: %s', message)
 
 
 class SecureWebSocket(WebSocket):

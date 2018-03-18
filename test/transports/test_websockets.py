@@ -11,7 +11,7 @@ from mock import ANY
 from mock import call, patch
 
 from wampy.transports.websocket.connection import WebSocket
-from wampy.transports.websocket.frames import Ping
+from wampy.transports.websocket.frames import Close, Ping
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +45,7 @@ def test_send_ping(server):
                 try:
                     message = websocket.receive()
                 except Exception:
-                    logger.execption('connection handler exploded')
+                    logger.exception('connection handler exploded')
                     raise
                 if message:
                     logger.info('got message: %s', message)
@@ -76,3 +76,40 @@ def test_send_ping(server):
 
         call_param = mock_handle.call_args[1]['ping_frame']
         assert isinstance(call_param, Ping)
+
+
+def test_server_closess(server):
+    websocket = WebSocket(server_url='ws://0.0.0.0:8001')
+    with patch.object(websocket, 'handle_close') as mock_handle:
+        assert websocket.connected is False
+
+        websocket.connect(upgrade=False)
+
+        def connection_handler():
+            while True:
+                try:
+                    message = websocket.receive()
+                except Exception:
+                    logger.exception('connection handler exploded')
+                    raise
+                if message:
+                    logger.info('got message: %s', message)
+
+        assert websocket.connected is True
+        Greenlet.spawn(connection_handler)
+        gevent.sleep(0.01)  # enough for the upgrade to happen
+
+        clients = server.clients
+        client_handler = list(clients.values())[0]
+        socket = client_handler.ws
+        Greenlet.spawn(socket.close)
+
+        with gevent.Timeout(5):
+            while mock_handle.call_count != 1:
+                gevent.sleep(0.01)
+
+        assert mock_handle.call_count == 1
+        assert mock_handle.call_args == call(close_frame=ANY)
+
+        call_param = mock_handle.call_args[1]['close_frame']
+        assert isinstance(call_param, Close)
