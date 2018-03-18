@@ -100,6 +100,9 @@ class Frame(object):
             raise IncompleteFrameError(required_bytes=1)
 
         opcode = cls.opcode_from_bytes(buffered_bytes=buffered_bytes)
+        if opcode not in Frame.OPCODES:
+            raise WebsocktProtocolError('unknown opcode: %s', opcode)
+
         # binary data interpretation is left up to th application...
         if opcode == Frame.OPCODE_BINARY:
             # ..and wampy ignores them
