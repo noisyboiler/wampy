@@ -59,7 +59,7 @@ class Frame(object):
 
     # not intended to carry data for the application but instead for
     # protocol-level signaling,
-    CONTROL_FRAMES = [OPCODE_PING, ]
+    CONTROL_FRAMES = [OPCODE_PING, OPCODE_PONG, OPCODE_CLOSE]
 
     # Frame Length
 
@@ -190,6 +190,8 @@ class FrameFactory(object):
         if opcode in Frame.CONTROL_FRAMES:
             if opcode == Frame.OPCODE_PING:
                 return Ping(buffered_bytes=buffered_bytes, payload=payload)
+            if opcode == Frame.OPCODE_CLOSE:
+                return Close(buffered_bytes=buffered_bytes, payload=payload)
 
         return Frame(buffered_bytes=buffered_bytes, payload=payload)
 
@@ -432,5 +434,46 @@ class Pong(ClientFrame):
         mask = mask_key + mask_data
         payload += mask
 
-        # this is a buffered_bytes string being returned here
+        return bytearray(payload)
+
+
+class Close(Frame):
+
+    def __init__(self, buffered_bytes=None, payload=None):
+        self.fin_bit = 1
+        self.opcode = Frame.OPCODE_CLOSE
+        self.buffered_bytes = (
+            buffered_bytes or self.generate_bytes(message=payload)
+        )
+        self.payload = payload
+
+    def generate_bytes(self, message):
+        # This is long hand for documentation purposes
+
+        # the first byte contains the FIN bit, the 3 RSV bits arend the
+        # 4 opcode bits, so we are looking for
+
+        #  1 0 0 0 0 1 0 0   Opcode 98 for a Close Frame
+        # +-+-+-+-+-------+
+        # |F|R|R|R| opcode|
+        # |I|S|S|S|       |
+        # |N|V|V|V|       |
+        # | |1|2|3|       |
+        # +-+-+-+-+-------+
+        payload = pack(
+            '!B', (
+                (self.fin_bit << 7) |
+                self.opcode
+            )
+        )
+
+        length = len(message) if message else 0
+        mask_bit = 0 << 7
+        if length < self.LENGTH_7:
+            payload += pack('!B', (mask_bit | length))
+        elif length < self.LENGTH_16:
+            payload += pack('!B', (mask_bit | 126)) + pack('!H', length)
+        else:
+            payload += pack('!B', (mask_bit | 127)) + pack('!Q', length)
+
         return bytearray(payload)
