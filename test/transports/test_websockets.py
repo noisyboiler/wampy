@@ -10,6 +10,7 @@ from geventwebsocket import (
 from mock import ANY
 from mock import call, patch
 
+from wampy.errors import ConnectionError
 from wampy.transports.websocket.connection import WebSocket
 from wampy.transports.websocket.frames import Close, Ping
 
@@ -113,3 +114,13 @@ def test_server_closess(server):
 
         call_param = mock_handle.call_args[1]['close_frame']
         assert isinstance(call_param, Close)
+
+
+def test_close_message_payload(server):
+    websocket = WebSocket(server_url='ws://0.0.0.0:8001')
+    close_frame = Close(payload="explosion")
+
+    with pytest.raises(ConnectionError) as exc:
+        websocket.handle_close(close_frame=close_frame)
+
+    assert "explosion" in str(exc)

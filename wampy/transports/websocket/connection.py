@@ -256,6 +256,7 @@ class WebSocket(Transport, ParseUrlMixin):
     def handle_close(self, close_frame):
         message = close_frame.payload
         logger.warning('server has closed down: %s', message)
+        raise ConnectionError('connection closed: {}'.format(message))
 
 
 class SecureWebSocket(WebSocket):
