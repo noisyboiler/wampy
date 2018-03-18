@@ -82,8 +82,6 @@ def test_send_ping(server):
 def test_server_closess(server):
     websocket = WebSocket(server_url='ws://0.0.0.0:8001')
     with patch.object(websocket, 'handle_close') as mock_handle:
-        assert websocket.connected is False
-
         websocket.connect(upgrade=False)
 
         def connection_handler():
@@ -96,7 +94,6 @@ def test_server_closess(server):
                 if message:
                     logger.info('got message: %s', message)
 
-        assert websocket.connected is True
         Greenlet.spawn(connection_handler)
         gevent.sleep(0.01)  # enough for the upgrade to happen
 
@@ -105,7 +102,7 @@ def test_server_closess(server):
         socket = client_handler.ws
         Greenlet.spawn(socket.close)
 
-        with gevent.Timeout(5):
+        with gevent.Timeout(1):
             while mock_handle.call_count != 1:
                 gevent.sleep(0.01)
 
