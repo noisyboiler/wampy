@@ -110,12 +110,7 @@ class Frame(object):
         if fin == 0:
             logger.warning('fragmented frame received: %s', buffered_bytes)
 
-        # TODO get the correct error handling in here
-        try:
-            payload_length_indicator = buffered_bytes[1] & 0b1111111
-        except Exception:
-            raise IncompleteFrameError(required_bytes=1)
-
+        payload_length_indicator = buffered_bytes[1] & 0b1111111
         if payload_length_indicator == 0:
             return None
 
