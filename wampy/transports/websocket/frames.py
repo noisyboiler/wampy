@@ -98,6 +98,42 @@ class Frame(object):
     def opcode_from_bytes(cls, buffered_bytes):
         return buffered_bytes[0] & 0xf
 
+    @classmethod
+    def data_to_buffered_bytes(cls, data):
+        return bytearray(data, 'utf-8')
+
+    @classmethod
+    def generate_mask(cls, mask_key, data):
+        """ Mask data.
+
+        :Parameters:
+            mask_key: byte string
+                4 byte string(byte), e.g. '\x10\xc6\xc4\x16'
+            data: str
+                data to mask
+
+        """
+        # Masking of WebSocket traffic from client to server is required
+        # because of the unlikely chance that malicious code could cause
+        # some broken proxies to do the wrong thing and use this as an
+        # attack of some kind. Nobody has proved that this could actually
+        # happen, but since the fact that it could happen was reason enough
+        # for browser vendors to get twitchy, masking was added to remove
+        # the possibility of it being used as an attack.
+        if data is None:
+            data = ""
+
+        if not isinstance(data, bytearray):
+            data = cls.data_to_buffered_bytes(data)
+
+        _m = array.array("B", mask_key)
+        _d = array.array("B", data)
+
+        for i in range(len(_d)):
+            _d[i] ^= _m[i % 4]
+
+        return _d.tostring()
+
     @property
     def frame(self):
         return self.raw_bytes
@@ -226,40 +262,6 @@ class ClientFrame(Frame):
         """
         raw_bytes = raw_bytes or self.generate_bytes(json_serialize(payload))
         super(ClientFrame, self).__init__(raw_bytes=raw_bytes)
-
-    def data_to_buffered_bytes(self, data):
-        return bytearray(data, 'utf-8')
-
-    def generate_mask(self, mask_key, data):
-        """ Mask data.
-
-        :Parameters:
-            mask_key: byte string
-                4 byte string(byte), e.g. '\x10\xc6\xc4\x16'
-            data: str
-                data to mask
-
-        """
-        # Masking of WebSocket traffic from client to server is required
-        # because of the unlikely chance that malicious code could cause
-        # some broken proxies to do the wrong thing and use this as an
-        # attack of some kind. Nobody has proved that this could actually
-        # happen, but since the fact that it could happen was reason enough
-        # for browser vendors to get twitchy, masking was added to remove
-        # the possibility of it being used as an attack.
-        if data is None:
-            data = ""
-
-        if not isinstance(data, bytearray):
-            data = self.data_to_buffered_bytes(data)
-
-        _m = array.array("B", mask_key)
-        _d = array.array("B", data)
-
-        for i in range(len(_d)):
-            _d[i] ^= _m[i % 4]
-
-        return _d.tostring()
 
     def generate_bytes(self, payload):
         """ Format data to string (buffered_bytes) to send to server.
