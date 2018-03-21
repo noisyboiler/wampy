@@ -326,8 +326,7 @@ class Text(Frame):
         mask = mask_key + mask_data
         frame += mask
 
-        # this is a buffered_bytes string being returned here
-        return frame
+        return bytearray(frame)
 
 
 class Ping(Frame):
