@@ -53,7 +53,7 @@ class WebSocket(Transport, ParseUrlMixin):
         self.socket.close()
 
     def send(self, message):
-        frame = ClientFrame(message)
+        frame = ClientFrame(payload=message)
         websocket_message = frame.frame
         self._send_raw(websocket_message)
 
@@ -89,6 +89,8 @@ class WebSocket(Transport, ParseUrlMixin):
                     # data, so the frame is not returned.
                     # Still it must be handled or the server will close the
                     # connection.
+
+                    # gevent.spawn(self.handle_ping(ping_frame=frame)
                     self.handle_ping(ping_frame=frame)
                     received_bytes = bytearray()
                     continue
