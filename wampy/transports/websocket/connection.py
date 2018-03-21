@@ -17,7 +17,7 @@ from wampy.errors import (
 from wampy.mixins import ParseUrlMixin
 from wampy.transports.interface import Transport
 
-from . frames import ClientFrame, FrameFactory, Pong
+from . frames import FrameFactory, Pong, Text
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +53,7 @@ class WebSocket(Transport, ParseUrlMixin):
         self.socket.close()
 
     def send(self, message):
-        frame = ClientFrame(payload=message)
+        frame = Text(payload=message)
         websocket_message = frame.frame
         self._send_raw(websocket_message)
 

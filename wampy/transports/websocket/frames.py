@@ -242,7 +242,7 @@ class FrameFactory(Frame):
         return Frame(raw_bytes=buffered_bytes)
 
 
-class ClientFrame(Frame):
+class Text(Frame):
     """ Represent outgoing Client -> Server messages.
 
     Takes a payload and wraps it in a WebSocket frame.
@@ -261,7 +261,7 @@ class ClientFrame(Frame):
 
         """
         raw_bytes = raw_bytes or self.generate_bytes(json_serialize(payload))
-        super(ClientFrame, self).__init__(raw_bytes=raw_bytes)
+        super(Text, self).__init__(raw_bytes=raw_bytes)
 
     def generate_bytes(self, payload):
         """ Format data to string (buffered_bytes) to send to server.
