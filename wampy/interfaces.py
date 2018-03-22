@@ -25,4 +25,19 @@ class Transport(object):
 
 @six.add_metaclass(abc.ABCMeta)
 class Async(object):
-    pass
+
+    @abc.abstractmethod
+    def Timeout(self, timeout):
+        pass
+
+    @abc.abstractmethod
+    def receive_message(self, timeout):
+        pass
+
+    @abc.abstractmethod
+    def spawn(self, *args, **kwargs):
+        pass
+
+    @abc.abstractmethod
+    def sleep(self, time):
+        pass
