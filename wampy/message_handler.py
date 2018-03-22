@@ -1,11 +1,12 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
+import json
 import logging
 import os
 
 from wampy.auth import compute_wcs
+from wampy.errors import WampProtocolError
 from wampy.messages import Authenticate, MESSAGE_TYPE_MAP
 
 logger = logging.getLogger('wampy.messagehandler')
@@ -33,7 +34,13 @@ class MessageHandler(object):
     """
 
     def handle_message(self, message, client):
+        # all WAMP paylods on a websocket frame are JSON
+        message = json.loads(message)
         wamp_code = message[0]
+        if wamp_code not in MESSAGE_TYPE_MAP:
+            raise WampProtocolError(
+                'unexpected WAMP code: {}'.format(wamp_code)
+            )
 
         logger.debug(
             "received message: %s (%s)",

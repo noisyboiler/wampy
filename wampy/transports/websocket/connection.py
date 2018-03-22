@@ -15,9 +15,10 @@ from wampy.constants import WEBSOCKET_SUBPROTOCOLS, WEBSOCKET_VERSION
 from wampy.errors import (
     IncompleteFrameError, ConnectionError, WampProtocolError, WampyError)
 from wampy.mixins import ParseUrlMixin
+from wampy.serializers import json_serialize
 from wampy.transports.interface import Transport
 
-from . frames import ClientFrame, FrameFactory, Pong
+from . frames import FrameFactory, Pong, Text
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +54,7 @@ class WebSocket(Transport, ParseUrlMixin):
         self.socket.close()
 
     def send(self, message):
-        frame = ClientFrame(message)
+        frame = Text(payload=json_serialize(message))
         websocket_message = frame.frame
         self._send_raw(websocket_message)
 
@@ -89,14 +90,14 @@ class WebSocket(Transport, ParseUrlMixin):
                     # data, so the frame is not returned.
                     # Still it must be handled or the server will close the
                     # connection.
-                    self.handle_ping(ping_frame=frame)
+                    gevent.spawn(self.handle_ping(ping_frame=frame))
                     received_bytes = bytearray()
                     continue
                 if frame.opcode == frame.OPCODE_BINARY:
                     break
 
                 if frame.opcode == frame.OPCODE_CLOSE:
-                    self.handle_close(close_frame=frame)
+                    gevent.spawn(self.handle_close(close_frame=frame))
                     break
 
                 break
@@ -248,7 +249,7 @@ class WebSocket(Transport, ParseUrlMixin):
         return status, headers
 
     def handle_ping(self, ping_frame):
-        pong_frame = Pong(ping_frame=ping_frame)
+        pong_frame = Pong(payload=ping_frame.payload)
         bytes = pong_frame.frame
         logger.info('sending pong: %s', bytes)
         self._send_raw(bytes)

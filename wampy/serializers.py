@@ -11,7 +11,7 @@ def json_serialize(message):
     try:
         data = json.dumps(
             message, separators=(',', ':'), ensure_ascii=False,
-            encoding='utf8',
+            encoding='utf-8',
         )
     except TypeError as exc:
         raise WampProtocolError(

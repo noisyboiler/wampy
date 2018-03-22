@@ -11,6 +11,8 @@ from mock import ANY
 from mock import call, patch
 
 from wampy.errors import ConnectionError
+from wampy.peers.clients import Client
+from wampy.testing.helpers import wait_for_session
 from wampy.transports.websocket.connection import WebSocket
 from wampy.transports.websocket.frames import Close, Ping
 
@@ -77,6 +79,41 @@ def test_send_ping(server):
 
         call_param = mock_handle.call_args[1]['ping_frame']
         assert isinstance(call_param, Ping)
+
+
+@pytest.fixture(scope="function")
+def config_path():
+    return './wampy/testing/configs/crossbar.timeout.json'
+
+
+def test_respond_to_ping_with_pong(config_path, router):
+    # This test shows proper handling of ping/pong keep-alives
+    # by connecting to a pong-demanding server (crossbar.timeout.json)
+    # and keeping the connection open for longer than the server's timeout.
+    # Failure would be an exception being thrown because of the server
+    # closing the connection.
+
+    class MyClient(Client):
+        pass
+
+    exceptionless = True
+
+    try:
+        client = MyClient(url=router.url)
+        client.start()
+        wait_for_session(client)
+
+        gevent.sleep(5)
+
+        # this is purely to demonstrate we can make calls while sending
+        # pongs
+        client.publish(topic="test", message="test")
+        client.stop()
+    except Exception as e:
+        print(e)
+        exceptionless = False
+
+    assert exceptionless
 
 
 def test_server_closess(server):
