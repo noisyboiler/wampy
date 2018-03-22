@@ -99,10 +99,6 @@ class Frame(object):
         return buffered_bytes[0] & 0xf
 
     @classmethod
-    def data_to_buffered_bytes(cls, data):
-        return bytearray(data, 'utf-8')
-
-    @classmethod
     def generate_mask(cls, mask_key, data):
         """ Mask data.
 
@@ -123,7 +119,7 @@ class Frame(object):
         if data is None:
             data = ""
 
-        data = cls.data_to_buffered_bytes(data)
+        data = bytearray(data, 'utf-8')
 
         _m = array.array("B", mask_key)
         _d = array.array("B", data)
