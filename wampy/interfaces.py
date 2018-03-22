@@ -21,3 +21,8 @@ class Transport(object):
     @abc.abstractmethod
     def receive(self):
         pass
+
+
+@six.add_metaclass(abc.ABCMeta)
+class Async(object):
+    pass

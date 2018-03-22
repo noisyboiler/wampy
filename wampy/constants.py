@@ -37,3 +37,5 @@ SUBSCRIBER = "subscriber"
 
 # WAMP URIs
 NOT_AUTHORISED = 'wamp.error.not_authorized'
+
+GEVENT = 'gevent'

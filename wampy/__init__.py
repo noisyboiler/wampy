@@ -5,9 +5,6 @@
 # Set default logging handler to avoid "No handler found" warnings.
 import logging
 
-import gevent.monkey
-
-
 try:  # Python 2.7+
     from logging import NullHandler
 except ImportError:
@@ -15,11 +12,15 @@ except ImportError:
         def emit(self, record):
             pass
 
+from wampy.async import async_name
+from wampy.constants import GEVENT
 from wampy.peers.clients import Client  # noqa
 
 
 root = logging.getLogger(__name__)
 root.addHandler(NullHandler())
 
-root.warning('gevent about to monkey patched your environment')
-gevent.monkey.patch_all()
+if async_name == GEVENT:
+    import gevent.monkey
+    root.warning('gevent about to monkey patched your environment')
+    gevent.monkey.patch_all()
