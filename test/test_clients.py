@@ -4,7 +4,6 @@
 
 import datetime
 
-import gevent
 import pytest
 
 from wampy.peers.clients import Client
@@ -145,38 +144,3 @@ def test_can_start_two_clients(router):
 
     assert app_one.session.id is None
     assert app_two.session.id is None
-
-
-@pytest.fixture(scope="function")
-def config_path():
-    return './wampy/testing/configs/crossbar.timeout.json'
-
-
-def test_respond_to_ping_with_pong(config_path, router):
-    # This test shows proper handling of ping/pong keep-alives
-    # by connecting to a pong-demanding server (crossbar.timeout.json)
-    # and keeping the connection open for longer than the server's timeout.
-    # Failure would be an exception being thrown because of the server
-    # closing the connection.
-
-    class MyClient(Client):
-        pass
-
-    exceptionless = True
-
-    try:
-        client = MyClient(url=router.url)
-        client.start()
-        wait_for_session(client)
-
-        gevent.sleep(5)
-
-        # this is purely to demonstrate we can make calls while sending
-        # pongs
-        client.publish(topic="test", message="test")
-        client.stop()
-    except Exception as e:
-        print(e)
-        exceptionless = False
-
-    assert exceptionless
