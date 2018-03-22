@@ -5,8 +5,11 @@
 import gevent
 import gevent.queue
 
-from wampy.errors import WampProtocolError
+from wampy.constants import GEVENT
+from wampy.errors import WampProtocolError, WampyError
 from wampy.interfaces import Async
+
+from . import async_name
 
 
 class Gevent(Async):
@@ -35,9 +38,11 @@ class Gevent(Async):
 
 
 def get_async_adapter():
-    # TODO: is this safe to do for wampy clients?
-    # look in config for preferred backend, or default to gevent.
-    return Gevent()
+    if async_name == GEVENT:
+        return Gevent()
+    raise WampyError(
+        'only gevent is supported, sorry. watch this space!'
+    )
 
 
 async_adapter = get_async_adapter()
