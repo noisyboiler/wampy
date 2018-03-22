@@ -294,15 +294,6 @@ class FrameFactory(object):
 class Text(Frame):
 
     def __init__(self, raw_bytes=None, payload=''):
-        """ Represents a Frame being sent from a wampy Clint to a
-        WAMP server.
-
-        :Parameters:
-            payload : str
-                The WAMP message to be sent to the server. This must
-                be utf-8 JSON serialised.
-
-        """
         raw_bytes = raw_bytes or FrameFactory.generate_bytes(
             payload=payload,
             fin_bit=1,
