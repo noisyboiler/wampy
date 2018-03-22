@@ -24,10 +24,6 @@ class WampyError(Exception):
     pass
 
 
-class WelcomeAbortedError(WampProtocolError):
-    pass
-
-
 class RemoteError(Exception):
     def __init__(self, remote_api, request_id, *args, **kwargs):
         self.remote_api = remote_api
