@@ -9,7 +9,6 @@ import os
 from struct import pack, unpack_from
 
 from wampy.errors import WebsocktProtocolError, IncompleteFrameError
-from wampy.serializers import json_serialize
 
 
 logger = logging.getLogger(__name__)
@@ -91,6 +90,8 @@ class Frame(object):
         self.opcode = self.raw_bytes[0] & 0xf
         self.payload_length_indicator = self.raw_bytes[1] & 0b1111111
 
+        self._raw_bytes = raw_bytes
+
     def __str__(self):
         return str(self.payload)
 
@@ -123,8 +124,7 @@ class Frame(object):
         if data is None:
             data = ""
 
-        if not isinstance(data, bytearray):
-            data = cls.data_to_buffered_bytes(data)
+        data = cls.data_to_buffered_bytes(data)
 
         _m = array.array("B", mask_key)
         _d = array.array("B", data)
@@ -136,19 +136,20 @@ class Frame(object):
 
     @property
     def frame(self):
-        return self.raw_bytes
+        return self._raw_bytes
 
     @property
     def payload(self):
         """ Return the ``frame-payload-data`` from the raw bytes.
         """
         if self.payload_length_indicator < 126:
-            payload_str = str(self.raw_bytes[2:])
+            payload_str = self.raw_bytes[2:].decode('utf-8')
         elif self.payload_length_indicator == 126:
-            payload_str = str(self.raw_bytes[4:])
+            payload_str = self.raw_bytes[4:].decode('utf-8')
         else:
-            payload_str = str(self.raw_bytes[6:])
-        return json.loads(payload_str.decode('utf-8'))
+            payload_str = self.raw_bytes[6:].decode('utf-8')
+
+        return payload_str
 
     def generate_bytes(self, payload):
         raise NotImplemented(
@@ -238,7 +239,6 @@ class FrameFactory(Frame):
             )
 
         logger.debug('generated payload: %s', payload)
-
         return Frame(raw_bytes=buffered_bytes)
 
 
@@ -260,7 +260,9 @@ class Text(Frame):
                 The WAMP message to be sent to the server.
 
         """
-        raw_bytes = raw_bytes or self.generate_bytes(json_serialize(payload))
+        raw_bytes = raw_bytes or self.generate_bytes(
+            payload=payload,
+        )
         super(Text, self).__init__(raw_bytes=raw_bytes)
 
     def generate_bytes(self, payload):
@@ -304,8 +306,11 @@ class Text(Frame):
         # of the second byte is always 1 which flags that the data is masked,
         # i.e. encoded
         mask_bit = 1 << 7
-        # next we have to | this bit with the payload length, if not too long!
-        length = len(payload)
+        # next we have to | this bit with the payload length.
+        # note that we ensure that the payload is utf-8 encoded before we take
+        # the length because unicode characters can be >1 bytes in length and
+        # lead to bugs if we just do ``len(payload)``.
+        length = len(payload.encode('utf-8'))
 
         if length >= self.MAX_LENGTH:
             raise WebsocktProtocolError("data is too long")

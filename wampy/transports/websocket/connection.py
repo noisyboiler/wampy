@@ -15,6 +15,7 @@ from wampy.constants import WEBSOCKET_SUBPROTOCOLS, WEBSOCKET_VERSION
 from wampy.errors import (
     IncompleteFrameError, ConnectionError, WampProtocolError, WampyError)
 from wampy.mixins import ParseUrlMixin
+from wampy.serializers import json_serialize
 from wampy.transports.interface import Transport
 
 from . frames import FrameFactory, Pong, Text
@@ -53,7 +54,7 @@ class WebSocket(Transport, ParseUrlMixin):
         self.socket.close()
 
     def send(self, message):
-        frame = Text(payload=message)
+        frame = Text(payload=json_serialize(message))
         websocket_message = frame.frame
         self._send_raw(websocket_message)
 
@@ -250,7 +251,7 @@ class WebSocket(Transport, ParseUrlMixin):
         return status, headers
 
     def handle_ping(self, ping_frame):
-        pong_frame = Pong(ping_frame=ping_frame)
+        pong_frame = Pong(payload=ping_frame.payload)
         bytes = pong_frame.frame
         logger.info('sending pong: %s', bytes)
         self._send_raw(bytes)
