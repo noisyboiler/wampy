@@ -4,7 +4,6 @@
 
 import array
 import logging
-import json
 import os
 from struct import pack, unpack_from
 
@@ -229,16 +228,6 @@ class FrameFactory(Frame):
         if opcode == Frame.OPCODE_CLOSE:
             return Close(raw_bytes=buffered_bytes)
 
-        try:
-            # decode required before loading JSON for python 2 only
-            payload = json.loads(body_candidate.decode('utf-8'))
-        except Exception:
-            logger.error('invalid WAMP payload: %s', body_candidate)
-            raise WebsocktProtocolError(
-                'Failed to load JSON object from: "%s"', body_candidate
-            )
-
-        logger.debug('generated payload: %s', payload)
         return Frame(raw_bytes=buffered_bytes)
 
 
