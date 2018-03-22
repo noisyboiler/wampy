@@ -92,42 +92,7 @@ class Frame(object):
         self._raw_bytes = raw_bytes
 
     def __str__(self):
-        return str(self.payload)
-
-    @classmethod
-    def opcode_from_bytes(cls, buffered_bytes):
-        return buffered_bytes[0] & 0xf
-
-    @classmethod
-    def generate_mask(cls, mask_key, data):
-        """ Mask data.
-
-        :Parameters:
-            mask_key: byte string
-                4 byte string(byte), e.g. '\x10\xc6\xc4\x16'
-            data: str
-                data to mask
-
-        """
-        # Masking of WebSocket traffic from client to server is required
-        # because of the unlikely chance that malicious code could cause
-        # some broken proxies to do the wrong thing and use this as an
-        # attack of some kind. Nobody has proved that this could actually
-        # happen, but since the fact that it could happen was reason enough
-        # for browser vendors to get twitchy, masking was added to remove
-        # the possibility of it being used as an attack.
-        if data is None:
-            data = ""
-
-        data = bytearray(data, 'utf-8')
-
-        _m = array.array("B", mask_key)
-        _d = array.array("B", data)
-
-        for i in range(len(_d)):
-            _d[i] ^= _m[i % 4]
-
-        return _d.tostring()
+        return self.payload
 
     @property
     def frame(self):
@@ -146,21 +111,15 @@ class Frame(object):
 
         return payload_str
 
-    def generate_bytes(self, payload):
-        raise NotImplemented(
-            'Only implemented on subclasses that can provide '
-            'default content'
-        )
 
-
-class FrameFactory(Frame):
+class FrameFactory(object):
 
     @classmethod
     def from_bytes(cls, buffered_bytes):
         if not buffered_bytes or len(buffered_bytes) < 2:
             raise IncompleteFrameError(required_bytes=1)
 
-        opcode = cls.opcode_from_bytes(buffered_bytes=buffered_bytes)
+        opcode = buffered_bytes[0] & 0xf
         if opcode not in Frame.OPCODES:
             raise WebsocktProtocolError('unknown opcode: %s', opcode)
 
@@ -226,31 +185,39 @@ class FrameFactory(Frame):
 
         return Frame(raw_bytes=buffered_bytes)
 
-
-class Text(Frame):
-    """ Represent outgoing Client -> Server messages.
-
-    Takes a payload and wraps it in a WebSocket frame.
-
-    """
-    FIN_BIT = 1
-    OPCODE = Frame.OPCODE_TEXT
-
-    def __init__(self, raw_bytes=None, payload=''):
-        """ Represents a Frame being sent from a wampy Clint to a WAMP
-        server.
+    @classmethod
+    def generate_mask(cls, mask_key, data):
+        """ Mask data.
 
         :Parameters:
-            payload : str
-                The WAMP message to be sent to the server.
+            mask_key: byte string
+                4 byte string(byte), e.g. '\x10\xc6\xc4\x16'
+            data: str
+                data to mask
 
         """
-        raw_bytes = raw_bytes or self.generate_bytes(
-            payload=payload,
-        )
-        super(Text, self).__init__(raw_bytes=raw_bytes)
+        # Masking of WebSocket traffic from client to server is required
+        # because of the unlikely chance that malicious code could cause
+        # some broken proxies to do the wrong thing and use this as an
+        # attack of some kind. Nobody has proved that this could actually
+        # happen, but since the fact that it could happen was reason enough
+        # for browser vendors to get twitchy, masking was added to remove
+        # the possibility of it being used as an attack.
+        if data is None:
+            data = ""
 
-    def generate_bytes(self, payload):
+        data = bytearray(data, 'utf-8')
+
+        _m = array.array("B", mask_key)
+        _d = array.array("B", data)
+
+        for i in range(len(_d)):
+            _d[i] ^= _m[i % 4]
+
+        return _d.tostring()
+
+    @classmethod
+    def generate_bytes(cls, payload, fin_bit, opcode, mask_payload):
         """ Format data to string (buffered_bytes) to send to server.
         """
         # the first byte contains the FIN bit, the 3 RSV bits and the
@@ -270,10 +237,9 @@ class Text(Frame):
         # using the struct module to pack them as incoming network bytes
         frame = pack(
             '!B', (
-                (self.FIN_BIT << 7) |
-                self.OPCODE
+                (fin_bit << 7) | opcode
             )
-        )  # which is '\x81' as a raw byte repr
+        )
 
         # the second byte - and maybe the 7 after this, we'll use to tell
         # the server how long our payload is.
@@ -290,177 +256,93 @@ class Text(Frame):
         # the mask is always included with client -> server, so the first bit
         # of the second byte is always 1 which flags that the data is masked,
         # i.e. encoded
-        mask_bit = 1 << 7
+        if mask_payload:
+            mask_bit = 1 << 7
+        else:
+            mask_bit = 0 << 7
         # next we have to | this bit with the payload length.
         # note that we ensure that the payload is utf-8 encoded before we take
         # the length because unicode characters can be >1 bytes in length and
         # lead to bugs if we just do ``len(payload)``.
         length = len(payload.encode('utf-8'))
 
-        if length >= self.MAX_LENGTH:
+        if length >= Frame.MAX_LENGTH:
             raise WebsocktProtocolError("data is too long")
 
         # the second byte contains the payload length and mask
-        if length < self.LENGTH_7:
+        if length < Frame.LENGTH_7:
             # we can simply represent payload length with first 7 bits
             frame += pack('!B', (mask_bit | length))
-        elif length < self.LENGTH_16:
+        elif length < Frame.LENGTH_16:
             frame += pack('!B', (mask_bit | 126)) + pack('!H', length)
         else:
             frame += pack('!B', (mask_bit | 127)) + pack('!Q', length)
 
-        # we always mask frames from the client to server
-        # use a string of n random buffered_bytes for the mask
-        mask_key = os.urandom(4)
-        mask_data = self.generate_mask(mask_key=mask_key, data=payload)
-        mask = mask_key + mask_data
-        frame += mask
+        if mask_payload:
+            # we always mask frames from the client to server
+            # use a string of n random buffered_bytes for the mask
+            mask_key = os.urandom(4)
+            mask_data = cls.generate_mask(mask_key=mask_key, data=payload)
+            mask = mask_key + mask_data
+            frame += mask
+        else:
+            frame += bytearray(payload, 'utf-8')
 
         return bytearray(frame)
+
+
+class Text(Frame):
+
+    def __init__(self, raw_bytes=None, payload=''):
+        """ Represents a Frame being sent from a wampy Clint to a
+        WAMP server.
+
+        :Parameters:
+            payload : str
+                The WAMP message to be sent to the server. This must
+                be utf-8 JSON serialised.
+
+        """
+        raw_bytes = raw_bytes or FrameFactory.generate_bytes(
+            payload=payload,
+            fin_bit=1,
+            opcode=Frame.OPCODE_TEXT,
+            mask_payload=True,
+        )
+        super(Text, self).__init__(raw_bytes=raw_bytes)
 
 
 class Ping(Frame):
-    FIN_BIT = 1
-    OPCODE = Frame.OPCODE_PING
 
     def __init__(self, raw_bytes=None, payload=''):
-        """ Represents the PING Control Frame, denoted by the opcode 9
-
-        :Parameters:
-            payload : str (utf-8)
-                Optional message to send with the PING frame, expected
-                to be returned by the PONG.
-
-        """
-        raw_bytes = raw_bytes or self.generate_bytes(payload=payload)
+        raw_bytes = raw_bytes or FrameFactory.generate_bytes(
+            payload=payload,
+            fin_bit=1,
+            opcode=Frame.OPCODE_PING,
+            mask_payload=False,
+        )
         super(Ping, self).__init__(raw_bytes=raw_bytes)
-
-    def generate_bytes(self, payload=''):
-        # This is long hand for documentation purposes
-
-        # the first byte contains the FIN bit, the 3 RSV bits arend the
-        # 4 opcode bits, so we are looking for
-
-        #  1 0 0 0 0 1 0 1   Opcode 9 for a Ping Frame
-        # +-+-+-+-+-------+
-        # |F|R|R|R| opcode|
-        # |I|S|S|S|       |
-        # |N|V|V|V|       |
-        # | |1|2|3|       |
-        # +-+-+-+-+-------+
-
-        # this shifts each bit into position and bitwise ORs them together,
-        # using the struct module to pack them as incoming network bytes
-        b0 = pack(
-            '!B', (
-                (self.FIN_BIT << 7) |
-                self.OPCODE
-            )
-        )  # which is '\x81' as a raw byte repr
-
-        # frame-masked              ; 1 bit in length
-        # frame-payload-length      ; either 7, 7+16,
-        #                           ; or 7+64 bits in length
-
-        # second byte, payload len bytes and mask, so we are looking for
-
-        #  0 0 0 0 0 0 0 0
-        # +-+-+-+-+-------+
-        # |M| payload len |
-        # |A|             |
-        # |S|             |
-        # |K|             |
-        # +-+-+-+-+-------+
-
-        b1 = 0
-        # as implemented here, the Client could not send this as it is not
-        # masking
-        mask_bit = 0 << 7
-        # next we have to | this bit with the payload length,
-        # if not too long!
-        b1 = pack('!B', (mask_bit | 0))
-        frame = bytearray(b''.join([b0, b1]))
-
-        # TODO: we could append payload data such as a HELLO here...
-        # then we'd have to update the 2nd byte with the new length
-        return bytearray(frame)  # this is b'\x89\x00'
 
 
 class Pong(Frame):
-    FIN_BIT = 1
-    OPCODE = Frame.OPCODE_PONG
 
     def __init__(self, raw_bytes=None, payload=''):
-        raw_bytes = raw_bytes or self.generate_bytes(payload=payload)
-        super(Pong, self).__init__(raw_bytes=raw_bytes)
-
-    def generate_bytes(self, payload=''):
-        frame = pack(
-            '!B', (
-                (self.FIN_BIT << 7) |
-                self.OPCODE
-            )
+        raw_bytes = raw_bytes or FrameFactory.generate_bytes(
+            payload=payload,
+            fin_bit=1,
+            opcode=Frame.OPCODE_PONG,
+            mask_payload=True,
         )
-
-        mask_bit = 1 << 7
-        # next we have to | this bit with the payload length, if not too long!
-        length = len(payload) if payload else 0
-
-        # the second byte contains the payload length and mask
-        if length < self.LENGTH_7:
-            # we can simply represent payload length with first 7 bits
-            frame += pack('!B', (mask_bit | length))
-        elif length < self.LENGTH_16:
-            frame += pack('!B', (mask_bit | 126)) + pack('!H', length)
-        else:
-            frame += pack('!B', (mask_bit | 127)) + pack('!Q', length)
-
-        # we always mask frames from the client to server
-        # use a string of n random buffered_bytes for the mask
-        mask_key = os.urandom(4)
-        mask_data = self.generate_mask(mask_key=mask_key, data=payload)
-        mask = mask_key + mask_data
-        frame += mask
-
-        return bytearray(frame)
+        super(Pong, self).__init__(raw_bytes=raw_bytes)
 
 
 class Close(Frame):
-    FIN_BIT = 1
-    OPCODE = Frame.OPCODE_CLOSE
 
     def __init__(self, raw_bytes=None, payload=''):
-        raw_bytes = raw_bytes or self.generate_bytes(payload=payload)
-        super(Close, self).__init__(raw_bytes=raw_bytes)
-
-    def generate_bytes(self, payload):
-        # This is long hand for documentation purposes
-
-        # the first byte contains the FIN bit, the 3 RSV bits arend the
-        # 4 opcode bits, so we are looking for
-
-        #  1 0 0 0 0 1 0 0   Opcode 98 for a Close Frame
-        # +-+-+-+-+-------+
-        # |F|R|R|R| opcode|
-        # |I|S|S|S|       |
-        # |N|V|V|V|       |
-        # | |1|2|3|       |
-        # +-+-+-+-+-------+
-        frame = pack(
-            '!B', (
-                (self.FIN_BIT << 7) |
-                self.OPCODE
-            )
+        raw_bytes = raw_bytes or FrameFactory.generate_bytes(
+            payload=payload,
+            fin_bit=1,
+            opcode=Frame.OPCODE_CLOSE,
+            mask_payload=False,
         )
-
-        length = len(payload) if payload else 0
-        mask_bit = 0 << 7
-        if length < self.LENGTH_7:
-            frame += pack('!B', (mask_bit | length))
-        elif length < self.LENGTH_16:
-            frame += pack('!B', (mask_bit | 126)) + pack('!H', length)
-        else:
-            frame += pack('!B', (mask_bit | 127)) + pack('!Q', length)
-
-        frame += bytearray(payload, 'utf-8')
-        return bytearray(frame)
+        super(Close, self).__init__(raw_bytes=raw_bytes)
