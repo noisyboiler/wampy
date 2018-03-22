@@ -90,16 +90,14 @@ class WebSocket(Transport, ParseUrlMixin):
                     # data, so the frame is not returned.
                     # Still it must be handled or the server will close the
                     # connection.
-
-                    # gevent.spawn(self.handle_ping(ping_frame=frame)
-                    self.handle_ping(ping_frame=frame)
+                    gevent.spawn(self.handle_ping(ping_frame=frame))
                     received_bytes = bytearray()
                     continue
                 if frame.opcode == frame.OPCODE_BINARY:
                     break
 
                 if frame.opcode == frame.OPCODE_CLOSE:
-                    self.handle_close(close_frame=frame)
+                    gevent.spawn(self.handle_close(close_frame=frame))
                     break
 
                 break
