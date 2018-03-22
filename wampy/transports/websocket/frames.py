@@ -462,5 +462,5 @@ class Close(Frame):
         else:
             frame += pack('!B', (mask_bit | 127)) + pack('!Q', length)
 
-        frame += payload
+        frame += bytearray(payload, 'utf-8')
         return bytearray(frame)
