@@ -75,7 +75,9 @@ class RpcProxy:
                     )
 
                 raise WampyError(
-                    'oops! wampy has failed, sorry: {}'.format(response.message)
+                    'oops! wampy has failed, sorry: {}'.format(
+                        response.message
+                    )
                 )
 
             if wamp_code != Result.WAMP_CODE:
