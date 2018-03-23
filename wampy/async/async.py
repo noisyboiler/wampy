@@ -15,16 +15,9 @@ from wampy.interfaces import Async
 
 
 logger = logging.getLogger(__name__)
-_adapter = None
 
 
 def get_async_adapter():
-    global _adapter
-    if _adapter is not None:
-        logger.debug(
-            'returning already instantiated _adapter: %s', _adapter
-        )
-        return _adapter
 
     class Gevent(Async):
 
