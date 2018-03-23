@@ -35,6 +35,7 @@ setup(
     keywords='WAMP RPC',
     packages=find_packages(),
     install_requires=[
+        "eventlet==0.20.1",
         "six==1.10.0",
         "simplejson==3.11.1",
         "gevent>=1.1"
@@ -55,9 +56,6 @@ setup(
             "Sphinx==1.4.5",
             "guzzle_sphinx_theme",
         ],
-        'async_eventlet': [
-            "eventlet==0.20.1",  # alternative event loop
-        ]
     },
     entry_points={
         'console_scripts': [

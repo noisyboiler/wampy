@@ -4,6 +4,11 @@
 
 import logging
 
+import eventlet
+import gevent
+import gevent.queue
+import gevent.monkey
+
 from wampy.constants import EVENTLET, GEVENT
 from wampy.errors import WampProtocolError, WampyError
 from wampy.interfaces import Async
@@ -81,9 +86,6 @@ def get_async_adapter():
 
     from wampy.config.defaults import async_name
     if async_name == GEVENT:
-        import gevent
-        import gevent.queue
-        import gevent.monkey
         logger.warning('gevent about to monkey patch your environment')
         gevent.monkey.patch_all()
 
@@ -91,7 +93,6 @@ def get_async_adapter():
         return _adapter
 
     if async_name == EVENTLET:
-        import eventlet
         logger.warning('eventlet about to monkey patch your environment')
         eventlet.monkey_patch()
 
