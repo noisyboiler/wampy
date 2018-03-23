@@ -39,3 +39,5 @@ SUBSCRIBER = "subscriber"
 NOT_AUTHORISED = 'wamp.error.not_authorized'
 
 GEVENT = 'gevent'
+EVENTLET = 'eventlet'
+EVENT_LOOP_BACKENDS = [EVENTLET, GEVENT]

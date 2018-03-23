@@ -55,6 +55,9 @@ setup(
             "Sphinx==1.4.5",
             "guzzle_sphinx_theme",
         ],
+        'async_eventlet': [
+            "eventlet==0.20.1",  # alternative event loop
+        ]
     },
     entry_points={
         'console_scripts': [
