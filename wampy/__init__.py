@@ -12,7 +12,7 @@ except ImportError:
         def emit(self, record):
             pass
 
-from wampy.async import async_name
+from wampy.config.defaults import async_name
 from wampy.constants import GEVENT
 from wampy.peers.clients import Client  # noqa
 

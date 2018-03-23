@@ -9,8 +9,6 @@ from wampy.constants import GEVENT
 from wampy.errors import WampProtocolError, WampyError
 from wampy.interfaces import Async
 
-from . import async_name
-
 
 class Gevent(Async):
 
@@ -38,6 +36,7 @@ class Gevent(Async):
 
 
 def get_async_adapter():
+    from wampy.config.defaults import async_name
     if async_name == GEVENT:
         return Gevent()
     raise WampyError(
