@@ -51,6 +51,7 @@ setup(
             "colorlog",
             "flake8==3.5.0",
             "gevent-websocket==0.10.1",
+            "coverage>=3.7.1",
         ],
         'docs': [
             "Sphinx==1.4.5",
