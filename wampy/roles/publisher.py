@@ -32,6 +32,6 @@ class PublishProxy:
         if "options" not in kwargs:
             kwargs["options"] = {}
         message = Publish(topic=topic, **kwargs)
-        logger.info('publishing message: "%s"', message)
+        logger.info('publishing message: "%s"', message.message)
 
         self.client.send_message(message)
