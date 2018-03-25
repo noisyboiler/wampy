@@ -9,14 +9,14 @@ import uuid
 from base64 import encodestring
 from socket import error as socket_error
 
-import gevent
-
+from wampy.async import async_adapter
+from wampy.async.errors import WampyTimeOut
 from wampy.constants import WEBSOCKET_SUBPROTOCOLS, WEBSOCKET_VERSION
 from wampy.errors import (
     IncompleteFrameError, ConnectionError, WampProtocolError, WampyError)
+from wampy.interfaces import Transport
 from wampy.mixins import ParseUrlMixin
 from wampy.serializers import json_serialize
-from wampy.transports.interface import Transport
 
 from . frames import FrameFactory, Pong, Text
 
@@ -69,12 +69,11 @@ class WebSocket(Transport, ParseUrlMixin):
         while True:
             try:
                 bytes = self.socket.recv(bufsize)
-            except gevent.greenlet.GreenletExit as exc:
-                raise ConnectionError('Connection closed: "{}"'.format(exc))
             except socket.timeout as e:
                 message = str(e)
                 raise ConnectionError('timeout: "{}"'.format(message))
-
+            except Exception as exc:
+                raise ConnectionError('Connection lost: "{}"'.format(exc))
             if not bytes:
                 break
 
@@ -90,14 +89,14 @@ class WebSocket(Transport, ParseUrlMixin):
                     # data, so the frame is not returned.
                     # Still it must be handled or the server will close the
                     # connection.
-                    gevent.spawn(self.handle_ping(ping_frame=frame))
+                    async_adapter.spawn(self.handle_ping(ping_frame=frame))
                     received_bytes = bytearray()
                     continue
                 if frame.opcode == frame.OPCODE_BINARY:
                     break
 
                 if frame.opcode == frame.OPCODE_CLOSE:
-                    gevent.spawn(self.handle_close(close_frame=frame))
+                    async_adapter.spawn(self.handle_close(close_frame=frame))
                     break
 
                 break
@@ -151,9 +150,9 @@ class WebSocket(Transport, ParseUrlMixin):
         self.socket.send(handshake.encode())
 
         try:
-            with gevent.Timeout(5):
+            with async_adapter.Timeout(5):
                 self.status, self.headers = self._read_handshake_response()
-        except gevent.Timeout:
+        except WampyTimeOut:
             raise WampyError(
                 'No response after handshake "{}"'.format(handshake)
             )
@@ -210,10 +209,6 @@ class WebSocket(Transport, ParseUrlMixin):
             return b''.join(bytes_cache)
 
         while True:
-            # we need this to guarantee we can context switch back to the
-            # Timeout.
-            gevent.sleep(0.01)
-
             received_bytes = read_line()
             if received_bytes == b'\r\n':
                 # end of the response

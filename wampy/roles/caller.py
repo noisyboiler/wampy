@@ -5,7 +5,7 @@
 import logging
 
 from wampy.constants import NOT_AUTHORISED
-from wampy.errors import RemoteError, WampProtocolError, NotAuthorisedError
+from wampy.errors import WampyError, WampProtocolError
 from wampy.messages import Error, Result
 from wampy.messages import MESSAGE_TYPE_MAP
 from wampy.messages.call import Call
@@ -68,12 +68,16 @@ class RpcProxy:
                     response.message)
 
                 if endpoint == NOT_AUTHORISED:
-                    raise NotAuthorisedError(
-                        "{} - {}".format(self.client.name, exc_args[0])
+                    raise WampyError(
+                        "NOT_AUTHORISED: {} - {}".format(
+                            self.client.name, exc_args[0]
+                        )
                     )
 
-                raise RemoteError(
-                    endpoint, request_id, *exc_args, **exc_kwargs
+                raise WampyError(
+                    'oops! wampy has failed, sorry: {}'.format(
+                        response.message
+                    )
                 )
 
             if wamp_code != Result.WAMP_CODE:

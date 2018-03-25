@@ -4,9 +4,7 @@
 
 import logging
 
-import gevent
-import gevent.queue
-
+from wampy.async import async_adapter
 from wampy.errors import ConnectionError, WampProtocolError
 from wampy.messages import MESSAGE_TYPE_MAP
 from wampy.messages.hello import Hello
@@ -65,7 +63,7 @@ class Session(object):
         # spawn a green thread to listen for incoming messages over
         # a connection and put them on a queue to be processed
         self._managed_thread = None
-        self._message_queue = gevent.queue.Queue()
+        self._message_queue = async_adapter.message_queue
         self._listen(self.connection, self._message_queue)
 
     @property
@@ -113,19 +111,11 @@ class Session(object):
         self.connection.send(message)
 
     def recv_message(self, timeout=5):
-        try:
-            message = self._message_queue.get(timeout=timeout)
-        except gevent.queue.Empty:
-            raise WampProtocolError(
-                "no message returned (timed-out in {})".format(timeout)
-            )
-
+        message = async_adapter.receive_message(timeout=timeout)
         logger.debug(
             'received message: "%s" for client "%s"',
-            message.name,
-            self.client.name,
+            message.name, self.client.name,
         )
-
         return message
 
     def _say_hello(self):
@@ -163,15 +153,18 @@ class Session(object):
                     frame = connection.receive()
                     if frame:
                         message = frame.payload
-                        gevent.spawn(self.message_handler.handle_message,
-                                     message, self.client)
+                        async_adapter.spawn(
+                            self.message_handler.handle_message,
+                            message,
+                            self.client
+                        )
                 except (
                         SystemExit, KeyboardInterrupt, ConnectionError,
                         WampProtocolError,
                 ):
                     break
 
-        gthread = gevent.spawn(connection_handler)
+        gthread = async_adapter.spawn(connection_handler)
         self._managed_thread = gthread
 
     def _subscribe_to_topic(self, handler, topic):

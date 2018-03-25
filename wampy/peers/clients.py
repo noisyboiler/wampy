@@ -9,9 +9,7 @@ import os
 from wampy.constants import (
     CROSSBAR_DEFAULT, DEFAULT_ROLES, DEFAULT_REALM
 )
-from wampy.errors import (
-    WampProtocolError, WampyError, WelcomeAbortedError
-)
+from wampy.errors import WampProtocolError, WampyError
 from wampy.session import Session
 from wampy.messages import Abort, Challenge
 from wampy.message_handler import MessageHandler
@@ -176,7 +174,7 @@ class Client(object):
         # raise if Router aborts handshake or we cannot respond to a
         # Challenge.
         if message_obj.WAMP_CODE == Abort.WAMP_CODE:
-            raise WelcomeAbortedError(message_obj.message)
+            raise WampyError(message_obj.message)
 
         if message_obj.WAMP_CODE == Challenge.WAMP_CODE:
             if 'WAMPYSECRET' not in os.environ:
