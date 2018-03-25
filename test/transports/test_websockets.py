@@ -1,3 +1,4 @@
+import os
 import logging
 from collections import OrderedDict
 
@@ -10,6 +11,8 @@ from geventwebsocket import (
 from mock import ANY
 from mock import call, patch
 
+from wampy.async import async_adapter
+from wampy.constants import GEVENT
 from wampy.errors import ConnectionError
 from wampy.peers.clients import Client
 from wampy.testing.helpers import wait_for_session
@@ -17,6 +20,11 @@ from wampy.transports.websocket.connection import WebSocket
 from wampy.transports.websocket.frames import Close, Ping
 
 logger = logging.getLogger(__name__)
+
+gevent_only = pytest.mark.skipif(
+    os.environ['WAMPY_ASYNC_NAME'] != GEVENT,
+    reason="requires a Greenlet WebSocket server and you're using eventlet"
+)
 
 
 class TestApplication(WebSocketApplication):
@@ -36,6 +44,7 @@ def server():
     thread.kill()
 
 
+@gevent_only
 def test_send_ping(server):
     websocket = WebSocket(server_url='ws://0.0.0.0:8001')
     with patch.object(websocket, 'handle_ping') as mock_handle:
@@ -103,7 +112,7 @@ def test_respond_to_ping_with_pong(config_path, router):
         client.start()
         wait_for_session(client)
 
-        gevent.sleep(5)
+        async_adapter.sleep(5)
 
         # this is purely to demonstrate we can make calls while sending
         # pongs
@@ -116,6 +125,7 @@ def test_respond_to_ping_with_pong(config_path, router):
     assert exceptionless
 
 
+@gevent_only
 def test_server_closess(server):
     websocket = WebSocket(server_url='ws://0.0.0.0:8001')
     with patch.object(websocket, 'handle_close') as mock_handle:
@@ -150,6 +160,7 @@ def test_server_closess(server):
         assert isinstance(call_param, Close)
 
 
+@gevent_only
 def test_close_message_payload(server):
     websocket = WebSocket(server_url='ws://0.0.0.0:8001')
     close_frame = Close(payload="explosion")
