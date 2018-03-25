@@ -63,8 +63,6 @@ class Session(object):
         # spawn a green thread to listen for incoming messages over
         # a connection and put them on a queue to be processed
         self._managed_thread = None
-        # TODO: fixme, because this is shared across MessageHandler and
-        # async adapyter == dangerous
         self._message_queue = async_adapter.message_queue
         self._listen(self.connection, self._message_queue)
 
