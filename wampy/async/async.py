@@ -79,16 +79,10 @@ def get_async_adapter():
 
     from wampy.config.defaults import async_name
     if async_name == GEVENT:
-        logger.warning('gevent about to monkey patch your environment')
-        gevent.monkey.patch_all()
-
         _adapter = Gevent()
         return _adapter
 
     if async_name == EVENTLET:
-        logger.warning('eventlet about to monkey patch your environment')
-        eventlet.monkey_patch()
-
         _adapter = Eventlet()
         return _adapter
 

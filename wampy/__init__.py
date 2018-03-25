@@ -13,6 +13,7 @@ except ImportError:
             pass
 
 from wampy.config.defaults import async_name
+from wampy.constants import EVENTLET, GEVENT
 from wampy.peers.clients import Client  # noqa
 
 
@@ -20,3 +21,13 @@ root = logging.getLogger(__name__)
 root.addHandler(NullHandler())
 
 root.info('wampy starting up with event loop: %s', async_name)
+
+if async_name == GEVENT:
+    import gevent.monkey
+    root.warning('gevent about to monkey patch your environment')
+    gevent.monkey.patch_all()
+
+if async_name == EVENTLET:
+    import eventlet
+    root.warning('eventlet about to monkey patch your environment')
+    eventlet.monkey_patch()
