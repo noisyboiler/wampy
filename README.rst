@@ -203,7 +203,7 @@ In another terminal, with a **wampy** virtualenv, you can create a **Publisher**
 
 Hopefully you'll see any message you send printed to the screen where the example service is running. You'll also see the meta data that **wampy** chooses to send.
 
-Please note. **wampy** believes in explicit `kwargs` and not bare `args`, so you can only publish keyword arguments. Bare arguments don't tell readers enough about the call, so even though **WAMP** supports them, **wampy** does not.
+Please note. **wampy** believes in explicit ``kwargs`` and not bare ``args``, so you can only publish keyword arguments. Bare arguments don't tell readers enough about the call, so even though **WAMP** supports them, **wampy** does not.
 
 It doesn't matter what the ``kwargs`` are they will be published, but you might find a call like this is not supported by subscribers of other **WAMP** implementations (sorry) e.g.
 
