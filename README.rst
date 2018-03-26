@@ -205,7 +205,7 @@ Hopefully you'll see any message you send printed to the screen where the exampl
 
 Please note. **wampy** believes in explicit `kwargs` and not bare `args`, so you can only publish keyword arguments. Bare arguments don't tell readers enough about the call, so even though **WAMP** supports them, **wampy** does not.
 
-It doesn't matter what the `kwargs` are, but you might find a call like this is not supported by other **WAMP** implementations (sorry) e.g.
+It doesn't matter what the ``kwargs`` are they will be published, but you might find a call like this is not supported by subscribers of other **WAMP** implementations (sorry) e.g.
 
 ::
 
@@ -219,7 +219,7 @@ It doesn't matter what the `kwargs` are, but you might find a call like this is 
                     message="hello world",
                 )
 
-Notice `topic` is *always* first, followed by `kwargs`. Happy to explore how implementations like `autobahn`_ can be supported here.
+Notice ``topic`` is *always* first, followed by ``kwargs``. Happy to explore how implementations like `autobahn`_ can be supported here.
 
 See `ReadTheDocs`_ for more detailed documentation.
 
