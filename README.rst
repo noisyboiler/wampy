@@ -203,6 +203,24 @@ In another terminal, with a **wampy** virtualenv, you can create a **Publisher**
 
 Hopefully you'll see any message you send printed to the screen where the example service is running. You'll also see the meta data that **wampy** chooses to send.
 
+Please note. **wampy** believes in explicit `kwargs` and not bare `args`, so you can only publish keyword arguments. Bare arguments don't tell readers enough about the call, so even though **WAMP** supports them, **wampy** does not.
+
+It doesn't matter what the `kwargs` are, but you might find a call like this is not supported by other **WAMP** implementations (sorry) e.g.
+
+::
+
+    In [1]: from wampy.peers import Client
+
+    In [2]: with Client() as client:
+                client.publish(
+                    topic="foo",
+                    ham="spam",
+                    birds={'foo_bird': 1, 'bar_bird': 2},
+                    message="hello world",
+                )
+
+Notice `topic` is *always* first, followed by `kwargs`. Happy to explore how implementations like `autobahn`_ can be supported here.
+
 See `ReadTheDocs`_ for more detailed documentation.
 
 
