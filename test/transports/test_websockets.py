@@ -22,7 +22,7 @@ from wampy.transports.websocket.frames import Close, Ping
 logger = logging.getLogger(__name__)
 
 gevent_only = pytest.mark.skipif(
-    os.environ['WAMPY_ASYNC_NAME'] != GEVENT,
+    os.environ.get('WAMPY_ASYNC_NAME') != GEVENT,
     reason="requires a Greenlet WebSocket server and you're using eventlet"
 )
 
