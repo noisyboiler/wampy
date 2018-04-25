@@ -34,7 +34,7 @@ class Session(object):
 
     """
 
-    def __init__(self, client, router, connection, message_handler):
+    def __init__(self, client, router, transport, message_handler):
         """ A Session between a Client and a Router.
 
         :Parameters:
@@ -42,9 +42,8 @@ class Session(object):
                 An instance of :class:`peers.Client`
             router : instance
                 An instance of :class:`peers.Router`
-            connection : instance
+            transport : instance
                 An instance of ``wampy.transports``.
-                Defaults to ``wampy.transports.WebSocket``
             message_handler : instance
                 An instance of ``wampy.message_handler.MessageHandler``,
                 or a subclass of
@@ -52,7 +51,8 @@ class Session(object):
         """
         self.client = client
         self.router = router
-        self.connection = connection
+        self.transport = transport
+        self.connection = self.transport.connect(upgrade=True)
         self.message_handler = message_handler
 
         self.request_ids = {}

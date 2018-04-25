@@ -152,19 +152,13 @@ class Client(object):
         return PublishProxy(client=self)
 
     def start(self):
-        # establish the underlying connection and upgrade it to WAMP.
-        connection = self.transport.connect(upgrade=True)
-
         # create a Session repr between ourselves and the Router.
-        # pass in the live connection over a transport that the Session
-        # doesn't need to care about - it only cares how to receive
-        # messages over this.
         # pass in out ``MessageHandler`` which will process messages
         # before they are passed back to the client.
         self._session = Session(
             client=self,
             router=self.router,
-            connection=connection,
+            transport=self.transport,
             message_handler=self.message_handler,
         )
 
