@@ -1,7 +1,7 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
+import asyncio
 import logging
 import socket
 import ssl
@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 class WebSocket(Transport, ParseUrlMixin):
 
-    def __init__(self, server_url, ipv=4):
+    def __init__(self, server_url, ipv=4):  # TODO: not pass in the loop
         self.url = server_url
         self.ipv = ipv
 
@@ -38,9 +38,18 @@ class WebSocket(Transport, ParseUrlMixin):
         self.socket = None
         self.connected = False
 
-    def connect(self, upgrade=True):
+    async def _connect(self):
+        # examples https://www.programcreek.com/python/example/85340/asyncio.open_connection
+        reader, writer = await asyncio.open_connection(self.host, self.port, loop=self.loop)
+        self.reader = reader
+        self.writer = writer
+        import pdb
+        pdb.set_trace()
+        logger.debug("socket connected")
+
+    async def connect(self, upgrade=True):
         # TCP connection
-        self._connect()
+        await self._connect()
         self._handshake(upgrade=upgrade)
         return self
 
@@ -59,7 +68,7 @@ class WebSocket(Transport, ParseUrlMixin):
 
     def _send_raw(self, websocket_message):
         logger.debug('send raw: %s', websocket_message)
-        self.socket.sendall(websocket_message)
+        self.writer.write(websocket_message)
 
     def receive(self, bufsize=1):
         frame = None
@@ -67,7 +76,7 @@ class WebSocket(Transport, ParseUrlMixin):
 
         while True:
             try:
-                bytes = self.socket.recv(bufsize)
+                bytes = self.reader.read(bufsize)
             except gevent.greenlet.GreenletExit as exc:
                 raise ConnectionError('Connection closed: "{}"'.format(exc))
             except socket.timeout as e:
@@ -106,48 +115,12 @@ class WebSocket(Transport, ParseUrlMixin):
 
         return frame
 
-    def _connect(self):
-        if self.ipv == 4:
-            _socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-            try:
-                _socket.connect((self.host.encode(), self.port))
-            except socket_error as exc:
-                if exc.errno == 61:
-                    logger.error(
-                        'unable to connect to %s:%s (IPV%s)',
-                        self.host, self.port, self.ipv
-                    )
-
-                raise
-
-        elif self.ipv == 6:
-            _socket = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
-
-            try:
-                _socket.connect(("::", self.port))
-            except socket_error as exc:
-                if exc.errno == 61:
-                    logger.error(
-                        'unable to connect to %s:%s (IPV%s)',
-                        self.host, self.port, self.ipv
-                    )
-
-                raise
-
-        else:
-            raise WampyError(
-                "unknown IPV: {}".format(self.ipv)
-            )
-
-        self.socket = _socket
-        logger.debug("socket connected")
-
     def _handshake(self, upgrade):
         handshake_headers = self._get_handshake_headers(upgrade=upgrade)
         handshake = '\r\n'.join(handshake_headers) + "\r\n\r\n"
-
-        self.socket.send(handshake.encode())
+        import pdb
+        pdb.set_trace()
+        self.writer.write(handshake.encode())
 
         try:
             with gevent.Timeout(5):

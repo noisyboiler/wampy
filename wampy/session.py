@@ -1,7 +1,7 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
+import asyncio
 import logging
 
 import gevent
@@ -62,11 +62,14 @@ class Session(object):
         self.registration_map = {}
 
         self.session_id = None
-        # spawn a green thread to listen for incoming messages over
-        # a connection and put them on a queue to be processed
+
+        self.loop = asyncio.get_event_loop()
         self._managed_thread = None
-        self._message_queue = gevent.queue.Queue()
-        self._listen(self.connection, self._message_queue)
+        self._message_queue = asyncio.Queue()
+        
+        self.loop.run_until_complete(
+            self._listen(self.connection, self._message_queue)
+        )
 
     @property
     def host(self):
@@ -155,24 +158,20 @@ class Session(object):
                 # Server already gone away?
                 pass
 
-    def _listen(self, connection, message_queue):
+    async def _listen(self, connection, message_queue):
 
-        def connection_handler():
-            while True:
-                try:
-                    frame = connection.receive()
-                    if frame:
-                        message = frame.payload
-                        gevent.spawn(self.message_handler.handle_message,
-                                     message, self.client)
-                except (
-                        SystemExit, KeyboardInterrupt, ConnectionError,
-                        WampProtocolError,
-                ):
-                    break
-
-        gthread = gevent.spawn(connection_handler)
-        self._managed_thread = gthread
+        while True:
+            try:
+                frame = connection.receive()
+                if frame:
+                    message = frame.payload
+                    gevent.spawn(self.message_handler.handle_message,
+                                 message, self.client)
+            except (
+                    SystemExit, KeyboardInterrupt, ConnectionError,
+                    WampProtocolError,
+            ):
+                break
 
     def _subscribe_to_topic(self, handler, topic):
         message = Subscribe(topic=topic)
