@@ -4,7 +4,7 @@
 
 import pytest
 
-from wampy.errors import RemoteError
+from wampy.errors import WampyError
 from wampy.peers.clients import Client
 from wampy.roles.callee import callee
 
@@ -28,15 +28,14 @@ def unreliable_callee(router, config_path):
 def test_handle_value_error(unreliable_callee, router):
     with Client(router=router, name="caller") as client:
 
-        with pytest.raises(RemoteError) as exc_info:
+        with pytest.raises(WampyError) as exc_info:
             client.rpc.get_foo(1, 2, three=3)
 
         exception = exc_info.value
-        assert type(exception) is RemoteError
+        assert type(exception) is WampyError
 
         message = str(exception)
 
-        assert "ValueError" in message
         assert "i do not like any of your values" in message
         assert "(1, 2)" in message
         assert "three" in message

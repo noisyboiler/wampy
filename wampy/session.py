@@ -4,9 +4,7 @@
 import asyncio
 import logging
 
-import gevent
-import gevent.queue
-
+from wampy.async import async_adapter
 from wampy.errors import ConnectionError, WampProtocolError
 from wampy.messages import MESSAGE_TYPE_MAP
 from wampy.messages.hello import Hello
@@ -36,7 +34,7 @@ class Session(object):
 
     """
 
-    def __init__(self, client, router, connection, message_handler):
+    def __init__(self, client, router, transport, message_handler):
         """ A Session between a Client and a Router.
 
         :Parameters:
@@ -44,9 +42,8 @@ class Session(object):
                 An instance of :class:`peers.Client`
             router : instance
                 An instance of :class:`peers.Router`
-            connection : instance
+            transport : instance
                 An instance of ``wampy.transports``.
-                Defaults to ``wampy.transports.WebSocket``
             message_handler : instance
                 An instance of ``wampy.message_handler.MessageHandler``,
                 or a subclass of
@@ -54,7 +51,8 @@ class Session(object):
         """
         self.client = client
         self.router = router
-        self.connection = connection
+        self.transport = transport
+        self.connection = self.transport.connect(upgrade=True)
         self.message_handler = message_handler
 
         self.request_ids = {}
@@ -65,6 +63,7 @@ class Session(object):
 
         self.loop = asyncio.get_event_loop()
         self._managed_thread = None
+
         self._message_queue = asyncio.Queue()
         
         self.loop.run_until_complete(
@@ -116,19 +115,11 @@ class Session(object):
         self.connection.send(message)
 
     def recv_message(self, timeout=5):
-        try:
-            message = self._message_queue.get(timeout=timeout)
-        except gevent.queue.Empty:
-            raise WampProtocolError(
-                "no message returned (timed-out in {})".format(timeout)
-            )
-
+        message = async_adapter.receive_message(timeout=timeout)
         logger.debug(
             'received message: "%s" for client "%s"',
-            message.name,
-            self.client.name,
+            message.name, self.client.name,
         )
-
         return message
 
     def _say_hello(self):
@@ -171,7 +162,7 @@ class Session(object):
                     SystemExit, KeyboardInterrupt, ConnectionError,
                     WampProtocolError,
             ):
-                break
+                break   
 
     def _subscribe_to_topic(self, handler, topic):
         message = Subscribe(topic=topic)

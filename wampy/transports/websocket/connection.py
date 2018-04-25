@@ -9,15 +9,16 @@ import uuid
 from base64 import encodestring
 from socket import error as socket_error
 
-import gevent
-
+from wampy.async import async_adapter
+from wampy.async.errors import WampyTimeOut
 from wampy.constants import WEBSOCKET_SUBPROTOCOLS, WEBSOCKET_VERSION
 from wampy.errors import (
     IncompleteFrameError, ConnectionError, WampProtocolError, WampyError)
+from wampy.interfaces import Transport
 from wampy.mixins import ParseUrlMixin
-from wampy.transports.interface import Transport
+from wampy.serializers import json_serialize
 
-from . frames import ClientFrame, FrameFactory, Pong
+from . frames import FrameFactory, Pong, Text
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +63,7 @@ class WebSocket(Transport, ParseUrlMixin):
         self.socket.close()
 
     def send(self, message):
-        frame = ClientFrame(message)
+        frame = Text(payload=json_serialize(message))
         websocket_message = frame.frame
         self._send_raw(websocket_message)
 
@@ -82,7 +83,8 @@ class WebSocket(Transport, ParseUrlMixin):
             except socket.timeout as e:
                 message = str(e)
                 raise ConnectionError('timeout: "{}"'.format(message))
-
+            except Exception as exc:
+                raise ConnectionError('Connection lost: "{}"'.format(exc))
             if not bytes:
                 break
 
@@ -98,14 +100,14 @@ class WebSocket(Transport, ParseUrlMixin):
                     # data, so the frame is not returned.
                     # Still it must be handled or the server will close the
                     # connection.
-                    self.handle_ping(ping_frame=frame)
+                    async_adapter.spawn(self.handle_ping(ping_frame=frame))
                     received_bytes = bytearray()
                     continue
                 if frame.opcode == frame.OPCODE_BINARY:
                     break
 
                 if frame.opcode == frame.OPCODE_CLOSE:
-                    self.handle_close(close_frame=frame)
+                    async_adapter.spawn(self.handle_close(close_frame=frame))
                     break
 
                 break
@@ -123,9 +125,9 @@ class WebSocket(Transport, ParseUrlMixin):
         self.writer.write(handshake.encode())
 
         try:
-            with gevent.Timeout(5):
+            with async_adapter.Timeout(5):
                 self.status, self.headers = self._read_handshake_response()
-        except gevent.Timeout:
+        except WampyTimeOut:
             raise WampyError(
                 'No response after handshake "{}"'.format(handshake)
             )
@@ -182,10 +184,6 @@ class WebSocket(Transport, ParseUrlMixin):
             return b''.join(bytes_cache)
 
         while True:
-            # we need this to guarantee we can context switch back to the
-            # Timeout.
-            gevent.sleep(0.01)
-
             received_bytes = read_line()
             if received_bytes == b'\r\n':
                 # end of the response
@@ -221,7 +219,7 @@ class WebSocket(Transport, ParseUrlMixin):
         return status, headers
 
     def handle_ping(self, ping_frame):
-        pong_frame = Pong(ping_frame=ping_frame)
+        pong_frame = Pong(payload=ping_frame.payload)
         bytes = pong_frame.frame
         logger.info('sending pong: %s', bytes)
         self._send_raw(bytes)

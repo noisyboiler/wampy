@@ -35,6 +35,7 @@ setup(
     keywords='WAMP RPC',
     packages=find_packages(),
     install_requires=[
+        "eventlet==0.20.1",
         "six==1.10.0",
         "simplejson==3.11.1",
         "gevent>=1.1"
@@ -50,6 +51,7 @@ setup(
             "colorlog",
             "flake8==3.5.0",
             "gevent-websocket==0.10.1",
+            "coverage>=3.7.1",
         ],
         'docs': [
             "Sphinx==1.4.5",

@@ -9,9 +9,7 @@ import os
 from wampy.constants import (
     CROSSBAR_DEFAULT, DEFAULT_ROLES, DEFAULT_REALM
 )
-from wampy.errors import (
-    WampProtocolError, WampyError, WelcomeAbortedError
-)
+from wampy.errors import WampProtocolError, WampyError
 from wampy.session import Session
 from wampy.messages import Abort, Challenge
 from wampy.message_handler import MessageHandler
@@ -154,19 +152,13 @@ class Client(object):
         return PublishProxy(client=self)
 
     def start(self):
-        # establish the underlying connection and upgrade it to WAMP.
-        connection = self.transport.connect(upgrade=True)
-
         # create a Session repr between ourselves and the Router.
-        # pass in the live connection over a transport that the Session
-        # doesn't need to care about - it only cares how to receive
-        # messages over this.
         # pass in out ``MessageHandler`` which will process messages
         # before they are passed back to the client.
         self._session = Session(
             client=self,
             router=self.router,
-            connection=connection,
+            transport=self.transport,
             message_handler=self.message_handler,
         )
 
@@ -176,7 +168,7 @@ class Client(object):
         # raise if Router aborts handshake or we cannot respond to a
         # Challenge.
         if message_obj.WAMP_CODE == Abort.WAMP_CODE:
-            raise WelcomeAbortedError(message_obj.message)
+            raise WampyError(message_obj.message)
 
         if message_obj.WAMP_CODE == Challenge.WAMP_CODE:
             if 'WAMPYSECRET' not in os.environ:

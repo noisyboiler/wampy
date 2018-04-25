@@ -6,8 +6,7 @@ import os
 
 import pytest
 
-from wampy.errors import (
-    NotAuthorisedError, WelcomeAbortedError, WampyError)
+from wampy.errors import WampyError
 from wampy.messages import Challenge, Error, Welcome, Goodbye
 from wampy.peers.clients import Client
 from wampy.roles.callee import callee
@@ -63,7 +62,7 @@ def test_connection_is_aborted_when_not_authorised(router):
     client = Client(
         router=router, roles=roles, name="unauthenticated-client-one")
 
-    with pytest.raises(WelcomeAbortedError) as exc_info:
+    with pytest.raises(WampyError) as exc_info:
         client.start()
 
     client.stop()
@@ -159,7 +158,7 @@ def test_incorrect_secret(router):
         name="bad-client"
     )
 
-    with pytest.raises(WelcomeAbortedError) as exc_info:
+    with pytest.raises(WampyError) as exc_info:
         client.start()
 
     exception = exc_info.value
@@ -197,7 +196,7 @@ def test_peter_cannot_call_get_foo(router, foo_service):
 
     client.start()
 
-    with pytest.raises(NotAuthorisedError):
+    with pytest.raises(WampyError):
         client.rpc.get_foo()
 
     client.stop()
