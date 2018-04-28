@@ -9,6 +9,8 @@ import uuid
 from base64 import encodestring
 from socket import error as socket_error
 
+from async_timeout import timeout
+
 from wampy.async import async_adapter
 from wampy.async.errors import WampyTimeOut
 from wampy.constants import WEBSOCKET_SUBPROTOCOLS, WEBSOCKET_VERSION
@@ -36,23 +38,21 @@ class WebSocket(Transport, ParseUrlMixin):
         self.parse_url()
         self.websocket_location = self.resource
         self.key = encodestring(uuid.uuid4().bytes).decode('utf-8').strip()
-        self.socket = None
+
         self.connected = False
 
     async def _connect(self):
         # examples https://www.programcreek.com/python/example/85340/asyncio.open_connection
-        reader, writer = await asyncio.open_connection(self.host, self.port, loop=self.loop)
+        reader, writer = await asyncio.open_connection(self.host, self.port)
         self.reader = reader
         self.writer = writer
-        import pdb
-        pdb.set_trace()
         logger.debug("socket connected")
 
     async def connect(self, upgrade=True):
         # TCP connection
         await self._connect()
-        self._handshake(upgrade=upgrade)
-        return self
+        await self._handshake(upgrade=upgrade)
+        return self  # weird
 
     def disconnect(self):
         try:
@@ -71,24 +71,32 @@ class WebSocket(Transport, ParseUrlMixin):
         logger.debug('send raw: %s', websocket_message)
         self.writer.write(websocket_message)
 
-    def receive(self, bufsize=1):
+    async def receive(self, bufsize=1):
         frame = None
         received_bytes = bytearray()
 
         while True:
             try:
-                bytes = self.reader.read(bufsize)
-            except gevent.greenlet.GreenletExit as exc:
+                print('read bytes')
+                line = await self.reader.readline()
+            except Exception as exc:
+                print('here')
                 raise ConnectionError('Connection closed: "{}"'.format(exc))
             except socket.timeout as e:
+                print('here')
                 message = str(e)
                 raise ConnectionError('timeout: "{}"'.format(message))
             except Exception as exc:
+                print('here')
                 raise ConnectionError('Connection lost: "{}"'.format(exc))
-            if not bytes:
+            print('here')
+            if not line:
                 break
+            print(line)
+            if not line.endswith(b'\r\n'):
+                raise ValueError("Line without CRLF")
 
-            received_bytes.extend(bytes)
+            received_bytes.extend(line)
 
             try:
                 frame = FrameFactory.from_bytes(received_bytes)
@@ -117,16 +125,14 @@ class WebSocket(Transport, ParseUrlMixin):
 
         return frame
 
-    def _handshake(self, upgrade):
-        handshake_headers = self._get_handshake_headers(upgrade=upgrade)
+    async def _handshake(self, upgrade):
+        handshake_headers = await self._get_handshake_headers(upgrade=upgrade)
         handshake = '\r\n'.join(handshake_headers) + "\r\n\r\n"
-        import pdb
-        pdb.set_trace()
         self.writer.write(handshake.encode())
 
         try:
-            with async_adapter.Timeout(5):
-                self.status, self.headers = self._read_handshake_response()
+            with timeout(2):
+                self.status, self.headers = await self._read_handshake_response()
         except WampyTimeOut:
             raise WampyError(
                 'No response after handshake "{}"'.format(handshake)
@@ -134,7 +140,7 @@ class WebSocket(Transport, ParseUrlMixin):
 
         logger.debug("connection upgraded")
 
-    def _get_handshake_headers(self, upgrade):
+    async def _get_handshake_headers(self, upgrade):
         """ Do an HTTP upgrade handshake with the server.
 
         Websockets upgrade from HTTP rather than TCP largely because it was
@@ -169,29 +175,21 @@ class WebSocket(Transport, ParseUrlMixin):
 
         return headers
 
-    def _read_handshake_response(self):
+    async def _read_handshake_response(self):
         # each header ends with \r\n and there's an extra \r\n after the last
         # one
         status = None
         headers = {}
 
-        def read_line():
-            bytes_cache = []
-            received_bytes = None
-            while received_bytes not in [b'\r\n', b'\n', b'\n\r']:
-                received_bytes = self.socket.recv(1)
-                bytes_cache.append(received_bytes)
-            return b''.join(bytes_cache)
-
         while True:
-            received_bytes = read_line()
+            received_bytes = await self.reader.readline()
             if received_bytes == b'\r\n':
                 # end of the response
                 break
 
             bytes_as_str = received_bytes.decode()
             line = bytes_as_str.strip()
-
+            #print(line)
             if not status:
                 status_info = line.split(" ", 2)
                 try:
@@ -216,6 +214,7 @@ class WebSocket(Transport, ParseUrlMixin):
 
         logger.info("handshake complete: %s : %s", status, headers)
         self.connected = True
+
         return status, headers
 
     def handle_ping(self, ping_frame):

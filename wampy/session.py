@@ -11,6 +11,7 @@ from wampy.messages.hello import Hello
 from wampy.messages.goodbye import Goodbye
 from wampy.messages.register import Register
 from wampy.messages.subscribe import Subscribe
+from wampy.transports.websocket.frames import Frame
 
 logger = logging.getLogger('wampy.session')
 
@@ -52,7 +53,14 @@ class Session(object):
         self.client = client
         self.router = router
         self.transport = transport
-        self.connection = self.transport.connect(upgrade=True)
+
+        self.loop = asyncio.get_event_loop()
+        result = self.loop.run_until_complete(
+            self.transport.connect(upgrade=True)
+        )
+
+        self.connection = result
+
         self.message_handler = message_handler
 
         self.request_ids = {}
@@ -61,13 +69,13 @@ class Session(object):
 
         self.session_id = None
 
-        self.loop = asyncio.get_event_loop()
+
         self._managed_thread = None
 
-        self._message_queue = asyncio.Queue()
+        self.message_queue = asyncio.Queue()
         
         self.loop.run_until_complete(
-            self._listen(self.connection, self._message_queue)
+            self._listen(self.connection, self.message_queue)
         )
 
     @property
@@ -115,7 +123,7 @@ class Session(object):
         self.connection.send(message)
 
     def recv_message(self, timeout=5):
-        message = async_adapter.receive_message(timeout=timeout)
+        message = self.message_queue.get(timeout=timeout)
         logger.debug(
             'received message: "%s" for client "%s"',
             message.name, self.client.name,
@@ -153,11 +161,14 @@ class Session(object):
 
         while True:
             try:
-                frame = connection.receive()
-                if frame:
+                frame = await connection.receive()
+                print(frame)
+                if isinstance(frame, Frame):
                     message = frame.payload
-                    gevent.spawn(self.message_handler.handle_message,
-                                 message, self.client)
+                    self.loop.run_until_complete(
+                        self.message_handler.handle_message(message, self.client)
+                    )
+
             except (
                     SystemExit, KeyboardInterrupt, ConnectionError,
                     WampProtocolError,
