@@ -139,6 +139,43 @@ def test_connection_is_challenged(router):
     assert messages[2][0] == Goodbye.WAMP_CODE
 
 
+def test_connection_is_ticket_challenged(router):
+    os.environ['WAMPYSECRET'] = "wEx9TPFtHdRr2Zg7rtRE"
+    roles = {
+        'roles': {
+            'subscriber': {},
+            'publisher': {},
+            'callee': {},
+            'caller': {},
+        },
+        'authmethods': ['ticket'],
+        'authid': 'martin',
+    }
+
+    message_handler = CollectingMessageHandler()
+    client = Client(
+        router=router,
+        roles=roles,
+        message_handler=message_handler,
+        name="unauthenticated-client"
+    )
+
+    client.start()
+    messages = wait_for_messages(client, 2)
+
+    # expect a Challenge and Welcome message
+    assert messages[0][0] == Challenge.WAMP_CODE
+    assert messages[1][0] == Welcome.WAMP_CODE
+
+    client.stop()
+
+    # now also expect a Goodbye message
+    assert len(messages) == 3
+    assert messages[0][0] == Challenge.WAMP_CODE
+    assert messages[1][0] == Welcome.WAMP_CODE
+    assert messages[2][0] == Goodbye.WAMP_CODE
+
+
 def test_incorrect_secret(router):
     os.environ['WAMPYSECRET'] = "incorrect-password"
     roles = {
@@ -167,6 +204,39 @@ def test_incorrect_secret(router):
 
     assert (
         "WAMP-CRA signature is invalid"
+        in message
+    )
+    assert "wamp.error.not_authorized" in message
+
+
+def test_incorrect_ticket(router):
+    os.environ['WAMPYSECRET'] = "incorrect-ticket"
+    roles = {
+        'roles': {
+            'subscriber': {},
+            'publisher': {},
+            'callee': {},
+            'caller': {},
+        },
+        'authmethods': ['ticket'],
+        'authid': 'martin',
+    }
+
+    client = Client(
+        router=router,
+        roles=roles,
+        name="bad-client"
+    )
+
+    with pytest.raises(WampyError) as exc_info:
+        client.start()
+
+    exception = exc_info.value
+
+    message = str(exception)
+
+    assert (
+        "ticket in static WAMP-Ticket authentication is invalid"
         in message
     )
     assert "wamp.error.not_authorized" in message

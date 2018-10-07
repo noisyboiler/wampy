@@ -66,6 +66,16 @@
                                 }
                             }
                         },
+                        "ticket": {
+                            "type": "static",
+                            "role": "wampy",
+                            "principals": {
+                                "martin": {
+                                    "ticket": "wEx9TPFtHdRr2Zg7rtRE",
+                                    "role": "wampy"
+                                }
+                            }
+                        },
                         "anonymous": {
                             "type": "static",
                             "role": "wampy"
