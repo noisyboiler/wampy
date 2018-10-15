@@ -31,5 +31,5 @@ class Gevent(Async):
         gthread = gevent.spawn(*args, **kwargs)
         return gthread
 
-    def sleep(self, time):
+    def sleep(self, time=0.01):
         return gevent.sleep(time)
