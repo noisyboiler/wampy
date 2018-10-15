@@ -48,7 +48,7 @@ class AppRunner(object):
 
     def run(self):
         for app in self.apps:
-            print("starting up appp: %s", app.name)
+            print("starting up app: %s", app.name)
             app.start()
 
     def stop(self):
