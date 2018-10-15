@@ -12,6 +12,7 @@ Largely experimental for now.... sorry.
 import os
 import sys
 
+from wampy.backends import async_adapter
 from wampy.peers.routers import Crossbar
 
 
@@ -47,6 +48,7 @@ class AppRunner(object):
 
     def run(self):
         for app in self.apps:
+            print("starting up appp: %s", app.name)
             app.start()
 
     def stop(self):
@@ -56,7 +58,7 @@ class AppRunner(object):
     def wait(self):
         for app in self.apps:
             try:
-                app.session._managed_thread.wait()
+                async_adapter(app.session._managed_thread).wait()
             except Exception as exc:
                 print(exc)
                 app.stop()
@@ -72,7 +74,7 @@ def run(app, config_path):
 
     runner = AppRunner()
     runner.add_app(app)
-    print("starting up service....")
+    print("starting up services...")
     runner.run()
 
     print("{} is now running and connected.".format(app_name))
