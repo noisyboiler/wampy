@@ -9,8 +9,8 @@ import uuid
 from base64 import encodestring
 from socket import error as socket_error
 
-from wampy.async import async_adapter
-from wampy.async.errors import WampyTimeOut
+from wampy.backends import async_adapter
+from wampy.backends.errors import WampyTimeOut
 from wampy.constants import WEBSOCKET_SUBPROTOCOLS, WEBSOCKET_VERSION
 from wampy.errors import (
     IncompleteFrameError, ConnectionError, WampProtocolError, WampyError)
