@@ -38,13 +38,12 @@ setup(
         "eventlet==0.20.1",
         "six==1.10.0",
         "simplejson==3.11.1",
-        "gevent==1.1"
+        "gevent>1.1",  # fixes infinite SSL recursion bug
     ],
     extras_require={
         'dev': [
             "crossbar==0.15.0",
             "autobahn==0.17.2",
-            "Twisted==17.9.0",
             "pytest==3.1.3",
             "mock==1.3.0",
             "pytest==2.9.1",
@@ -53,6 +52,7 @@ setup(
             "flake8==3.5.0",
             "gevent-websocket==0.10.1",
             "coverage>=3.7.1",
+            "Twisted==17.9.0",
         ],
         'docs': [
             "Sphinx==1.4.5",
