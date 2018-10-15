@@ -9,12 +9,12 @@ from wampy.errors import WampyError
 
 def get_async_adapter():
     if async_name == GEVENT:
-        from . gevent import Gevent
+        from . gevent_ import Gevent
         _adapter = Gevent()
         return _adapter
 
     if async_name == EVENTLET:
-        from . eventlet import Eventlet
+        from . eventlet_ import Eventlet
         _adapter = Eventlet()
         return _adapter
 
