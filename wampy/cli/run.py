@@ -50,6 +50,7 @@ class AppRunner(object):
         for app in self.apps:
             print("starting up app: %s", app.name)
             app.start()
+            print("{} is now running and connected.".format(app.name))
 
     def stop(self):
         for app in self.apps:
@@ -64,34 +65,30 @@ class AppRunner(object):
                 app.stop()
 
 
-def run(app, config_path):
-    module_name, app_name = app[0].split(':')
-    mod = import_module(module_name)
-    app_class = getattr(mod, app_name)
+def run(apps, config_path, router=None):
+    if router is None:
+        router = Crossbar(config_path)
 
-    router = Crossbar(config_path)
-    app = app_class(router=router)
-
-    runner = AppRunner()
-    runner.add_app(app)
     print("starting up services...")
+    runner = AppRunner()
+    for app in apps:
+        module_name, app_name = app.split(':')
+        mod = import_module(module_name)
+        app_class = getattr(mod, app_name)
+        app = app_class(router=router)
+        runner.add_app(app)
+        
     runner.run()
-
-    print("{} is now running and connected.".format(app_name))
+    print('all services started!')
 
     while True:
         try:
             runner.wait()
         except KeyboardInterrupt:
-
             try:
                 runner.stop()
             except KeyboardInterrupt:
                 runner.stop()
-
-        else:
-            # runner.wait completed
-            break
 
     print('disconnected')
 
