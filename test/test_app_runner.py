@@ -43,7 +43,4 @@ class TestAppRunne(object):
         ]
 
 
-        running = run(apps, config_path=config_path, router=router)
-        assert running
-
-        raise
+        run(apps, config_path=config_path, router=router)
