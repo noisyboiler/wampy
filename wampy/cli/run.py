@@ -58,7 +58,7 @@ class AppRunner(object):
     def wait(self):
         for app in self.apps:
             try:
-                async_adapter(app.session._managed_thread).wait()
+                async_adapter().sleep()
             except Exception as exc:
                 print(exc)
                 app.stop()
