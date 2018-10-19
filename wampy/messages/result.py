@@ -43,4 +43,6 @@ class Result(object):
 
     @property
     def value(self):
-        return self.yield_kwargs['message']
+        if self.yield_kwargs:
+            return self.yield_kwargs['message']
+        return self.yield_args[0]
