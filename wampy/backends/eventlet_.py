@@ -37,7 +37,7 @@ class Eventlet(Async):
 
         with eventlet.Timeout(timeout):
             while q.qsize() == 0:
-                eventlet.sleep()
+                eventlet.sleep(time=0.1)
 
         message = q.get()
         return message
