@@ -6,7 +6,7 @@ from wampy.cli.run import run
 from wampy.peers.clients import Client
 
 
-class TestAppRunne(object):
+class TestAppRunner(object):
 
     @pytest.fixture
     def config_path(self):
