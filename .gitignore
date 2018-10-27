@@ -68,6 +68,5 @@ node.key
 
 #wampy
 config.yaml
-docs/_*
 key.*
 test-runner-log
