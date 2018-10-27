@@ -12,7 +12,6 @@ Largely experimental for now.... sorry.
 import os
 import sys
 
-from wampy.backends import async_adapter
 from wampy.peers.routers import Crossbar
 
 
@@ -46,23 +45,18 @@ class AppRunner(object):
     def add_app(self, app):
         self.apps.append(app)
 
-    def run(self):
+    def start(self):
         for app in self.apps:
             print("starting up app: %s", app.name)
             app.start()
             print("{} is now running and connected.".format(app.name))
 
+        print('all services started!')
+
     def stop(self):
         for app in self.apps:
             app.stop()
-
-    def wait(self):
-        for app in self.apps:
-            try:
-                async_adapter.sleep()
-            except Exception as exc:
-                print(exc)
-                app.stop()
+        print('stoped')
 
 
 def run(apps, config_path, router=None):
@@ -77,20 +71,16 @@ def run(apps, config_path, router=None):
         app_class = getattr(mod, app_name)
         app = app_class(router=router)
         runner.add_app(app)
-        
-    runner.run()
-    print('all services started!')
 
-    while True:
+    try:
+        runner.start()
+    except (Exception, KeyboardInterrupt):
         try:
-            runner.wait()
+            runner.stop()
         except KeyboardInterrupt:
-            try:
-                runner.stop()
-            except KeyboardInterrupt:
-                runner.stop()
+            runner.stop()
 
-    print('disconnected')
+    return runner
 
 
 def main(args):

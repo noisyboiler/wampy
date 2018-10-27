@@ -29,7 +29,7 @@ class Eventlet(Async):
         gthread = eventlet.spawn(*args, **kwargs)
         return gthread
 
-    def sleep(self, time=0.01):
+    def sleep(self, time):
         return eventlet.sleep(time)
 
     def _wait_for_message(self, timeout):
@@ -37,7 +37,7 @@ class Eventlet(Async):
 
         with eventlet.Timeout(timeout):
             while q.qsize() == 0:
-                eventlet.sleep()
+                eventlet.sleep(time=0.1)
 
         message = q.get()
         return message
