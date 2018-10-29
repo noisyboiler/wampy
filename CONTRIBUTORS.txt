@@ -10,3 +10,4 @@ Contributions have been made by:
 @tortoisedoc
 @keiser1080
 @wodCZ
+@goranpetrovikj
