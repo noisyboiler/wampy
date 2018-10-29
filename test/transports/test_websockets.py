@@ -11,7 +11,7 @@ from geventwebsocket import (
 from mock import ANY
 from mock import call, patch
 
-from wampy.async import async_adapter
+from wampy.backends import async_adapter
 from wampy.constants import GEVENT
 from wampy.errors import ConnectionError
 from wampy.peers.clients import Client

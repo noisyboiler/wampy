@@ -46,3 +46,10 @@ class BinaryNumberService(Client):
     @callee
     def get_binary_number(self, number):
         return bin(number)
+
+
+class FooService(Client):
+
+    @callee
+    def get_foo(self):
+        return 'foo'

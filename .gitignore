@@ -43,6 +43,7 @@ nosetests.xml
 coverage.xml
 *,cover
 .hypothesis/
+.pytest_cache
 
 # Translations
 *.mo
@@ -67,6 +68,5 @@ node.key
 
 #wampy
 config.yaml
-docs/_*
 key.*
 test-runner-log

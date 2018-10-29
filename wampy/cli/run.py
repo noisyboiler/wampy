@@ -45,53 +45,42 @@ class AppRunner(object):
     def add_app(self, app):
         self.apps.append(app)
 
-    def run(self):
+    def start(self):
         for app in self.apps:
+            print("starting up app: %s", app.name)
             app.start()
+            print("{} is now running and connected.".format(app.name))
+
+        print('all services started!')
 
     def stop(self):
         for app in self.apps:
             app.stop()
-
-    def wait(self):
-        for app in self.apps:
-            try:
-                app.session._managed_thread.wait()
-            except Exception as exc:
-                print(exc)
-                app.stop()
+        print('stoped')
 
 
-def run(app, config_path):
-    module_name, app_name = app[0].split(':')
-    mod = import_module(module_name)
-    app_class = getattr(mod, app_name)
+def run(apps, config_path, router=None):
+    if router is None:
+        router = Crossbar(config_path)
 
-    router = Crossbar(config_path)
-    app = app_class(router=router)
-
+    print("starting up services...")
     runner = AppRunner()
-    runner.add_app(app)
-    print("starting up service....")
-    runner.run()
+    for app in apps:
+        module_name, app_name = app.split(':')
+        mod = import_module(module_name)
+        app_class = getattr(mod, app_name)
+        app = app_class(router=router)
+        runner.add_app(app)
 
-    print("{} is now running and connected.".format(app_name))
-
-    while True:
+    try:
+        runner.start()
+    except (Exception, KeyboardInterrupt):
         try:
-            runner.wait()
+            runner.stop()
         except KeyboardInterrupt:
+            runner.stop()
 
-            try:
-                runner.stop()
-            except KeyboardInterrupt:
-                runner.stop()
-
-        else:
-            # runner.wait completed
-            break
-
-    print('disconnected')
+    return runner
 
 
 def main(args):

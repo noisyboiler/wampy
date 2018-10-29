@@ -1,15 +1,12 @@
 .. -*- mode: rst -*-
 
-|Travis|_ |Python27|_ |Python33|_ |Python34|_ |Python35|_ |Python36|_ 
+|Travis|_ |Python27|_ |Python34|_ |Python35|_ |Python36|_ 
 
 .. |Travis| image:: https://travis-ci.org/noisyboiler/wampy.svg?branch=master
 .. _Travis: https://travis-ci.org/noisyboiler/wampy
 
 .. |Python27| image:: https://img.shields.io/badge/python-2.7-blue.svg
 .. _Python27: https://pypi.python.org/pypi/wampy/
-
-.. |Python33| image:: https://img.shields.io/badge/python-3.3-blue.svg
-.. _Python33: https://pypi.python.org/pypi/wampy/
 
 .. |Python34| image:: https://img.shields.io/badge/python-3.4-blue.svg
 .. _Python34: https://pypi.python.org/pypi/wampy/

@@ -3,7 +3,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 import json
 
-from wampy.async import async_adapter
+from wampy.backends import async_adapter
 from wampy.message_handler import MessageHandler
 
 TIMEOUT = 5
