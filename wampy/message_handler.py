@@ -75,10 +75,15 @@ class MessageHandler(object):
             return
 
         secret = os.environ['WAMPYSECRET']
-        challenge_data = message_obj.challenge
-        signature = compute_wcs(secret, str(challenge_data))
+        if message_obj.auth_method == 'ticket':
+            logger.debug("proceeding with ticket authentication method")
+            message = Authenticate(secret)
+        else:
+            logger.debug("proceeding with wampcra authentication method")
+            challenge_data = message_obj.challenge
+            signature = compute_wcs(secret, str(challenge_data))
+            message = Authenticate(signature.decode("utf-8"))
 
-        message = Authenticate(signature.decode("utf-8"))
         self.session.send_message(message)
 
     def handle_error(self, message_obj):
