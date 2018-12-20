@@ -16,7 +16,7 @@ with open(path.join(here, 'README.rst')) as f:
 
 setup(
     name='wampy',
-    version='0.9.17',
+    version='0.9.18',
     description='WAMP RPC and Pub/Sub for python apps and microservices',
     long_description=long_description,
     url='https://github.com/noisyboiler/wampy',
@@ -27,7 +27,6 @@ setup(
         'Development Status :: 4 - Beta',
         'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
