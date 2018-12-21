@@ -46,7 +46,6 @@ setup(
             "Twisted==17.9.0",
             "pytest==3.1.3",
             "mock==1.3.0",
-            "pytest==2.9.1",
             "pytest-capturelog==0.7",
             "colorlog",
             "flake8==3.5.0",
