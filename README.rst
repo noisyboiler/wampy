@@ -46,6 +46,7 @@ wampy features
 - CLI for easy and rapid development
 - Pytest fixtures to use when testing your projects
 - nameko_ integration with nameko_wamp_
+- Flask_ integration with flask_wamp_ 
 - configurable and extensible async backends (beta)
 
 QuickStart - Connect and Go!
@@ -220,6 +221,16 @@ Notice ``topic`` is *always* first, followed by ``kwargs``. Happy to explore how
 
 See `ReadTheDocs`_ for more detailed documentation.
 
+Extensions
+~~~~~~~~~~
+
+Wampy is a "simple" WAMP client and so it can easily be integrated with other frameworks. The current extensions are:
+
+    - `Flask-WAMP`_
+    - `nameko-wamp`_
+
+Extensions for other Python Frameworks are encouraged!
+
 
 Running the tests
 ~~~~~~~~~~~~~~~~~
@@ -261,4 +272,6 @@ Thanks world.
 .. _CONTRIBUTORS: https://github.com/noisyboiler/wampy/blob/master/CONTRIBUTORS.txt
 .. _Gevent: http://www.gevent.org/
 .. _eventlet: http://eventlet.net/
-
+.. _Flask: https://github.com/pallets/flask
+.. _flask_wamp: https://github.com/noisyboiler/flask-wamp
+.. _Flask-WAMP: https://github.com/noisyboiler/flask-wamp
