@@ -9,6 +9,20 @@ from wampy.message_handler import MessageHandler
 TIMEOUT = 5
 
 
+def assert_stops_raising(
+        fn, exception_type=Exception, timeout=5, interval=0.1):
+
+    with async_adapter.Timeout(timeout):
+        while True:
+            try:
+                fn()
+            except exception_type:
+                pass
+            else:
+                return
+            async_adapter.sleep(interval)
+
+
 def wait_for_subscriptions(client, number_of_subscriptions):
     with async_adapter.Timeout(TIMEOUT):
         while (

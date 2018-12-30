@@ -16,7 +16,7 @@ with open(path.join(here, 'README.rst')) as f:
 
 setup(
     name='wampy',
-    version='0.9.19',
+    version='0.9.20',
     description='WAMP RPC and Pub/Sub for python apps and microservices',
     long_description=long_description,
     url='https://github.com/noisyboiler/wampy',
@@ -34,6 +34,7 @@ setup(
     keywords='WAMP RPC',
     packages=find_packages(),
     install_requires=[
+        "attrs>=17.4.0 ",
         "eventlet==0.20.1",
         "six==1.10.0",
         "simplejson==3.11.1",
