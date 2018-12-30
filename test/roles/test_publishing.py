@@ -6,11 +6,10 @@ import logging
 import pytest
 from mock import ANY
 
+from wampy.errors import WampyError
 from wampy.peers.clients import Client
 from wampy.roles.subscriber import subscribe
-from wampy.errors import WampyError
-
-from test.helpers import assert_stops_raising
+from wampy.testing.helpers import assert_stops_raising
 
 
 logger = logging.getLogger('wampy.testing')
