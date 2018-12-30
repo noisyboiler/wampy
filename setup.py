@@ -34,6 +34,7 @@ setup(
     keywords='WAMP RPC',
     packages=find_packages(),
     install_requires=[
+        "attrs>=17.4.0 ",
         "eventlet==0.20.1",
         "six==1.10.0",
         "simplejson==3.11.1",
