@@ -172,7 +172,7 @@ class WebSocket(Transport, ParseUrlMixin):
         """
         headers = []
         # https://tools.ietf.org/html/rfc6455
-        headers.append("GET /{} HTTP/1.1".format(self.websocket_location))
+        headers.append("GET {} HTTP/1.1".format(self.websocket_location))
         headers.append("Host: {}:{}".format(self.host, self.port))
         headers.append("Upgrade: websocket")
         headers.append("Connection: Upgrade")
