@@ -7,6 +7,7 @@ from datetime import date
 
 import pytest
 
+from wampy.backends import get_async_adapter
 from wampy.peers.clients import Client
 from wampy.roles.callee import callee
 from wampy.testing import wait_for_registrations
@@ -43,6 +44,16 @@ class BinaryNumberService(Client):
         return result
 
 
+class ReallySlowService(Client):
+
+    @callee
+    def requiers_patience(self, wait_in_seconds):
+        async = get_async_adapter()
+        async.sleep(wait_in_seconds)
+        reward_for_waiting = "$$$$"
+        return reward_for_waiting
+
+
 @pytest.yield_fixture
 def date_service(router):
     with DateService(router=router) as serv:
@@ -59,6 +70,12 @@ def hello_service(router):
 @pytest.yield_fixture
 def binary_number_service(router):
     with BinaryNumberService(router=router):
+        yield
+
+
+@pytest.yield_fixture
+def really_slow_service(router):
+    with ReallySlowService(router=router):
         yield
 
 
@@ -110,3 +127,13 @@ class TestClientRpc:
             response = caller.rpc.say_greeting("Simon", greeting="goodbye")
 
         assert response == "goodbye to Simon"
+
+
+class TestCallerTimeout:
+
+    def test_timeout_values(self, router, really_slow_service):
+        resp = None
+        with Client(router=router, call_timeout=1) as client:
+            resp = client.rpc.requiers_patience(wait_in_seconds=2)
+
+        assert resp is None

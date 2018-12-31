@@ -7,7 +7,8 @@ import logging
 import os
 
 from wampy.constants import (
-    CROSSBAR_DEFAULT, DEFAULT_ROLES, DEFAULT_REALM
+    CROSSBAR_DEFAULT, DEFAULT_TIMEOUT, DEFAULT_ROLES,
+    DEFAULT_REALM,
 )
 from wampy.errors import WampProtocolError, WampyError
 from wampy.session import Session
@@ -26,10 +27,11 @@ class Client(object):
     """
 
     def __init__(
-            self,
-            url=None, cert_path=None,
-            realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
-            message_handler=None, name=None, router=None,
+        self, url=None, cert_path=None,
+        realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
+        message_handler=None, name=None,
+        call_timeout=DEFAULT_TIMEOUT,
+        router=None,
     ):
         """ A WAMP Client "Peer".
 
@@ -55,7 +57,7 @@ class Client(object):
                 Defaults to ``realm1``.
             roles : dictionary
                 Description of the Roles implemented by the ``Client``.
-                Defaults to ``wampy.constants.DEFAULT_ROLES``.
+                Defaults to ``wampy.constants.DEFAULT_DETAILS``.
             message_handler : instance
                 An instance of ``wampy.message_handler.MessageHandler``, or
                 a subclass of. This controls the conversation between the
@@ -63,6 +65,10 @@ class Client(object):
             name : string
                 Optional name for your ``Client``. Useful for when testing
                 your app or for logging.
+            call_timeout : integer
+                A Caller might want to issue a call and provide a timeout after
+                which the call will finish.
+                The value should be in milli seconds.
             router : instance
                 An alternative way to connect to a Router rather than ``url``.
                 An instance of a Router Peer, e.g.
@@ -84,8 +90,8 @@ class Client(object):
 
         # the ``realm`` is the administrive domain to route messages over.
         self.realm = realm
-        # the ``roles`` define what Roles (features) the Client can act,
-        # but also configure behaviour such as auth
+        # `roles` was a mistake and Roles are contained within a `details`
+        # dict which has been added below. `roles` will be deprecated.
         self.roles = roles
         # a Session is a transient conversation between two Peers - a Client
         # and a Router. Here we model the Peer we are going to connect to.
@@ -93,7 +99,9 @@ class Client(object):
         # wampy uses a decoupled "messge handler" to process incoming messages.
         # wampy also provides a very adequate default.
         self.message_handler = message_handler or MessageHandler()
-
+        # generally ``name`` is used for debugging and logging only
+        self.name = name or self.__class__.__name__
+        self.call_timeout = call_timeout
         # this conversation is over a transport. WAMP messages are transmitted
         # as WebSocket messages by default (well, actually... that's because no
         # other transports are supported!)
@@ -110,9 +118,6 @@ class Client(object):
             raise WampyError(
                 'Network protocl must be "ws" or "wss"'
             )
-
-        # generally ``name`` is used for debugging and logging only
-        self.name = name or self.__class__.__name__
 
         self._session = None
 

@@ -21,6 +21,9 @@ ROLES = [
 
 # Basic Profile
 DEFAULT_REALM = "realm1"
+# TODO: this encapsulates more than just "roles", while "features"
+# should really be passed in here too, e.g. `call_timeout`. This was
+# not fully understood when first desigining the API.
 DEFAULT_ROLES = {
     'roles': {
         'subscriber': {},
@@ -28,10 +31,15 @@ DEFAULT_ROLES = {
         'callee': {
             'shared_registration': True,
         },
-        'caller': {},
+        'caller': {
+            'features': {
+                'call_timeout': True,
+            }
+        },
     },
     'authmethods': ['anonymous']
 }
+DEFAULT_TIMEOUT = 10  # seconds
 
 SUBSCRIBER = "subscriber"
 

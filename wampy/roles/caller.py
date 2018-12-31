@@ -59,7 +59,13 @@ class RpcProxy:
     def __getattr__(self, name):
 
         def wrapper(*args, **kwargs):
-            message = Call(procedure=name, args=args, kwargs=kwargs)
+            options = {
+                'timeout': self.client.call_timeout,
+            }
+
+            message = Call(
+                procedure=name, options=options, args=args, kwargs=kwargs,
+            )
             response = self.client.make_rpc(message)
 
             wamp_code = response.WAMP_CODE

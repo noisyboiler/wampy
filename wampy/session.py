@@ -75,8 +75,8 @@ class Session(object):
         return self.router.port
 
     @property
-    def roles(self):
-        return self.client.roles
+    def details(self):
+        return self.client.details
 
     @property
     def realm(self):
@@ -119,7 +119,12 @@ class Session(object):
         return message
 
     def _say_hello(self):
-        message = Hello(self.realm, self.roles)
+        details = self.client.roles
+        for role, features in details['roles'].items():
+            features.setdefault('features', {})
+            features['features'].setdefault('call_timeout', True)
+
+        message = Hello(realm=self.realm, details=details)
         self.send_message(message)
         response = self.recv_message()
         return response
