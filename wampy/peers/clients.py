@@ -68,7 +68,7 @@ class Client(object):
             call_timeout : integer
                 A Caller might want to issue a call and provide a timeout after
                 which the call will finish.
-                The value should be in milli seconds.
+                The value should be in seconds.
             router : instance
                 An alternative way to connect to a Router rather than ``url``.
                 An instance of a Router Peer, e.g.
