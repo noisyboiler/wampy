@@ -90,8 +90,8 @@ class Client(object):
 
         # the ``realm`` is the administrive domain to route messages over.
         self.realm = realm
-        # `roles` was a mistake and Roles are contained within a `details`
-        # dict which has been added below. `roles` will be deprecated.
+        # the ``roles`` define what Roles (features) the Client can act,
+        # but also configure behaviour such as auth
         self.roles = roles
         # a Session is a transient conversation between two Peers - a Client
         # and a Router. Here we model the Peer we are going to connect to.
