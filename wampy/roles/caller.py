@@ -62,7 +62,6 @@ class RpcProxy:
             options = {
                 'timeout': self.client.call_timeout,
             }
-
             message = Call(
                 procedure=name, options=options, args=args, kwargs=kwargs,
             )

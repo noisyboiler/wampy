@@ -83,6 +83,10 @@ class Session(object):
         return self.client.realm
 
     @property
+    def call_timeout(self):
+        return self.client.call_timeout
+
+    @property
     def id(self):
         return self.session_id
 
@@ -110,8 +114,8 @@ class Session(object):
 
         self.connection.send(message)
 
-    def recv_message(self, timeout=5):
-        message = async_adapter.receive_message(timeout=timeout)
+    def recv_message(self):
+        message = async_adapter.receive_message(timeout=self.call_timeout)
         logger.debug(
             'received message: "%s" for client "%s"',
             message.name, self.client.name,
@@ -139,7 +143,7 @@ class Session(object):
             logger.warning("GOODBYE failed!: %s", exc)
         else:
             try:
-                message = self.recv_message(timeout=2)
+                message = self.recv_message()
                 if message.WAMP_CODE != Goodbye.WAMP_CODE:
                     raise WampProtocolError(
                         "Unexpected response from GOODBYE message: {}".format(
