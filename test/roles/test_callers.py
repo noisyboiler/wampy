@@ -133,12 +133,10 @@ class TestClientRpc:
 class TestCallerTimeout:
 
     def test_timeout_values(self, router, really_slow_service):
-        resp = None
         with Client(router=router, call_timeout=1) as client:
             try:
                 resp = client.rpc.requiers_patience(wait_in_seconds=2)
             except WampyTimeOutError:
-                # this should be a WampyTimeOutError
-                pass
+                resp = None
 
         assert resp is None
