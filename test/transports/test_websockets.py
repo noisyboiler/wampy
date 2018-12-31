@@ -44,6 +44,31 @@ def server():
     thread.kill()
 
 
+def test_wampy_webscoket_headers(router):
+    expected_method_and_path = 'GET / HTTP/1.1'
+    expected_headers = {
+        'Host': 'localhost:8080',
+        'Upgrade': 'websocket',
+        'Connection': 'Upgrade',
+        'Sec-WebSocket-Key': ANY,
+        'Origin': 'ws://localhost:8080',
+        'Sec-WebSocket-Version': '13',
+        'Sec-WebSocket-Protocol': 'wamp.2.json',
+    }
+
+    ws = WebSocket(server_url=router.url)
+    header_list = ws._get_handshake_headers(upgrade=True)
+
+    method_and_path = header_list[0]
+    actual_headers = {
+        header.split(':', 1)[0]: header.split(':', 1)[1].strip()
+        for header in header_list[1:]
+    }
+
+    assert expected_method_and_path == method_and_path
+    assert expected_headers == actual_headers
+
+
 @gevent_only
 def test_send_ping(server):
     websocket = WebSocket(server_url='ws://0.0.0.0:8001')
