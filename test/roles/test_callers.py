@@ -48,7 +48,7 @@ class BinaryNumberService(Client):
 class ReallySlowService(Client):
 
     @callee
-    def requiers_patience(self, wait_in_seconds):
+    def requires_patience(self, wait_in_seconds):
         async = get_async_adapter()
         async.sleep(wait_in_seconds)
         reward_for_waiting = "$$$$"
@@ -135,7 +135,7 @@ class TestCallerTimeout:
     def test_timeout_values(self, router, really_slow_service):
         with Client(router=router, call_timeout=1) as client:
             try:
-                resp = client.rpc.requiers_patience(wait_in_seconds=2)
+                resp = client.rpc.requires_patience(wait_in_seconds=2)
             except WampyTimeOutError:
                 resp = None
 
