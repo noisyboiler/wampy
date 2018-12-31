@@ -8,7 +8,7 @@ from datetime import date
 import pytest
 
 from wampy.backends import get_async_adapter
-from wampy.errors import WampProtocolError
+from wampy.errors import WampyTimeOutError
 from wampy.peers.clients import Client
 from wampy.roles.callee import callee
 from wampy.testing import wait_for_registrations
@@ -137,7 +137,8 @@ class TestCallerTimeout:
         with Client(router=router, call_timeout=1) as client:
             try:
                 resp = client.rpc.requiers_patience(wait_in_seconds=2)
-            except WampProtocolError:
+            except WampyTimeOutError:
+                # this should be a WampyTimeOutError
                 pass
 
         assert resp is None

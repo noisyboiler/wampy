@@ -6,7 +6,7 @@ import gevent
 import gevent.queue
 import gevent.monkey
 
-from wampy.errors import WampProtocolError
+from wampy.errors import WampyTimeOutError
 from wampy.interfaces import Async
 
 
@@ -22,7 +22,7 @@ class Gevent(Async):
         try:
             message = self.message_queue.get(timeout=timeout)
         except gevent.queue.Empty:
-            raise WampProtocolError(
+            raise WampyTimeOutError(
                 "no message returned (timed-out in {})".format(timeout)
             )
         return message
