@@ -16,7 +16,7 @@ with open(path.join(here, 'README.rst')) as f:
 
 setup(
     name='wampy',
-    version='0.9.17',
+    version='0.9.20',
     description='WAMP RPC and Pub/Sub for python apps and microservices',
     long_description=long_description,
     url='https://github.com/noisyboiler/wampy',
@@ -27,7 +27,6 @@ setup(
         'Development Status :: 4 - Beta',
         'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
@@ -35,20 +34,18 @@ setup(
     keywords='WAMP RPC',
     packages=find_packages(),
     install_requires=[
+        "attrs>=17.4.0 ",
         "eventlet==0.20.1",
         "six>=1.10.0",
+        "si>==1.11.0",
         "simplejson==3.11.1",
         "gevent>1.1",  # fixes infinite SSL recursion bug
     ],
     extras_require={
         'dev': [
-            "crossbar==0.15.0",
-            "autobahn==0.17.2",
-            "Twisted==17.9.0",
-            "pytest==3.1.3",
+            "crossbar==18.4.1",
+            "pytest==4.0.2",
             "mock==1.3.0",
-            "pytest==2.9.1",
-            "pytest-capturelog==0.7",
             "colorlog",
             "flake8==3.5.0",
             "gevent-websocket==0.10.1",

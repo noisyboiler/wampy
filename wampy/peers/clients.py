@@ -7,11 +7,12 @@ import logging
 import os
 
 from wampy.constants import (
-    CROSSBAR_DEFAULT, DEFAULT_ROLES, DEFAULT_REALM
+    CROSSBAR_DEFAULT, DEFAULT_TIMEOUT, DEFAULT_ROLES,
+    DEFAULT_REALM,
 )
-from wampy.errors import WampProtocolError, WampyError
+from wampy.errors import WampProtocolError, WampyError, WampyTimeOutError
 from wampy.session import Session
-from wampy.messages import Abort, Challenge
+from wampy.messages import Abort, Cancel, Challenge
 from wampy.message_handler import MessageHandler
 from wampy.peers.routers import Router
 from wampy.roles.caller import CallProxy, RpcProxy
@@ -26,10 +27,11 @@ class Client(object):
     """
 
     def __init__(
-            self,
-            url=None, cert_path=None,
-            realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
-            message_handler=None, name=None, router=None,
+        self, url=None, cert_path=None,
+        realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
+        message_handler=None, name=None,
+        call_timeout=DEFAULT_TIMEOUT,
+        router=None,
     ):
         """ A WAMP Client "Peer".
 
@@ -63,6 +65,10 @@ class Client(object):
             name : string
                 Optional name for your ``Client``. Useful for when testing
                 your app or for logging.
+            call_timeout : integer
+                A Caller might want to issue a call and provide a timeout after
+                which the call will finish.
+                The value should be in seconds.
             router : instance
                 An alternative way to connect to a Router rather than ``url``.
                 An instance of a Router Peer, e.g.
@@ -93,6 +99,9 @@ class Client(object):
         # wampy uses a decoupled "messge handler" to process incoming messages.
         # wampy also provides a very adequate default.
         self.message_handler = message_handler or MessageHandler()
+        # generally ``name`` is used for debugging and logging only
+        self.name = name or self.__class__.__name__
+        self.call_timeout = call_timeout
 
         # this conversation is over a transport. WAMP messages are transmitted
         # as WebSocket messages by default (well, actually... that's because no
@@ -110,9 +119,6 @@ class Client(object):
             raise WampyError(
                 'Network protocl must be "ws" or "wss"'
             )
-
-        # generally ``name`` is used for debugging and logging only
-        self.name = name or self.__class__.__name__
 
         self._session = None
 
@@ -205,6 +211,11 @@ class Client(object):
             response = self.session.recv_message()
         except WampProtocolError as wamp_err:
             logger.error(wamp_err)
+            raise
+        except WampyTimeOutError:
+            logger.warning('cancelling Call after wampy timed the Call out')
+            cancelation = Cancel(request_id=message.request_id)
+            self.session.send_message(cancelation)
             raise
         except Exception as exc:
             logger.warning("rpc failed!!")

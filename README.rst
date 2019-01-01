@@ -46,6 +46,7 @@ wampy features
 - CLI for easy and rapid development
 - Pytest fixtures to use when testing your projects
 - nameko_ integration with nameko_wamp_
+- Flask_ integration with flask_wamp_ 
 - configurable and extensible async backends (beta)
 
 QuickStart - Connect and Go!
@@ -220,6 +221,35 @@ Notice ``topic`` is *always* first, followed by ``kwargs``. Happy to explore how
 
 See `ReadTheDocs`_ for more detailed documentation.
 
+Extensions
+~~~~~~~~~~
+
+Wampy is a "simple" WAMP client and so it can easily be integrated with other frameworks. The current extensions are:
+
+    - `Flask-WAMP`_
+    - `nameko-wamp`_
+
+Extensions for other Python Frameworks are encouraged!
+
+
+Async Networking
+~~~~~~~~~~~~~~~~
+
+The default backend for async networking is **gevent**, but you can switch this to **eventlet** if that is what your applications already use.
+
+::
+
+    $ export WAMPY_ASYNC_NAME=eventlet
+
+Swapping back is easy.
+
+::
+
+    $ export WAMPY_ASYNC_NAME=gevent
+
+
+Async.io would require a complete re-write, and if you're already using the standard library and want to use **wampy** that is *not* a problem - just roll with the default gevent - as the two event loops can run side by side.
+
 
 Running the tests
 ~~~~~~~~~~~~~~~~~
@@ -254,11 +284,13 @@ Thanks world.
 .. _examples: https://github.com/noisyboiler/wampy/blob/master/docs/examples/services.py#L26
 .. _autobahn: http://autobahn.ws/python/
 .. _nameko: https://github.com/nameko
-.. _nameko_wamp: https://github.com/noisyboiler/nameko-wamp
+.. _nameko-wamp: https://github.com/noisyboiler/nameko-wamp
 .. _Twisted: https://twistedmatrix.com/trac/
 .. _WAMP: http://wamp-proto.org/static/rfc/draft-oberstet-hybi-crossbar-wamp.html
 .. _CONTRIBUTING: https://github.com/noisyboiler/wampy/blob/master/CONTRIBUTING.md
 .. _CONTRIBUTORS: https://github.com/noisyboiler/wampy/blob/master/CONTRIBUTORS.txt
 .. _Gevent: http://www.gevent.org/
 .. _eventlet: http://eventlet.net/
-
+.. _Flask: https://github.com/pallets/flask
+.. _flask_wamp: https://github.com/noisyboiler/flask-wamp
+.. _Flask-WAMP: https://github.com/noisyboiler/flask-wamp

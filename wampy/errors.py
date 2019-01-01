@@ -22,3 +22,7 @@ class WebsocktProtocolError(Exception):
 
 class WampyError(Exception):
     pass
+
+
+class WampyTimeOutError(Exception):
+    pass

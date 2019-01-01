@@ -6,11 +6,20 @@
 class Hello(object):
     """ Send a HELLO message to the Router.
 
+    By default the *wampy* Client announces support for all four Client
+    Roles: Subscriber, Publisher, Callee and Caller.
+
     Message is of the format ``[HELLO, Realm|uri, Details|dict]``, e.g. ::
 
         [
             HELLO, "realm", {
-                "roles": {"subscriber": {}, "publisher": {}},
+                "roles": {
+                    "subscriber": {
+                        'features': {...},
+                    },
+                    "publisher": {...},
+                    ...
+                },
                 "authmethods": ["wampcra"],
                 "authid": "peter"
             }
@@ -20,14 +29,14 @@ class Hello(object):
     WAMP_CODE = 1
     name = "hello"
 
-    def __init__(self, realm, roles):
+    def __init__(self, realm, details):
         super(Hello, self).__init__()
 
         self.realm = realm
-        self.roles = roles
+        self.details = details
 
     @property
     def message(self):
         return [
-            self.WAMP_CODE, self.realm, self.roles
+            self.WAMP_CODE, self.realm, self.details
         ]
