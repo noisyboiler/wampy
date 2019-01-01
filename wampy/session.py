@@ -75,10 +75,6 @@ class Session(object):
         return self.router.port
 
     @property
-    def details(self):
-        return self.client.details
-
-    @property
     def realm(self):
         return self.client.realm
 
@@ -112,7 +108,7 @@ class Session(object):
 
     def recv_message(self):
         message = async_adapter.receive_message(
-            timeout=self.client.call_timeout_seconds
+            timeout=self.client.call_timeout,
         )
         logger.debug(
             'received message: "%s" for client "%s"',

@@ -101,19 +101,7 @@ class Client(object):
         self.message_handler = message_handler or MessageHandler()
         # generally ``name`` is used for debugging and logging only
         self.name = name or self.__class__.__name__
-
-        if not isinstance(call_timeout, int):
-            raise WampyError(
-                'Call Timeout must be an integer and in milli seconds'
-            )
-
-        # WAMP Call Message requires milliseconds...
         self.call_timeout = call_timeout
-        # ..whilst gevent and eventet prefer seconds. Whilst we wait for #299
-        # on Crossbar, wampy relies on eventlet/gevent timeouts. This is far
-        # from ideal, as the Dealer can still be processing the response for
-        # us and we just go away :(
-        self.call_timeout_seconds = round(call_timeout / 1000)
 
         # this conversation is over a transport. WAMP messages are transmitted
         # as WebSocket messages by default (well, actually... that's because no

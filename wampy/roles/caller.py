@@ -63,8 +63,9 @@ class RpcProxy:
             # https://github.com/crossbario/crossbar/issues/299
             # is addressed, but we pass in the value regardless, waiting
             # for the feature on CrossBar.
+            # WAMP Call Message requires milliseconds...
             options = {
-                'timeout': self.client.call_timeout,
+                'timeout': int(self.client.call_timeout * 1000),
             }
             message = Call(
                 procedure=name, options=options, args=args, kwargs=kwargs,
