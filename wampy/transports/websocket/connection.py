@@ -98,14 +98,16 @@ class WebSocket(Transport, ParseUrlMixin):
                     received_bytes = bytearray()
                     continue
                 if frame.opcode == frame.OPCODE_PONG:
+                    # TODO: i never get here,
+                    # ref https://github.com/crossbario/crossbar/issues/381
                     logger.info('received PONG from server: %s', frame)
                     received_bytes = bytearray()
                     continue
                 if frame.opcode == frame.OPCODE_BINARY:
                     break
                 if frame.opcode == frame.OPCODE_CLOSE:
-                    async_adapter.spawn(self.handle_close(close_frame=frame))
-                    break
+                    self.pinger_thread.kill()
+                    raise ConnectionError('connection closed')
 
                 break
 
@@ -252,29 +254,35 @@ class WebSocket(Transport, ParseUrlMixin):
         return status, headers
 
     def start_pinging(self):
-        def ping_wrapper():
-            s = sched.scheduler(time.time, time.sleep)
+        def websocket_ping_thread(socket):
+            s = sched.scheduler(time.time, async_adapter.sleep)
 
             def pinger(sc):
                 ping = Ping()
-                logger.warning('sending PING')
-                self._send_raw(bytes(ping.frame))
+                try:
+                    socket.sendall(bytes(ping.frame))
+                except OSError:
+                    # connection closed by parent thread, or wampy
+                    # has been disconnected from server
+                    logger.debug("client -> server PING failed")
+                    # either way, this gthread will be killed as
+                    # soon as the Close message is received
+                    pass
+
                 s.enter(heartbeat, 1, pinger, (sc,))
 
             s.enter(heartbeat, 1, pinger, (s,))
             s.run()
 
-        self.pinger_thread = async_adapter.spawn(ping_wrapper)
+        self.pinger_thread = async_adapter.spawn(
+            websocket_ping_thread, self.socket
+        )
 
     def handle_ping(self, ping_frame):
         pong_frame = Pong(payload=ping_frame.payload)
         bytes_ = pong_frame.frame
         logger.info('sending pong: %s', bytes_)
         self._send_raw(bytes_)
-
-    def handle_close(self, close_frame):
-        self.pinger_thread.kill()
-        raise ConnectionError('connection closed')
 
 
 class SecureWebSocket(WebSocket):
