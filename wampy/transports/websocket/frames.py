@@ -100,14 +100,16 @@ class Frame(object):
 
     @property
     def payload(self):
-        """ Return the ``frame-payload-data`` from the raw bytes.
-        """
-        if self.payload_length_indicator < 126:
-            payload_str = self.raw_bytes[2:].decode('utf-8')
-        elif self.payload_length_indicator == 126:
-            payload_str = self.raw_bytes[4:].decode('utf-8')
-        else:
-            payload_str = self.raw_bytes[6:].decode('utf-8')
+        try:
+            if self.payload_length_indicator < 126:
+                payload_str = self.raw_bytes[2:].decode('utf-8')
+            elif self.payload_length_indicator == 126:
+                payload_str = self.raw_bytes[4:].decode('utf-8')
+            else:
+                payload_str = self.raw_bytes[6:].decode('utf-8')
+        except UnicodeDecodeError:
+            logger.error('cannot decode %s', self.raw_bytes)
+            raise
 
         return payload_str
 

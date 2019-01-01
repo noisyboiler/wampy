@@ -10,9 +10,9 @@ from wampy.constants import (
     CROSSBAR_DEFAULT, DEFAULT_TIMEOUT, DEFAULT_ROLES,
     DEFAULT_REALM,
 )
-from wampy.errors import WampProtocolError, WampyError
+from wampy.errors import WampProtocolError, WampyError, WampyTimeOutError
 from wampy.session import Session
-from wampy.messages import Abort, Challenge
+from wampy.messages import Abort, Cancel, Challenge
 from wampy.message_handler import MessageHandler
 from wampy.peers.routers import Router
 from wampy.roles.caller import CallProxy, RpcProxy
@@ -101,7 +101,20 @@ class Client(object):
         self.message_handler = message_handler or MessageHandler()
         # generally ``name`` is used for debugging and logging only
         self.name = name or self.__class__.__name__
+
+        if not isinstance(call_timeout, int):
+            raise WampyError(
+                'Call Timeout must be an integer and in milli seconds'
+            )
+
+        # WAMP Call Message requires milliseconds...
         self.call_timeout = call_timeout
+        # ..whilst gevent and eventet prefer seconds. Whilst we wait for #299
+        # on Crossbar, wampy relies on eventlet/gevent timeouts. This is far
+        # from ideal, as the Dealer can still be processing the response for
+        # us and we just go away :(
+        self.call_timeout_seconds = round(call_timeout / 1000)
+
         # this conversation is over a transport. WAMP messages are transmitted
         # as WebSocket messages by default (well, actually... that's because no
         # other transports are supported!)
@@ -210,6 +223,11 @@ class Client(object):
             response = self.session.recv_message()
         except WampProtocolError as wamp_err:
             logger.error(wamp_err)
+            raise
+        except WampyTimeOutError:
+            logger.warning('cancelling Call after wampy timed the Call out')
+            cancelation = Cancel(request_id=message.request_id)
+            self.session.send_message(cancelation)
             raise
         except Exception as exc:
             logger.warning("rpc failed!!")

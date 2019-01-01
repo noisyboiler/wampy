@@ -5,7 +5,7 @@
 import logging
 
 from wampy.backends import async_adapter
-from wampy.errors import ConnectionError, WampProtocolError
+from wampy.errors import ConnectionError, WampyTimeOutError, WampProtocolError
 from wampy.messages import MESSAGE_TYPE_MAP
 from wampy.messages.hello import Hello
 from wampy.messages.goodbye import Goodbye
@@ -83,10 +83,6 @@ class Session(object):
         return self.client.realm
 
     @property
-    def call_timeout(self):
-        return self.client.call_timeout
-
-    @property
     def id(self):
         return self.session_id
 
@@ -115,7 +111,9 @@ class Session(object):
         self.connection.send(message)
 
     def recv_message(self):
-        message = async_adapter.receive_message(timeout=self.call_timeout)
+        message = async_adapter.receive_message(
+            timeout=self.client.call_timeout_seconds
+        )
         logger.debug(
             'received message: "%s" for client "%s"',
             message.name, self.client.name,
@@ -150,9 +148,11 @@ class Session(object):
                             message
                         )
                     )
-            except WampProtocolError:
-                # Server already gone away?
+            except WampyTimeOutError:
+                logger.warning('no response to Goodbye.... server gone away?')
                 pass
+            except WampProtocolError as exc:
+                logger.exception('failed to say Goodbye')
 
     def _listen(self, connection, message_queue):
 

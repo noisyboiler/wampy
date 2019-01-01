@@ -34,6 +34,9 @@ class Result(object):
         self.yield_args = yield_args
         self.yield_kwargs = yield_kwargs
 
+    def __str__(self):
+        return str(self.message)
+
     @property
     def message(self):
         return [

@@ -39,7 +39,7 @@ DEFAULT_ROLES = {
     },
     'authmethods': ['anonymous']
 }
-DEFAULT_TIMEOUT = 10  # seconds
+DEFAULT_TIMEOUT = 10000  # milliseconds
 
 SUBSCRIBER = "subscriber"
 

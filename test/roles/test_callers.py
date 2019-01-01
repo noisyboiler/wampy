@@ -39,8 +39,6 @@ class BinaryNumberService(Client):
 
     @callee
     def get_binary(self, integer):
-        """ Return the binary format for a given base ten integer.
-        """
         result = bin(integer)
         return result
 
@@ -49,32 +47,33 @@ class ReallySlowService(Client):
 
     @callee
     def requires_patience(self, wait_in_seconds):
-        async = get_async_adapter()
-        async.sleep(wait_in_seconds)
+        print('waiting for %s seconds' % wait_in_seconds)
+        async_ = get_async_adapter()
+        async_.sleep(wait_in_seconds)
         reward_for_waiting = "$$$$"
         return reward_for_waiting
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def date_service(router):
     with DateService(router=router) as serv:
         wait_for_registrations(serv, 1)
         yield
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def hello_service(router):
     with HelloService(router=router):
         yield
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def binary_number_service(router):
     with BinaryNumberService(router=router):
         yield
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def really_slow_service(router):
     with ReallySlowService(router=router):
         yield
@@ -131,12 +130,18 @@ class TestClientRpc:
 
 
 class TestCallerTimeout:
-
-    def test_timeout_values(self, router, really_slow_service):
-        with Client(router=router, call_timeout=1) as client:
+    @pytest.mark.parametrize("call_timeout, wait, reward", [
+        (1000, 2, None),
+        (2000, 1, "$$$$"),
+        (900, 1.1, None),
+    ])
+    def test_timeout_values(
+        self, call_timeout, wait, reward, router, really_slow_service,
+    ):
+        with Client(router=router, call_timeout=call_timeout) as client:
             try:
-                resp = client.rpc.requires_patience(wait_in_seconds=2)
+                resp = client.rpc.requires_patience(wait_in_seconds=wait)
             except WampyTimeOutError:
                 resp = None
 
-        assert resp is None
+        assert resp == reward

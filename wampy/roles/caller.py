@@ -59,6 +59,10 @@ class RpcProxy:
     def __getattr__(self, name):
 
         def wrapper(*args, **kwargs):
+            # timeout is currently handled by wampy whilst
+            # https://github.com/crossbario/crossbar/issues/299
+            # is addressed, but we pass in the value regardless, waiting
+            # for the feature on CrossBar.
             options = {
                 'timeout': self.client.call_timeout,
             }
