@@ -43,9 +43,8 @@ setup(
     extras_require={
         'dev': [
             "crossbar==18.4.1",
-            "pytest==3.6.0",
+            "pytest==4.0.2",
             "mock==1.3.0",
-            "pytest-capturelog==0.7",
             "colorlog",
             "flake8==3.5.0",
             "gevent-websocket==0.10.1",
