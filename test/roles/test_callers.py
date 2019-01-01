@@ -130,9 +130,10 @@ class TestClientRpc:
 
 class TestCallerTimeout:
     @pytest.mark.parametrize("call_timeout, wait, reward", [
-        (1000, 2, None),
-        (2000, 1, "$$$$"),
-        (900, 1.1, None),
+        (1, 2, None),
+        (2, 1, "$$$$"),
+        (0.9, 1.1, None),
+        (1, 3, None),
     ])
     def test_timeout_values(
         self, call_timeout, wait, reward, router, really_slow_service,

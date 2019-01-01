@@ -106,9 +106,9 @@ class Session(object):
 
         self.connection.send(message)
 
-    def recv_message(self):
+    def recv_message(self, timeout=None):
         message = async_adapter.receive_message(
-            timeout=self.client.call_timeout,
+            timeout=timeout or self.client.call_timeout,
         )
         logger.debug(
             'received message: "%s" for client "%s"',
@@ -134,10 +134,12 @@ class Session(object):
         except Exception as exc:
             # we can't be sure what the Exception is here because it will
             # be from the Router implementation
-            logger.warning("GOODBYE failed!: %s", exc)
+            logger.exception("GOODBYE failed!: %s", exc)
         else:
             try:
-                message = self.recv_message()
+                # TODO: appears to be a bug as we have never been receiving
+                # the echoed GOODBYE
+                message = self.recv_message(timeout=1)
                 if message.WAMP_CODE != Goodbye.WAMP_CODE:
                     raise WampProtocolError(
                         "Unexpected response from GOODBYE message: {}".format(
