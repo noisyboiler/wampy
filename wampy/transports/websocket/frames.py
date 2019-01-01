@@ -109,8 +109,6 @@ class Frame(object):
                 payload_str = self.raw_bytes[6:].decode('utf-8')
         except UnicodeDecodeError:
             logger.error('cannot decode %s', self.raw_bytes)
-            import pdb
-            pdb.set_trace()
             raise
 
         return payload_str
