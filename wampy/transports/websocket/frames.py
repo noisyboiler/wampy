@@ -109,6 +109,8 @@ class Frame(object):
                 payload_str = self.raw_bytes[6:].decode('utf-8')
         except UnicodeDecodeError:
             logger.error('cannot decode %s', self.raw_bytes)
+            import pdb
+            pdb.set_trace()
             raise
 
         return payload_str
@@ -181,6 +183,9 @@ class FrameFactory(object):
 
         if opcode == Frame.OPCODE_PING:
             return Ping(raw_bytes=buffered_bytes)
+
+        if opcode == Frame.OPCODE_PONG:
+            return Pong(raw_bytes=buffered_bytes)
 
         if opcode == Frame.OPCODE_CLOSE:
             return Close(raw_bytes=buffered_bytes)

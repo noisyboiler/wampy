@@ -3,14 +3,17 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import logging
+import sched
 import socket
 import ssl
+import time
 import uuid
 from base64 import encodestring
 from socket import error as socket_error
 
 from wampy.backends import async_adapter
 from wampy.backends.errors import WampyTimeOut
+from wampy.config.defaults import heartbeat
 from wampy.constants import WEBSOCKET_SUBPROTOCOLS, WEBSOCKET_VERSION
 from wampy.errors import (
     IncompleteFrameError, ConnectionError, WampProtocolError, WampyError)
@@ -18,7 +21,7 @@ from wampy.interfaces import Transport
 from wampy.mixins import ParseUrlMixin
 from wampy.serializers import json_serialize
 
-from . frames import FrameFactory, Pong, Text
+from . frames import FrameFactory, Ping, Pong, Text
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +46,7 @@ class WebSocket(Transport, ParseUrlMixin):
         # TCP connection
         self._connect()
         self._handshake(upgrade=upgrade)
+        self.start_pinging()
         return self
 
     def disconnect(self):
@@ -93,9 +97,12 @@ class WebSocket(Transport, ParseUrlMixin):
                     async_adapter.spawn(self.handle_ping(ping_frame=frame))
                     received_bytes = bytearray()
                     continue
+                if frame.opcode == frame.OPCODE_PONG:
+                    logger.info('received PONG from server: %s', frame)
+                    received_bytes = bytearray()
+                    continue
                 if frame.opcode == frame.OPCODE_BINARY:
                     break
-
                 if frame.opcode == frame.OPCODE_CLOSE:
                     async_adapter.spawn(self.handle_close(close_frame=frame))
                     break
@@ -244,16 +251,30 @@ class WebSocket(Transport, ParseUrlMixin):
         self.connected = True
         return status, headers
 
+    def start_pinging(self):
+        def ping_wrapper():
+            s = sched.scheduler(time.time, time.sleep)
+
+            def pinger(sc):
+                ping = Ping()
+                logger.warning('sending PING')
+                self._send_raw(bytes(ping.frame))
+                s.enter(heartbeat, 1, pinger, (sc,))
+
+            s.enter(heartbeat, 1, pinger, (s,))
+            s.run()
+
+        self.pinger_thread = async_adapter.spawn(ping_wrapper)
+
     def handle_ping(self, ping_frame):
         pong_frame = Pong(payload=ping_frame.payload)
-        bytes = pong_frame.frame
-        logger.info('sending pong: %s', bytes)
-        self._send_raw(bytes)
+        bytes_ = pong_frame.frame
+        logger.info('sending pong: %s', bytes_)
+        self._send_raw(bytes_)
 
     def handle_close(self, close_frame):
-        message = close_frame.payload
-        logger.warning('server has closed down: %s', message)
-        raise ConnectionError('connection closed: {}'.format(message))
+        self.pinger_thread.kill()
+        raise ConnectionError('connection closed')
 
 
 class SecureWebSocket(WebSocket):

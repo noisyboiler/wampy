@@ -2,10 +2,16 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+# a temporary solution to configuration. wampy needs to decide how
+# users can configure him, e.g. config.yaml
+# for now, env varialbes are the way to override defaults.
+
 import logging
 import os
 
-from wampy.constants import GEVENT, EVENT_LOOP_BACKENDS
+from wampy.constants import (
+    DEFAULT_HEARTBEAT_SECONDS, GEVENT, EVENT_LOOP_BACKENDS
+)
 from wampy.errors import WampyError
 
 logger = logging.getLogger(__name__)
@@ -21,3 +27,7 @@ if async_name not in EVENT_LOOP_BACKENDS:
             EVENT_LOOP_BACKENDS
         ),
     )
+
+heartbeat = os.environ.get(
+    'WEBSOCKET_HEARTBEAT', DEFAULT_HEARTBEAT_SECONDS,
+)
