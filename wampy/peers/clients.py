@@ -57,7 +57,7 @@ class Client(object):
                 Defaults to ``realm1``.
             roles : dictionary
                 Description of the Roles implemented by the ``Client``.
-                Defaults to ``wampy.constants.DEFAULT_DETAILS``.
+                Defaults to ``wampy.constants.DEFAULT_ROLES``.
             message_handler : instance
                 An instance of ``wampy.message_handler.MessageHandler``, or
                 a subclass of. This controls the conversation between the

@@ -47,7 +47,6 @@ class ReallySlowService(Client):
 
     @callee
     def requires_patience(self, wait_in_seconds):
-        print('waiting for %s seconds' % wait_in_seconds)
         async_ = get_async_adapter()
         async_.sleep(wait_in_seconds)
         reward_for_waiting = "$$$$"
