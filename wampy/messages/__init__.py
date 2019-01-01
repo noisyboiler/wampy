@@ -5,6 +5,7 @@
 from . abort import Abort
 from . authenticate import Authenticate
 from . call import Call
+from . cancel import Cancel
 from . challenge import Challenge
 from . error import Error
 from . event import Event
@@ -41,6 +42,7 @@ MESSAGE_TYPE_MAP = {
     33: Subscribed,
     36: Event,
     48: Call,
+    49: Cancel,
     50: Result,
     64: Register,
     65: Registered,

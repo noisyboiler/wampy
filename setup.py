@@ -36,18 +36,15 @@ setup(
     install_requires=[
         "attrs>=17.4.0 ",
         "eventlet==0.20.1",
-        "six==1.10.0",
+        "six==1.11.0",
         "simplejson==3.11.1",
         "gevent>1.1",  # fixes infinite SSL recursion bug
     ],
     extras_require={
         'dev': [
-            "crossbar==0.15.0",
-            "autobahn==0.17.2",
-            "Twisted==17.9.0",
-            "pytest==3.1.3",
+            "crossbar==18.4.1",
+            "pytest==4.0.2",
             "mock==1.3.0",
-            "pytest-capturelog==0.7",
             "colorlog",
             "flake8==3.5.0",
             "gevent-websocket==0.10.1",

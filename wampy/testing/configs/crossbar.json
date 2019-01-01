@@ -27,7 +27,33 @@
                               },
                               "cache": true
                           }
-                      ]
+                      ],
+                      "features": {
+                          "call_timeout": true
+                      }
+                  }, 
+                  {
+                     "name": "dealer",
+                     "permissions": [
+                          {
+                              "uri": "",
+                              "match": "prefix",
+                              "allow": {
+                                  "call": true,
+                                  "register": true,
+                                  "publish": true,
+                                  "subscribe": true
+                              },
+                              "disclose": {
+                                  "caller": false,
+                                  "publisher": false
+                              },
+                              "cache": true
+                          }
+                      ],
+                      "features": {
+                          "call_timeout": true
+                      }
                   }
                ]
             }

@@ -59,7 +59,17 @@ class RpcProxy:
     def __getattr__(self, name):
 
         def wrapper(*args, **kwargs):
-            message = Call(procedure=name, args=args, kwargs=kwargs)
+            # timeout is currently handled by wampy whilst
+            # https://github.com/crossbario/crossbar/issues/299
+            # is addressed, but we pass in the value regardless, waiting
+            # for the feature on CrossBar.
+            # WAMP Call Message requires milliseconds...
+            options = {
+                'timeout': int(self.client.call_timeout * 1000),
+            }
+            message = Call(
+                procedure=name, options=options, args=args, kwargs=kwargs,
+            )
             response = self.client.make_rpc(message)
 
             wamp_code = response.WAMP_CODE

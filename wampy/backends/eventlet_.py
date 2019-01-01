@@ -4,7 +4,7 @@
 
 import eventlet
 
-from wampy.errors import WampProtocolError
+from wampy.errors import WampyTimeOutError
 from wampy.interfaces import Async
 
 
@@ -20,7 +20,7 @@ class Eventlet(Async):
         try:
             message = self._wait_for_message(timeout)
         except eventlet.Timeout:
-            raise WampProtocolError(
+            raise WampyTimeOutError(
                 "no message returned (timed-out in {})".format(timeout)
             )
         return message

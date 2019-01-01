@@ -7,6 +7,8 @@ from datetime import date
 
 import pytest
 
+from wampy.backends import get_async_adapter
+from wampy.errors import WampyTimeOutError
 from wampy.peers.clients import Client
 from wampy.roles.callee import callee
 from wampy.testing import wait_for_registrations
@@ -37,28 +39,42 @@ class BinaryNumberService(Client):
 
     @callee
     def get_binary(self, integer):
-        """ Return the binary format for a given base ten integer.
-        """
         result = bin(integer)
         return result
 
 
-@pytest.yield_fixture
+class ReallySlowService(Client):
+
+    @callee
+    def requires_patience(self, wait_in_seconds):
+        async_ = get_async_adapter()
+        async_.sleep(wait_in_seconds)
+        reward_for_waiting = "$$$$"
+        return reward_for_waiting
+
+
+@pytest.fixture
 def date_service(router):
     with DateService(router=router) as serv:
         wait_for_registrations(serv, 1)
         yield
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def hello_service(router):
     with HelloService(router=router):
         yield
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def binary_number_service(router):
     with BinaryNumberService(router=router):
+        yield
+
+
+@pytest.fixture
+def really_slow_service(router):
+    with ReallySlowService(router=router):
         yield
 
 
@@ -110,3 +126,22 @@ class TestClientRpc:
             response = caller.rpc.say_greeting("Simon", greeting="goodbye")
 
         assert response == "goodbye to Simon"
+
+
+class TestCallerTimeout:
+    @pytest.mark.parametrize("call_timeout, wait, reward", [
+        (1, 2, None),
+        (2, 1, "$$$$"),
+        (0.9, 1.1, None),
+        (1, 3, None),
+    ])
+    def test_timeout_values(
+        self, call_timeout, wait, reward, router, really_slow_service,
+    ):
+        with Client(router=router, call_timeout=call_timeout) as client:
+            try:
+                resp = client.rpc.requires_patience(wait_in_seconds=wait)
+            except WampyTimeOutError:
+                resp = None
+
+        assert resp == reward

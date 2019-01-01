@@ -5,7 +5,7 @@
 import logging
 
 from wampy.backends import async_adapter
-from wampy.errors import ConnectionError, WampProtocolError
+from wampy.errors import ConnectionError, WampyTimeOutError, WampProtocolError
 from wampy.messages import MESSAGE_TYPE_MAP
 from wampy.messages.hello import Hello
 from wampy.messages.goodbye import Goodbye
@@ -75,10 +75,6 @@ class Session(object):
         return self.router.port
 
     @property
-    def roles(self):
-        return self.client.roles
-
-    @property
     def realm(self):
         return self.client.realm
 
@@ -110,8 +106,10 @@ class Session(object):
 
         self.connection.send(message)
 
-    def recv_message(self, timeout=5):
-        message = async_adapter.receive_message(timeout=timeout)
+    def recv_message(self, timeout=None):
+        message = async_adapter.receive_message(
+            timeout=timeout or self.client.call_timeout,
+        )
         logger.debug(
             'received message: "%s" for client "%s"',
             message.name, self.client.name,
@@ -119,7 +117,12 @@ class Session(object):
         return message
 
     def _say_hello(self):
-        message = Hello(self.realm, self.roles)
+        details = self.client.roles
+        for role, features in details['roles'].items():
+            features.setdefault('features', {})
+            features['features'].setdefault('call_timeout', True)
+
+        message = Hello(realm=self.realm, details=details)
         self.send_message(message)
         response = self.recv_message()
         return response
@@ -131,19 +134,23 @@ class Session(object):
         except Exception as exc:
             # we can't be sure what the Exception is here because it will
             # be from the Router implementation
-            logger.warning("GOODBYE failed!: %s", exc)
+            logger.exception("GOODBYE failed!: %s", exc)
         else:
             try:
-                message = self.recv_message(timeout=2)
+                # TODO: appears to be a bug as we have never been receiving
+                # the echoed GOODBYE
+                message = self.recv_message(timeout=1)
                 if message.WAMP_CODE != Goodbye.WAMP_CODE:
                     raise WampProtocolError(
                         "Unexpected response from GOODBYE message: {}".format(
                             message
                         )
                     )
-            except WampProtocolError:
-                # Server already gone away?
+            except WampyTimeOutError:
+                logger.warning('no response to Goodbye.... server gone away?')
                 pass
+            except WampProtocolError as exc:
+                logger.exception('failed to say Goodbye')
 
     def _listen(self, connection, message_queue):
 
