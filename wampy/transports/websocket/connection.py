@@ -46,12 +46,13 @@ class WebSocket(Transport, ParseUrlMixin):
         return self
 
     def disconnect(self):
-        try:
-            self.socket.shutdown(socket.SHUT_RDWR)
-        except socket.error:
-            pass
+        if self.socket:
+            try:
+                self.socket.shutdown(socket.SHUT_RDWR)
+            except socket.error:
+                pass
 
-        self.socket.close()
+            self.socket.close()
 
     def send(self, message):
         frame = Text(payload=json_serialize(message))
