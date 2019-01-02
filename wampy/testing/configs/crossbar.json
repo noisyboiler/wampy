@@ -66,6 +66,10 @@
                   "port": 8080,
                   "version": 4,
                   "interface": "localhost"
+               },
+               "options": {
+                  "auto_ping_interval": 10000,
+                  "auto_ping_timeout": 5000
                }
             }
          ]

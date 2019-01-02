@@ -48,7 +48,7 @@ class Frame(object):
     OPCODE_CONT = 0x0
     OPCODE_CLOSE = 0x8
     OPCODE_PING = 0x9
-    OPCODE_PONG = 0xa
+    OPCODE_PONG = 0xA
     OPCODE_TEXT = 0x1
     OPCODES = (
         OPCODE_BINARY, OPCODE_CONT, OPCODE_CLOSE,
@@ -144,7 +144,7 @@ class FrameFactory(object):
                 return Frame(raw_bytes=buffered_bytes)
 
         available_bytes_for_body = buffered_bytes[2:]
-        if not available_bytes_for_body:
+        if len(available_bytes_for_body) < 2:
             raise IncompleteFrameError(
                 required_bytes=payload_length_indicator
             )
@@ -310,12 +310,12 @@ class Text(Frame):
 
 class Ping(Frame):
 
-    def __init__(self, raw_bytes=None, payload=''):
+    def __init__(self, raw_bytes=None, payload='', mask_payload=False):
         raw_bytes = raw_bytes or FrameFactory.generate_bytes(
             payload=payload,
             fin_bit=1,
             opcode=Frame.OPCODE_PING,
-            mask_payload=False,
+            mask_payload=mask_payload,
         )
         super(Ping, self).__init__(raw_bytes=raw_bytes)
 

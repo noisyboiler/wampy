@@ -46,7 +46,9 @@ class WebSocket(Transport, ParseUrlMixin):
         # TCP connection
         self._connect()
         self._handshake(upgrade=upgrade)
-        self.start_pinging()
+
+        if heartbeat > 0:
+            self.start_pinging()
         return self
 
     def disconnect(self):
@@ -98,9 +100,6 @@ class WebSocket(Transport, ParseUrlMixin):
                     received_bytes = bytearray()
                     continue
                 if frame.opcode == frame.OPCODE_PONG:
-                    # TODO: i never get here,
-                    # ref https://github.com/crossbario/crossbar/issues/381
-                    logger.info('received PONG from server: %s', frame)
                     received_bytes = bytearray()
                     continue
                 if frame.opcode == frame.OPCODE_BINARY:
@@ -258,13 +257,12 @@ class WebSocket(Transport, ParseUrlMixin):
             s = sched.scheduler(time.time, async_adapter.sleep)
 
             def pinger(sc):
-                ping = Ping()
+                ping = Ping(payload='wampy', mask_payload=True)
                 try:
                     socket.sendall(bytes(ping.frame))
                 except OSError:
                     # connection closed by parent thread, or wampy
-                    # has been disconnected from server
-                    logger.debug("client -> server PING failed")
+                    # has been disconnected from server...
                     # either way, this gthread will be killed as
                     # soon as the Close message is received
                     pass
