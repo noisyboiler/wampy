@@ -4,6 +4,7 @@
 
 import logging
 import sched
+import signal
 import socket
 import ssl
 import time
@@ -14,9 +15,14 @@ from socket import error as socket_error
 from wampy.backends import async_adapter
 from wampy.backends.errors import WampyTimeOut
 from wampy.config.defaults import heartbeat
-from wampy.constants import WEBSOCKET_SUBPROTOCOLS, WEBSOCKET_VERSION
+from wampy.constants import (
+    DEFAULT_HEARTBEAT_TIMEOUT_SECONDS, DEFAULT_HEARTBEAT_TOLLERANCE,
+    WEBSOCKET_SUBPROTOCOLS, WEBSOCKET_VERSION,
+)
 from wampy.errors import (
-    IncompleteFrameError, ConnectionError, WampProtocolError, WampyError)
+    IncompleteFrameError, ConnectionError, WampProtocolError, WampyError,
+    WebsocktProtocolError,
+)
 from wampy.interfaces import Transport
 from wampy.mixins import ParseUrlMixin
 from wampy.serializers import json_serialize
@@ -26,7 +32,13 @@ from . frames import FrameFactory, Ping, Pong, Text
 logger = logging.getLogger(__name__)
 
 
+
+
+
+
+
 class WebSocket(Transport, ParseUrlMixin):
+    missed_pongs = 0
 
     def __init__(self, server_url, ipv=4):
         self.url = server_url
@@ -41,6 +53,31 @@ class WebSocket(Transport, ParseUrlMixin):
         self.key = encodestring(uuid.uuid4().bytes).decode('utf-8').strip()
         self.socket = None
         self.connected = False
+
+    @classmethod
+    def timeout(
+        cls,
+        seconds=DEFAULT_HEARTBEAT_TIMEOUT_SECONDS,
+        error_message=os.strerror(errno.ETIME),
+    ):
+        def decorator(func):
+            def _handle_timeout(signum, frame):
+                cls.missed_pongs += 1
+                if cls.missed_pongs > DEFAULT_HEARTBEAT_TOLLERANCE:
+                    raise WebsocktProtocolError(error_message)
+
+            def wrapper(*args, **kwargs):
+                signal.signal(signal.SIGALRM, _handle_timeout)
+                signal.alarm(seconds)
+                try:
+                    result = func(*args, **kwargs)
+                finally:
+                    signal.alarm(0)
+                return result
+
+            return wraps(func)(wrapper)
+
+        return decorator 
 
     def connect(self, upgrade=True):
         # TCP connection
@@ -75,16 +112,16 @@ class WebSocket(Transport, ParseUrlMixin):
 
         while True:
             try:
-                bytes = self.socket.recv(bufsize)
+                bytes_ = self.socket.recv(bufsize)
             except socket.timeout as e:
                 message = str(e)
                 raise ConnectionError('timeout: "{}"'.format(message))
             except Exception as exc:
                 raise ConnectionError('Connection lost: "{}"'.format(exc))
-            if not bytes:
+            if not bytes_:
                 break
 
-            received_bytes.extend(bytes)
+            received_bytes.extend(bytes_)
 
             try:
                 frame = FrameFactory.from_bytes(received_bytes)
@@ -100,6 +137,7 @@ class WebSocket(Transport, ParseUrlMixin):
                     received_bytes = bytearray()
                     continue
                 if frame.opcode == frame.OPCODE_PONG:
+                    async_adapter.spawn(self.handle_pong(pong_frame=frame))
                     received_bytes = bytearray()
                     continue
                 if frame.opcode == frame.OPCODE_BINARY:
@@ -264,8 +302,14 @@ class WebSocket(Transport, ParseUrlMixin):
                     # connection closed by parent thread, or wampy
                     # has been disconnected from server...
                     # either way, this gthread will be killed as
-                    # soon as the Close message is received
-                    pass
+                    # soon if the Close message is received else
+                    # schedule another Ping
+                    return
+
+                pong = self.wait_for_pong()
+
+
+                   timer(handle_pong())
 
                 s.enter(heartbeat, 1, pinger, (sc,))
 
@@ -281,6 +325,13 @@ class WebSocket(Transport, ParseUrlMixin):
         bytes_ = pong_frame.frame
         logger.info('sending pong: %s', bytes_)
         self._send_raw(bytes_)
+
+    @timeout
+    def wait_for_pong(self):
+        pass
+
+    def handle_pong(self, pong_frame):
+        assert frame.payload == 'wampy'
 
 
 class SecureWebSocket(WebSocket):
@@ -318,3 +369,9 @@ class SecureWebSocket(WebSocket):
             raise
 
         self.socket = wrapped_socket
+
+
+
+
+
+

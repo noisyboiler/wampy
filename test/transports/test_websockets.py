@@ -120,6 +120,14 @@ def config_path():
     return './wampy/testing/configs/crossbar.timeout.json'
 
 
+def test_server_pong(router):
+    client = Client(url=router.url)
+    client.start()
+    wait_for_session(client)
+    gevent.sleep(10)
+    client.stop()
+
+
 def test_respond_to_ping_with_pong(config_path, router):
     # This test shows proper handling of ping/pong keep-alives
     # by connecting to a pong-demanding server (crossbar.timeout.json)

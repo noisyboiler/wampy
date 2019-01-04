@@ -166,8 +166,8 @@ class Session(object):
                             self.client
                         )
                 except (
-                        SystemExit, KeyboardInterrupt, ConnectionError,
-                        WampProtocolError,
+                    SystemExit, KeyboardInterrupt, ConnectionError,
+                    WampProtocolError,
                 ):
                     break
 
