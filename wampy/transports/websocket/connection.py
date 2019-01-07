@@ -316,9 +316,11 @@ class WebSocket(Transport, ParseUrlMixin):
                 delta = abs(self._pinged_at - last_received_pong)
 
                 if delta > heartbeat_timeout:
-                    raise WebsocktProtocolError(
-                        'no Pong returned after {} seconds'.format(delta)
+                    logger.warning(
+                        'no Pong returned after %s seconds', delta
                     )
+                    async_adapter.sleep()
+                    continue
 
                 async_adapter.sleep()
 

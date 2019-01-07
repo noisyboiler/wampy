@@ -34,5 +34,5 @@ heartbeat = os.environ.get(
 )
 
 heartbeat_timeout = os.environ.get(
-    'WEBSOCKET_HEARTBEAT', DEFAULT_HEARTBEAT_TIMEOUT_SECONDS,
+    'HEARTBEAT_TIMEOUT_SECONDS', DEFAULT_HEARTBEAT_TIMEOUT_SECONDS,
 )
