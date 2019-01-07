@@ -1,4 +1,3 @@
-import os
 import logging
 from collections import OrderedDict
 
@@ -12,6 +11,7 @@ from mock import ANY
 from mock import call, patch
 
 from wampy.backends import async_adapter
+from wampy.config.defaults import async_name
 from wampy.constants import GEVENT
 from wampy.errors import ConnectionError
 from wampy.peers.clients import Client
@@ -22,7 +22,7 @@ from wampy.transports.websocket.frames import Close, Ping
 logger = logging.getLogger(__name__)
 
 gevent_only = pytest.mark.skipif(
-    os.environ.get('WAMPY_ASYNC_NAME') != GEVENT,
+    async_name != GEVENT,
     reason="requires a Greenlet WebSocket server and you're using eventlet"
 )
 

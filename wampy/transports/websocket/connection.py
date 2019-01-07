@@ -115,14 +115,7 @@ class WebSocket(Transport, ParseUrlMixin):
                 if frame.opcode == frame.OPCODE_BINARY:
                     break
                 if frame.opcode == frame.OPCODE_CLOSE:
-                    try:
-                        self.ponger_thread.kill()
-                        self.pinger_thread.kill()
-                    except AttributeError:
-                        # when client does not Ping the server
-                        pass
-
-                    raise ConnectionError('connection closed')
+                    self.handle_close(close_frame=frame)
 
                 break
 
@@ -336,6 +329,18 @@ class WebSocket(Transport, ParseUrlMixin):
     def handle_pong(self, pong_frame):
         assert pong_frame.payload == 'wampy'
         self._ponged_at = time()
+
+    def handle_close(self, close_frame):
+        try:
+            self.ponger_thread.kill()
+            self.pinger_thread.kill()
+        except AttributeError:
+            # when client does not Ping the server
+            pass
+
+        raise ConnectionError(
+            'connection closed: {}'.format(close_frame.payload)
+        )
 
 
 class SecureWebSocket(WebSocket):
