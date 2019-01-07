@@ -129,7 +129,7 @@ class Session(object):
         details = self.client.roles
         for role, features in details['roles'].items():
             features.setdefault('features', {})
-            features['features'].setdefault('call_timeout', False)
+            features['features'].setdefault('call_timeout', True)
 
         message = Hello(realm=self.realm, details=details)
         self.send_message(message)

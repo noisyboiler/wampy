@@ -11,7 +11,7 @@ import os
 
 from wampy.constants import (
     DEFAULT_HEARTBEAT_SECONDS, DEFAULT_HEARTBEAT_TIMEOUT_SECONDS,
-    GEVENT, EVENT_LOOP_BACKENDS
+    GEVENT, EVENT_LOOP_BACKENDS, DEFAULT_TIMEOUT
 )
 from wampy.errors import WampyError
 
@@ -35,4 +35,8 @@ heartbeat = os.environ.get(
 
 heartbeat_timeout = os.environ.get(
     'WEBSOCKET_HEARTBEAT', DEFAULT_HEARTBEAT_TIMEOUT_SECONDS,
+)
+
+call_timeout = os.environ.get(
+    'CALL_TIMEOUT', DEFAULT_TIMEOUT,
 )

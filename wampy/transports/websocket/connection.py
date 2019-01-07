@@ -31,9 +31,6 @@ logger = logging.getLogger(__name__)
 
 
 class WebSocket(Transport, ParseUrlMixin):
-    # The Websocket layer of the internal architecture.
-
-    missed_pongs = 0
 
     def __init__(self, server_url, ipv=4):
 
@@ -278,7 +275,6 @@ class WebSocket(Transport, ParseUrlMixin):
             def pinger(sc):
                 self._pinged_at = time()
 
-                # TODO add a UUID to the payulod to match Pongs
                 ping = Ping(payload='wampy', mask_payload=True)
                 try:
                     socket.sendall(bytes(ping.frame))
@@ -307,9 +303,9 @@ class WebSocket(Transport, ParseUrlMixin):
                     continue
 
                 now = time()
-                last_receieved_pong = self._ponged_at
+                last_received_pong = self._ponged_at
 
-                if last_receieved_pong is None:
+                if last_received_pong is None:
                     delta = now - self._pinged_at
                     if delta > heartbeat_timeout:
                         raise WebsocktProtocolError('no Pong returned')
@@ -317,7 +313,7 @@ class WebSocket(Transport, ParseUrlMixin):
                         async_adapter.sleep()
                         continue
 
-                delta = abs(self._pinged_at - last_receieved_pong)
+                delta = abs(self._pinged_at - last_received_pong)
 
                 if delta > heartbeat_timeout:
                     raise WebsocktProtocolError(
