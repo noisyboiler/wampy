@@ -7,7 +7,7 @@ import sched
 import socket
 import ssl
 import uuid
-from base64 import encodebytes
+from base64 import encodestring
 from socket import error as socket_error
 from time import time
 
@@ -43,7 +43,7 @@ class WebSocket(Transport, ParseUrlMixin):
 
         self.parse_url()
         self.websocket_location = self.resource
-        self.key = encodebytes(uuid.uuid4().bytes).decode('utf-8').strip()
+        self.key = encodestring(uuid.uuid4().bytes).decode('utf-8').strip()
         self.socket = None
         self.connected = False
 
