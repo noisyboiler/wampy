@@ -40,9 +40,10 @@ DEFAULT_ROLES = {
     'authmethods': ['anonymous']
 }
 DEFAULT_TIMEOUT = 10  # seconds
-DEFAULT_HEARTBEAT_SECONDS = 5
-DEFAULT_HEARTBEAT_TIMEOUT_SECONDS = 5
-DEFAULT_HEARTBEAT_TOLLERANCE = 2
+
+# disabled by default. override with OS env variables.
+DEFAULT_HEARTBEAT_SECONDS = 0
+DEFAULT_HEARTBEAT_TIMEOUT_SECONDS = 2
 
 SUBSCRIBER = "subscriber"
 

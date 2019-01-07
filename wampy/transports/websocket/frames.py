@@ -219,7 +219,7 @@ class FrameFactory(object):
         for i in range(len(_d)):
             _d[i] ^= _m[i % 4]
 
-        return _d.tostring()
+        return _d.tobytes()
 
     @classmethod
     def generate_bytes(cls, payload, fin_bit, opcode, mask_payload):

@@ -10,7 +10,8 @@ import logging
 import os
 
 from wampy.constants import (
-    DEFAULT_HEARTBEAT_SECONDS, GEVENT, EVENT_LOOP_BACKENDS
+    DEFAULT_HEARTBEAT_SECONDS, DEFAULT_HEARTBEAT_TIMEOUT_SECONDS,
+    GEVENT, EVENT_LOOP_BACKENDS
 )
 from wampy.errors import WampyError
 
@@ -30,4 +31,8 @@ if async_name not in EVENT_LOOP_BACKENDS:
 
 heartbeat = os.environ.get(
     'WEBSOCKET_HEARTBEAT', DEFAULT_HEARTBEAT_SECONDS,
+)
+
+heartbeat_timeout = os.environ.get(
+    'WEBSOCKET_HEARTBEAT', DEFAULT_HEARTBEAT_TIMEOUT_SECONDS,
 )

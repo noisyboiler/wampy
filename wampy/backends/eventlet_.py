@@ -29,7 +29,7 @@ class Eventlet(Async):
         gthread = eventlet.spawn(*args, **kwargs)
         return gthread
 
-    def sleep(self, time):
+    def sleep(self, time=0):
         return eventlet.sleep(time)
 
     def _wait_for_message(self, timeout):

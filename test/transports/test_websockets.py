@@ -27,7 +27,7 @@ gevent_only = pytest.mark.skipif(
 )
 
 
-class TestApplication(WebSocketApplication):
+class WsApplication(WebSocketApplication):
     pass
 
 
@@ -35,7 +35,7 @@ class TestApplication(WebSocketApplication):
 def server():
     s = WebSocketServer(
         ('0.0.0.0', 8001),
-        Resource(OrderedDict([('/', TestApplication)]))
+        Resource(OrderedDict([('/', WsApplication)]))
     )
     s.start()
     thread = Greenlet.spawn(s.serve_forever)
@@ -118,14 +118,6 @@ def test_send_ping(server):
 @pytest.fixture(scope="function")
 def config_path():
     return './wampy/testing/configs/crossbar.timeout.json'
-
-
-def test_server_pong(router):
-    client = Client(url=router.url)
-    client.start()
-    wait_for_session(client)
-    gevent.sleep(10)
-    client.stop()
 
 
 def test_respond_to_ping_with_pong(config_path, router):

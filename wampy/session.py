@@ -37,6 +37,8 @@ class Session(object):
     def __init__(self, client, router, transport, message_handler):
         """ A Session between a Client and a Router.
 
+        The WAMP layer of the internal architecture.
+
         :Parameters:
             client : instance
                 An instance of :class:`peers.Client`
@@ -46,7 +48,7 @@ class Session(object):
                 An instance of ``wampy.transports``.
             message_handler : instance
                 An instance of ``wampy.message_handler.MessageHandler``,
-                or a subclass of
+                or a subclass of it. Handles incoming WAMP Messages.
 
         """
         self.client = client
@@ -63,8 +65,10 @@ class Session(object):
         # spawn a green thread to listen for incoming messages over
         # a connection and put them on a queue to be processed
         self._managed_thread = None
+        # the MessageHandler is responsible for putting messages on
+        # to this queue.
         self._message_queue = async_adapter.message_queue
-        self._listen(self.connection, self._message_queue)
+        self._listen(self.connection)
 
     @property
     def host(self):
@@ -86,6 +90,11 @@ class Session(object):
         return self._say_hello()
 
     def end(self):
+        try:
+            self.connection.ponger_thread.kill()
+            self.connection.pinger_thread.kill()
+        except AttributeError:
+            pass
         self._say_goodbye()
         self.subscription_map = {}
         self.registration_map = {}
@@ -120,7 +129,7 @@ class Session(object):
         details = self.client.roles
         for role, features in details['roles'].items():
             features.setdefault('features', {})
-            features['features'].setdefault('call_timeout', True)
+            features['features'].setdefault('call_timeout', False)
 
         message = Hello(realm=self.realm, details=details)
         self.send_message(message)
@@ -137,8 +146,6 @@ class Session(object):
             logger.exception("GOODBYE failed!: %s", exc)
         else:
             try:
-                # TODO: appears to be a bug as we have never been receiving
-                # the echoed GOODBYE
                 message = self.recv_message(timeout=1)
                 if message.WAMP_CODE != Goodbye.WAMP_CODE:
                     raise WampProtocolError(
@@ -152,7 +159,7 @@ class Session(object):
             except WampProtocolError as exc:
                 logger.exception('failed to say Goodbye')
 
-    def _listen(self, connection, message_queue):
+    def _listen(self, connection):
 
         def connection_handler():
             while True:
