@@ -14,7 +14,7 @@ class Goodbye(object):
 
     """
     WAMP_CODE = 6
-    DEFAULT_REASON = "wamp.close.normal"
+    DEFAULT_REASON = "wamp.error.close_realm"
 
     name = "goodbye"
 

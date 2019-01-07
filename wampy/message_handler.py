@@ -105,7 +105,7 @@ class MessageHandler(object):
         func(*payload_list, **payload_dict)
 
     def handle_goodbye(self, message_obj):
-        pass
+        self.session._message_queue.put(message_obj)
 
     def handle_subscribed(self, message_obj):
         session = self.session
