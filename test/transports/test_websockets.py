@@ -13,7 +13,6 @@ from mock import call, patch
 from wampy.backends import async_adapter
 from wampy.config.defaults import async_name
 from wampy.constants import GEVENT
-from wampy.errors import ConnectionError
 from wampy.peers.clients import Client
 from wampy.testing.helpers import wait_for_session
 from wampy.transports.websocket.connection import WebSocket
@@ -185,12 +184,9 @@ def test_server_closess(server):
         assert isinstance(call_param, Close)
 
 
-@gevent_only
-def test_close_message_payload(server):
-    websocket = WebSocket(server_url='ws://0.0.0.0:8001')
-    close_frame = Close(payload="explosion")
+def test_client_server_ping_pong():
+    pass
 
-    with pytest.raises(ConnectionError) as exc:
-        websocket.handle_close(close_frame=close_frame)
 
-    assert "explosion" in str(exc)
+def test_missed_pongsg():
+    pass

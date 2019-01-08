@@ -306,12 +306,9 @@ class WebSocket(Transport, ParseUrlMixin):
                         async_adapter.sleep()
                         continue
 
-                delta = abs(self._pinged_at - last_received_pong)
-
-                if delta > heartbeat_timeout:
-                    logger.warning(
-                        'no Pong returned after %s seconds', delta
-                    )
+                waited_for = abs(self._pinged_at - last_received_pong)
+                if waited_for > heartbeat_timeout:
+                    self.handle_missed_pong(waited_for)
                     async_adapter.sleep()
                     continue
 
@@ -330,17 +327,30 @@ class WebSocket(Transport, ParseUrlMixin):
         assert pong_frame.payload == 'wampy'
         self._ponged_at = time()
 
+    def handle_missed_pong(self, waited_for):
+        logger.warning(
+            'no Pong returned after %s seconds', waited_for
+        )
+        # reset marker
+        self._ponged_at = time()
+
     def handle_close(self, close_frame):
+        logger.warning(
+            'server closed connection: %s', close_frame.payload,
+        )
+        self.stop_pinging()
+        self.disconnect()
+
+    def stop_pinging(self):
         try:
             self.ponger_thread.kill()
-            self.pinger_thread.kill()
         except AttributeError:
-            # when client does not Ping the server
             pass
 
-        raise ConnectionError(
-            'connection closed: {}'.format(close_frame.payload)
-        )
+        try:
+            self.pinger_thread.kill()
+        except AttributeError:
+            pass
 
 
 class SecureWebSocket(WebSocket):

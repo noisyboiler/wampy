@@ -90,12 +90,9 @@ class Session(object):
         return self._say_hello()
 
     def end(self):
-        try:
-            self.connection.ponger_thread.kill()
-            self.connection.pinger_thread.kill()
-        except AttributeError:
-            pass
+        self.connection.stop_pinging()
         self._say_goodbye()
+        self.connection.disconnect()
         self.subscription_map = {}
         self.registration_map = {}
         self.session_id = None
@@ -155,7 +152,6 @@ class Session(object):
                     )
             except WampyTimeOutError:
                 logger.warning('no response to Goodbye.... server gone away?')
-                pass
             except WampProtocolError as exc:
                 logger.exception('failed to say Goodbye')
 
