@@ -188,5 +188,29 @@ def test_client_server_ping_pong():
     pass
 
 
-def test_missed_pongsg():
-    pass
+@gevent_only
+@pytest.mark.parametrize(
+    "heartbeat, heartbeat_timeout, sleep, expected_missed_pongs", [
+        (2, 2, 6.1, 3),
+        (5, 2, 6, 1),
+    ]
+)
+def test_missed_pongs(
+    router, heartbeat, heartbeat_timeout, sleep, expected_missed_pongs
+):
+    with patch('wampy.transports.websocket.connection.heartbeat', heartbeat):
+        with patch(
+            'wampy.transports.websocket.connection.heartbeat_timeout',
+            heartbeat_timeout
+        ):
+            client = Client(url=router.url)
+            client.start()
+            wait_for_session(client)
+
+            ws = client.session.connection
+            with patch.object(ws, 'handle_pong'):
+                gevent.sleep(sleep)
+
+            client.stop()
+
+    assert ws.missed_pongs == expected_missed_pongs

@@ -19,7 +19,6 @@ from wampy.constants import (
 )
 from wampy.errors import (
     IncompleteFrameError, ConnectionError, WampProtocolError, WampyError,
-    WebsocktProtocolError,
 )
 from wampy.interfaces import Transport
 from wampy.mixins import ParseUrlMixin
@@ -47,8 +46,10 @@ class WebSocket(Transport, ParseUrlMixin):
         self.socket = None
         self.connected = False
 
+        self._first_pinged_at = None
         self._pinged_at = None
-        self._ponged_at = None
+        self._pong_pointer = None
+        self.missed_pongs = 0
 
     def connect(self, upgrade=True):
         # TCP connection
@@ -281,6 +282,7 @@ class WebSocket(Transport, ParseUrlMixin):
 
                 s.enter(heartbeat, 1, pinger, (sc,))
 
+            self._first_pinged_at = time()
             s.enter(heartbeat, 1, pinger, (s,))
             s.run()
 
@@ -296,20 +298,16 @@ class WebSocket(Transport, ParseUrlMixin):
                     continue
 
                 now = time()
-                last_received_pong = self._ponged_at
 
-                if last_received_pong is None:
-                    delta = now - self._pinged_at
-                    if delta > heartbeat_timeout:
-                        raise WebsocktProtocolError('no Pong returned')
-                    else:
-                        async_adapter.sleep()
-                        continue
+                if self._pong_pointer is None:
+                    waited_for = now - self._first_pinged_at
+                    if waited_for > heartbeat_timeout:
+                        self.handle_missed_pong(waited_for)
+                    continue
 
-                waited_for = abs(self._pinged_at - last_received_pong)
+                waited_for = abs(self._pinged_at - self._pong_pointer)
                 if waited_for > heartbeat_timeout:
                     self.handle_missed_pong(waited_for)
-                    async_adapter.sleep()
                     continue
 
                 async_adapter.sleep()
@@ -325,14 +323,15 @@ class WebSocket(Transport, ParseUrlMixin):
 
     def handle_pong(self, pong_frame):
         assert pong_frame.payload == 'wampy'
-        self._ponged_at = time()
+        self._pong_pointer = time()
 
     def handle_missed_pong(self, waited_for):
         logger.warning(
             'no Pong returned after %s seconds', waited_for
         )
-        # reset marker
-        self._ponged_at = time()
+        self._pong_pointer = time()
+        self.missed_pongs += 1
+        async_adapter.sleep()
 
     def handle_close(self, close_frame):
         logger.warning(
