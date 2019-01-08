@@ -256,8 +256,9 @@ Async.io would require a complete re-write, and if you're already using the stan
 Alpha Features
 **************
 
+
 WebSocket Client -> Server Pings
-################################
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Disabled by default, but by setting the environment variable **DEFAULT_HEARTBEAT_SECONDS** you can tell wampy to start Pinging the Router/Broker, i.e. Crossbar.
 
@@ -268,7 +269,7 @@ Disabled by default, but by setting the environment variable **DEFAULT_HEARTBEAT
 There is also **HEARTBEAT_TIMEOUT_SECONDS**, which on missed will log a *warning* message - that's it for now: Work In Progress.
 
 WAMP Call TimeOuts
-##################
+~~~~~~~~~~~~~~~~~~
 
 WAMP advacned protocol describes an RPC timeout which **wampy** implements but Crossbar as yet does not. See https://github.com/crossbario/crossbar/issues/299. wampy does pass your preferred value to the Router/Broker in the Call Message, but the actual timeout is implemented by wampy, simply cutting the request off at the head. Sadly this does mean the server still may return a value for you and your app will have to handle this. We send the Cancel Message too, but there are issues here as well: Work In Progress.
 
@@ -308,7 +309,7 @@ Thanks world.
 .. _examples: https://github.com/noisyboiler/wampy/blob/master/docs/examples/services.py#L26
 .. _autobahn: http://autobahn.ws/python/
 .. _nameko: https://github.com/nameko
-.. _nameko-wamp: https://github.com/noisyboiler/nameko-wamp
+.. _nameko_wamp: https://github.com/noisyboiler/nameko-wamp
 .. _Twisted: https://twistedmatrix.com/trac/
 .. _WAMP: http://wamp-proto.org/static/rfc/draft-oberstet-hybi-crossbar-wamp.html
 .. _CONTRIBUTING: https://github.com/noisyboiler/wampy/blob/master/CONTRIBUTING.md
