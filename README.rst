@@ -266,7 +266,7 @@ Disabled by default, but by setting the environment variable **DEFAULT_HEARTBEAT
 
     $ export DEFAULT_HEARTBEAT_SECONDS=5
 
-There is also **HEARTBEAT_TIMEOUT_SECONDS**, which on missed will log a *warning* message - that's it for now: Work In Progress.
+There is also **HEARTBEAT_TIMEOUT_SECONDS** (defaults to 2 seconds) which on missed will incrmeent a missed Pong counter. That's it for now; WIP.
 
 WAMP Call TimeOuts
 ~~~~~~~~~~~~~~~~~~
