@@ -146,6 +146,10 @@ class Client(object):
         return self.session.request_ids
 
     @property
+    def is_pinging(self):
+        return self.session.connection.is_pinging
+
+    @property
     def call(self):
         return CallProxy(client=self)
 

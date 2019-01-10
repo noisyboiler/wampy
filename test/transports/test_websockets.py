@@ -203,6 +203,8 @@ def test_pings_and_missed_pongs(
             client.start()
             wait_for_session(client)
 
+            assert client.is_pinging is True
+
             ws = client.session.connection
             assert ws.missed_pongs == 0
 
@@ -211,5 +213,6 @@ def test_pings_and_missed_pongs(
                 gevent.sleep(sleep)
 
             client.stop()
+            assert client.is_pinging is False
 
     assert ws.missed_pongs == expected_missed_pongs

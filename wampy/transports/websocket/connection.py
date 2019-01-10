@@ -49,9 +49,10 @@ class WebSocket(Transport, ParseUrlMixin):
         self._first_pinged_at = None
         self._pinged_at = None
         self._pong_pointer = None
-        self.missed_pongs = 0
 
         self.pongs = async_adapter.queue()
+        self.missed_pongs = 0
+        self.is_pinging = False
 
     def connect(self, upgrade=True):
         # TCP connection
@@ -309,6 +310,7 @@ class WebSocket(Transport, ParseUrlMixin):
         self.pinger_thread = async_adapter.spawn(
             websocket_ping_thread, self.socket
         )
+        self.is_pinging = True
 
     def handle_ping(self, ping_frame):
         pong_frame = Pong(payload=ping_frame.payload)
@@ -330,6 +332,7 @@ class WebSocket(Transport, ParseUrlMixin):
             self.pinger_thread.kill()
         except AttributeError:
             pass
+        self.is_pinging = False
 
 
 class SecureWebSocket(WebSocket):
