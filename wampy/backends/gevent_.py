@@ -18,8 +18,8 @@ class Gevent(Async):
     def queue(self):
         return gevent.queue.Queue()
 
-    def Timeout(self, timeout):
-        return gevent.Timeout(timeout)
+    def Timeout(self, timeout, raise_after=True):
+        return gevent.Timeout(timeout, raise_after)
 
     def receive_message(self, timeout):
         try:

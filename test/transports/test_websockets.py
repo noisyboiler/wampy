@@ -184,18 +184,14 @@ def test_server_closess(server):
         assert isinstance(call_param, Close)
 
 
-def test_client_server_ping_pong():
-    pass
-
-
 @gevent_only
 @pytest.mark.parametrize(
     "heartbeat, heartbeat_timeout, sleep, expected_missed_pongs", [
-        (2, 2, 6.1, 3),
-        (5, 2, 6, 1),
+        (5, 0, 10, 2),
+        (2, 1, 10, 4),
     ]
 )
-def test_missed_pongs(
+def test_pings_and_missed_pongs(
     router, heartbeat, heartbeat_timeout, sleep, expected_missed_pongs
 ):
     with patch('wampy.transports.websocket.connection.heartbeat', heartbeat):
@@ -208,6 +204,9 @@ def test_missed_pongs(
             wait_for_session(client)
 
             ws = client.session.connection
+            assert ws.missed_pongs == 0
+
+            # this prevents Pongs being put into the shared queue
             with patch.object(ws, 'handle_pong'):
                 gevent.sleep(sleep)
 

@@ -13,8 +13,11 @@ class Eventlet(Async):
     def __init__(self):
         self.message_queue = eventlet.Queue()
 
-    def Timeout(self, timeout):
-        return eventlet.Timeout(timeout)
+    def queue(self):
+        return eventlet.queue.Queue()
+
+    def Timeout(self, timeout, raise_after=True):
+        return eventlet.Timeout(timeout, raise_after)
 
     def receive_message(self, timeout):
         try:

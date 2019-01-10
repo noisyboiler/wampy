@@ -111,7 +111,6 @@ class WebSocket(Transport, ParseUrlMixin):
                     received_bytes = bytearray()
                     continue
                 if frame.opcode == frame.OPCODE_PONG:
-                    print('PONG!!!!')
                     self.handle_pong(pong_frame=frame)
                     received_bytes = bytearray()
                     continue
@@ -272,15 +271,20 @@ class WebSocket(Transport, ParseUrlMixin):
                 payload = 'wampy::' + str(uuid.uuid4())
                 # we send a Ping with a unique payload, and we expect
                 # a Pong back echoing the same payload - but within the
-                # dealine of ``heartbeat_timeout_seconds``.
+                # deadline of ``heartbeat_timeout_seconds``.
                 ping = Ping(payload=payload, mask_payload=True)
                 socket.sendall(bytes(ping.frame))
-                with async_adapter.Timeout(heartbeat_timeout):
-                    pong = None
+                pong = None
+                with async_adapter.Timeout(
+                    heartbeat_timeout, raise_after=False
+                ):
                     while pong is None:
                         maybe_pong = self.pongs.peek(block=True)
                         if maybe_pong.payload == payload:
                             pong = self.pongs.get()
+
+                if pong is None:
+                    self.missed_pongs += 1
 
             def pinger(sc):
                 try:
