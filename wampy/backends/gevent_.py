@@ -15,6 +15,9 @@ class Gevent(Async):
     def __init__(self):
         self.message_queue = gevent.queue.Queue()
 
+    def queue(self):
+        return gevent.queue.Queue()
+
     def Timeout(self, timeout):
         return gevent.Timeout(timeout)
 
