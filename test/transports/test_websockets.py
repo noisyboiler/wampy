@@ -184,7 +184,25 @@ def test_server_closess(server):
         assert isinstance(call_param, Close)
 
 
-@gevent_only
+def test_pinging(router):
+    with patch('wampy.transports.websocket.connection.heartbeat', 1):
+        with patch(
+            'wampy.transports.websocket.connection.heartbeat_timeout', 2
+        ):
+            client = Client(router.url)
+            client.start()
+            wait_for_session(client)
+
+            ws = client.session.connection
+            assert ws.missed_pongs == 0
+
+            async_adapter.sleep(10)
+
+            assert ws.missed_pongs == 0
+
+    client.stop()
+
+
 @pytest.mark.parametrize(
     "heartbeat, heartbeat_timeout, sleep, expected_missed_pongs", [
         (5, 0, 10, 2),
@@ -199,20 +217,18 @@ def test_pings_and_missed_pongs(
             'wampy.transports.websocket.connection.heartbeat_timeout',
             heartbeat_timeout
         ):
-            client = Client(url=router.url)
-            client.start()
-            wait_for_session(client)
+            with Client(url=router.url) as client:
+                wait_for_session(client)
 
-            assert client.is_pinging is True
+                assert client.is_pinging is True
 
-            ws = client.session.connection
-            assert ws.missed_pongs == 0
+                ws = client.session.connection
+                assert ws.missed_pongs == 0
 
-            # this prevents Pongs being put into the shared queue
-            with patch.object(ws, 'handle_pong'):
-                gevent.sleep(sleep)
+                # this prevents Pongs being put into the shared queue
+                with patch.object(ws, 'handle_pong'):
+                    async_adapter.sleep(sleep)
 
-            client.stop()
             assert client.is_pinging is False
 
     assert ws.missed_pongs == expected_missed_pongs
