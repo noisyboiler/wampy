@@ -27,7 +27,7 @@ wampy
 
     WAMP RPC and Pub/Sub for your Python apps and microservices
 
-Hello world.
+For a background as to what WAMP is, please see `here`_.
 
 This is a Python implementation of `WAMP`_ using `Gevent`_, but you can also configure **wampy** to use `eventlet`_, if that is how your application does async. **Wampy** is is a light-weight alternative to `autobahn`_.
 
@@ -300,7 +300,7 @@ Contributing
 
 Thank you everyone who does. And *everyone* is welcome to. And thanks for reading the `CONTRIBUTING`_ guidelines. And for adding yourselves to the `CONTRIBUTORS`_ list on your PR - you should! Many thanks. It's also great to hear how everyone uses wampy, so please do share how with me on your PR in comments.
 
-Thanks world.
+Thanks!
 
 
 .. _Crossbar.io docs: http://crossbar.io/docs/Quick-Start/
@@ -319,3 +319,4 @@ Thanks world.
 .. _Flask: https://github.com/pallets/flask
 .. _flask_wamp: https://github.com/noisyboiler/flask-wamp
 .. _Flask-WAMP: https://github.com/noisyboiler/flask-wamp
+.. _here: https://medium.com/@noisyboiler/the-web-application-messaging-protocol-d8efe95aeb67
