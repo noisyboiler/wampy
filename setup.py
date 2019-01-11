@@ -36,8 +36,7 @@ setup(
     install_requires=[
         "attrs>=17.4.0 ",
         "eventlet==0.24.1",
-        "six>=1.10.0",
-        "si>==1.11.0",
+        "six>=1.11.0",
         "simplejson==3.11.1",
         "gevent>1.1",  # fixes infinite SSL recursion bug
     ],
