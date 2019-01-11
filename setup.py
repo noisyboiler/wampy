@@ -35,7 +35,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         "attrs>=17.4.0 ",
-        "eventlet==0.20.1",
+        "eventlet==0.24.1",
         "six>=1.10.0",
         "si>==1.11.0",
         "simplejson==3.11.1",
