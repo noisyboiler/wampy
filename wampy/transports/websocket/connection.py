@@ -3,22 +3,28 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import logging
+import sched
 import socket
 import ssl
 import uuid
 from base64 import encodestring
 from socket import error as socket_error
+from time import time
 
 from wampy.backends import async_adapter
 from wampy.backends.errors import WampyTimeOut
-from wampy.constants import WEBSOCKET_SUBPROTOCOLS, WEBSOCKET_VERSION
+from wampy.config.defaults import heartbeat, heartbeat_timeout
+from wampy.constants import (
+    WEBSOCKET_SUBPROTOCOLS, WEBSOCKET_VERSION,
+)
 from wampy.errors import (
-    IncompleteFrameError, ConnectionError, WampProtocolError, WampyError)
+    IncompleteFrameError, ConnectionError, WampProtocolError, WampyError,
+)
 from wampy.interfaces import Transport
 from wampy.mixins import ParseUrlMixin
 from wampy.serializers import json_serialize
 
-from . frames import FrameFactory, Pong, Text
+from . frames import FrameFactory, Ping, Pong, Text
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +32,7 @@ logger = logging.getLogger(__name__)
 class WebSocket(Transport, ParseUrlMixin):
 
     def __init__(self, server_url, ipv=4):
+
         self.url = server_url
         self.ipv = ipv
 
@@ -39,10 +46,21 @@ class WebSocket(Transport, ParseUrlMixin):
         self.socket = None
         self.connected = False
 
+        self._first_pinged_at = None
+        self._pinged_at = None
+        self._pong_pointer = None
+
+        self.pongs = async_adapter.queue()
+        self.missed_pongs = 0
+        self.is_pinging = False
+
     def connect(self, upgrade=True):
         # TCP connection
         self._connect()
         self._handshake(upgrade=upgrade)
+
+        if heartbeat > 0:
+            self.start_pinging()
         return self
 
     def disconnect(self):
@@ -69,16 +87,16 @@ class WebSocket(Transport, ParseUrlMixin):
 
         while True:
             try:
-                bytes = self.socket.recv(bufsize)
+                bytes_ = self.socket.recv(bufsize)
             except socket.timeout as e:
                 message = str(e)
                 raise ConnectionError('timeout: "{}"'.format(message))
             except Exception as exc:
                 raise ConnectionError('Connection lost: "{}"'.format(exc))
-            if not bytes:
+            if not bytes_:
                 break
 
-            received_bytes.extend(bytes)
+            received_bytes.extend(bytes_)
 
             try:
                 frame = FrameFactory.from_bytes(received_bytes)
@@ -93,12 +111,14 @@ class WebSocket(Transport, ParseUrlMixin):
                     async_adapter.spawn(self.handle_ping(ping_frame=frame))
                     received_bytes = bytearray()
                     continue
+                if frame.opcode == frame.OPCODE_PONG:
+                    self.handle_pong(pong_frame=frame)
+                    received_bytes = bytearray()
+                    continue
                 if frame.opcode == frame.OPCODE_BINARY:
                     break
-
                 if frame.opcode == frame.OPCODE_CLOSE:
-                    async_adapter.spawn(self.handle_close(close_frame=frame))
-                    break
+                    self.handle_close(close_frame=frame)
 
                 break
 
@@ -244,16 +264,97 @@ class WebSocket(Transport, ParseUrlMixin):
         self.connected = True
         return status, headers
 
+    def start_pinging(self):
+
+        def websocket_ping_thread(socket):
+            s = sched.scheduler(time, async_adapter.sleep)
+
+            def send_ping_and_expect_pong():
+                payload = 'wampy::' + str(uuid.uuid4())
+                # we send a Ping with a unique payload, and we expect
+                # a Pong back echoing the same payload - but within the
+                # deadline of ``heartbeat_timeout_seconds``.
+                ping = Ping(payload=payload, mask_payload=True)
+
+                try:
+                    socket.sendall(bytes(ping.frame))
+                except OSError:
+                    # connection closed by parent thread, or wampy
+                    # has been disconnected from server...
+                    # either way, this gthread will be killed as
+                    # soon if the Close message is received else
+                    # schedule another Ping
+                    logger.info('ping failed')
+                    pass
+                except BrokenPipeError:
+                    logger.info('server ripped out from under us!')
+                    pass
+
+                pong = None
+
+                with async_adapter.Timeout(
+                    heartbeat_timeout, raise_after=False
+                ):
+                    while pong is None:
+                        # required for Hub to implelent TimeOut
+                        async_adapter.sleep()
+
+                        try:
+                            maybe_my_pong = self.pongs.get(block=False)
+                        except async_adapter.QueueEmpty:
+                            continue
+
+                        if maybe_my_pong:
+                            if maybe_my_pong.payload == payload:
+                                pong = maybe_my_pong
+                            else:
+                                # possibly Pinging faster than the server is
+                                # Ponging, else Hub hasn't scheduled the right
+                                # gthread yet.
+                                logger.error('Pongs out of order?')
+                                self.pongs.put(maybe_my_pong)
+
+                if pong is None:
+                    logger.info('missed a Pong from the server')
+                    self.missed_pongs += 1
+
+            def pinger(sc):
+                # do i need to spawn here???
+                async_adapter.spawn(send_ping_and_expect_pong)
+                s.enter(heartbeat, 1, pinger, (sc,))
+
+            s.enter(heartbeat, 1, pinger, (s,))
+
+            # the first Ping will be emitted after the first "hearbeat"
+            # seconds, i.e. *not* immediatly
+            s.run()
+
+        self.pinger_thread = async_adapter.spawn(
+            websocket_ping_thread, self.socket
+        )
+        self.is_pinging = True
+
     def handle_ping(self, ping_frame):
         pong_frame = Pong(payload=ping_frame.payload)
-        bytes = pong_frame.frame
-        logger.info('sending pong: %s', bytes)
-        self._send_raw(bytes)
+        bytes_ = pong_frame.frame
+        self._send_raw(bytes_)
+
+    def handle_pong(self, pong_frame):
+        self.pongs.put(pong_frame)
 
     def handle_close(self, close_frame):
-        message = close_frame.payload
-        logger.warning('server has closed down: %s', message)
-        raise ConnectionError('connection closed: {}'.format(message))
+        logger.warning(
+            'server closed connection: %s', close_frame.payload,
+        )
+        self.stop_pinging()
+        self.disconnect()
+
+    def stop_pinging(self):
+        try:
+            self.pinger_thread.kill()
+        except AttributeError:
+            pass
+        self.is_pinging = False
 
 
 class SecureWebSocket(WebSocket):

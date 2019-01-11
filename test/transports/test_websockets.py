@@ -1,4 +1,3 @@
-import os
 import logging
 from collections import OrderedDict
 
@@ -12,8 +11,8 @@ from mock import ANY
 from mock import call, patch
 
 from wampy.backends import async_adapter
+from wampy.config.defaults import async_name
 from wampy.constants import GEVENT
-from wampy.errors import ConnectionError
 from wampy.peers.clients import Client
 from wampy.testing.helpers import wait_for_session
 from wampy.transports.websocket.connection import WebSocket
@@ -22,12 +21,12 @@ from wampy.transports.websocket.frames import Close, Ping
 logger = logging.getLogger(__name__)
 
 gevent_only = pytest.mark.skipif(
-    os.environ.get('WAMPY_ASYNC_NAME') != GEVENT,
+    async_name != GEVENT,
     reason="requires a Greenlet WebSocket server and you're using eventlet"
 )
 
 
-class TestApplication(WebSocketApplication):
+class WsApplication(WebSocketApplication):
     pass
 
 
@@ -35,7 +34,7 @@ class TestApplication(WebSocketApplication):
 def server():
     s = WebSocketServer(
         ('0.0.0.0', 8001),
-        Resource(OrderedDict([('/', TestApplication)]))
+        Resource(OrderedDict([('/', WsApplication)]))
     )
     s.start()
     thread = Greenlet.spawn(s.serve_forever)
@@ -185,12 +184,53 @@ def test_server_closess(server):
         assert isinstance(call_param, Close)
 
 
-@gevent_only
-def test_close_message_payload(server):
-    websocket = WebSocket(server_url='ws://0.0.0.0:8001')
-    close_frame = Close(payload="explosion")
+def test_pinging(router):
+    with patch('wampy.transports.websocket.connection.heartbeat', 1):
+        with patch(
+            'wampy.transports.websocket.connection.heartbeat_timeout', 2
+        ):
+            client = Client(router.url)
+            client.start()
+            wait_for_session(client)
 
-    with pytest.raises(ConnectionError) as exc:
-        websocket.handle_close(close_frame=close_frame)
+            assert client.is_pinging
 
-    assert "explosion" in str(exc)
+            ws = client.session.connection
+            assert ws.missed_pongs == 0
+
+            async_adapter.sleep(10)
+
+            assert ws.missed_pongs == 0
+
+    client.stop()
+
+
+@pytest.mark.parametrize(
+    "heartbeat, heartbeat_timeout, sleep, expected_missed_pongs", [
+        (5, 0, 10, 2),
+        (2, 1, 10, 4),
+    ]
+)
+def test_pings_and_missed_pongs(
+    router, heartbeat, heartbeat_timeout, sleep, expected_missed_pongs
+):
+    with patch('wampy.transports.websocket.connection.heartbeat', heartbeat):
+        with patch(
+            'wampy.transports.websocket.connection.heartbeat_timeout',
+            heartbeat_timeout
+        ):
+            with Client(url=router.url) as client:
+                wait_for_session(client)
+
+                assert client.is_pinging is True
+
+                ws = client.session.connection
+                assert ws.missed_pongs == 0
+
+                # this prevents Pongs being put into the shared queue
+                with patch.object(ws, 'handle_pong'):
+                    async_adapter.sleep(sleep)
+
+            assert client.is_pinging is False
+
+    assert ws.missed_pongs == expected_missed_pongs

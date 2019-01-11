@@ -15,8 +15,15 @@ class Gevent(Async):
     def __init__(self):
         self.message_queue = gevent.queue.Queue()
 
-    def Timeout(self, timeout):
-        return gevent.Timeout(timeout)
+    def queue(self):
+        return gevent.queue.Queue()
+
+    def Timeout(self, timeout, raise_after=True):
+        return gevent.Timeout(timeout, raise_after)
+
+    @property
+    def QueueEmpty(self):
+        return gevent.queue.Empty
 
     def receive_message(self, timeout):
         try:
@@ -31,8 +38,8 @@ class Gevent(Async):
         gthread = gevent.spawn(*args, **kwargs)
         return gthread
 
-    def sleep(self, time):
-        return gevent.sleep(time)
+    def sleep(self, time=0):
+        gevent.sleep(time)
 
     def _wait_for_message(self, timeout):
         q = self.message_queue

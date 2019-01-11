@@ -17,8 +17,9 @@
 .. |Python36| image:: https://img.shields.io/badge/python-3.6-blue.svg
 .. _Python36: https://pypi.python.org/pypi/wampy/
 
+*****
 wampy
-=====
+*****
 
 *[whomp-ee]*
 
@@ -26,7 +27,7 @@ wampy
 
     WAMP RPC and Pub/Sub for your Python apps and microservices
 
-Hello world.
+For a background as to what WAMP is, please see `here`_.
 
 This is a Python implementation of `WAMP`_ using `Gevent`_, but you can also configure **wampy** to use `eventlet`_, if that is how your application does async. **Wampy** is is a light-weight alternative to `autobahn`_.
 
@@ -221,8 +222,9 @@ Notice ``topic`` is *always* first, followed by ``kwargs``. Happy to explore how
 
 See `ReadTheDocs`_ for more detailed documentation.
 
+**********
 Extensions
-~~~~~~~~~~
+**********
 
 Wampy is a "simple" WAMP client and so it can easily be integrated with other frameworks. The current extensions are:
 
@@ -231,9 +233,9 @@ Wampy is a "simple" WAMP client and so it can easily be integrated with other fr
 
 Extensions for other Python Frameworks are encouraged!
 
-
+****************
 Async Networking
-~~~~~~~~~~~~~~~~
+****************
 
 The default backend for async networking is **gevent**, but you can switch this to **eventlet** if that is what your applications already use.
 
@@ -250,9 +252,30 @@ Swapping back is easy.
 
 Async.io would require a complete re-write, and if you're already using the standard library and want to use **wampy** that is *not* a problem - just roll with the default gevent - as the two event loops can run side by side.
 
+**************
+Alpha Features
+**************
 
+
+WebSocket Client -> Server Pings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Disabled by default, but by setting the environment variable **DEFAULT_HEARTBEAT_SECONDS** you can tell wampy to start Pinging the Router/Broker, i.e. Crossbar.
+
+::
+
+    $ export DEFAULT_HEARTBEAT_SECONDS=5
+
+There is also **HEARTBEAT_TIMEOUT_SECONDS** (defaults to 2 seconds) which on missed will incrmeent a missed Pong counter. That's it for now; WIP.
+
+WAMP Call TimeOuts
+~~~~~~~~~~~~~~~~~~
+
+WAMP advacned protocol describes an RPC timeout which **wampy** implements but Crossbar as yet does not. See https://github.com/crossbario/crossbar/issues/299. wampy does pass your preferred value to the Router/Broker in the Call Message, but the actual timeout is implemented by wampy, simply cutting the request off at the head. Sadly this does mean the server still may return a value for you and your app will have to handle this. We send the Cancel Message too, but there are issues here as well: Work In Progress.
+
+*****************
 Running the tests
-~~~~~~~~~~~~~~~~~
+*****************
 
 ::
 
@@ -260,8 +283,9 @@ Running the tests
     $ py.test ./test -v
 
 
+**************
 Build the docs
-~~~~~~~~~~~~~~
+**************
 
 ::
 
@@ -270,12 +294,13 @@ Build the docs
 
 **If you like this project, then Thank You, and you're welcome to get involved.**
 
+************
 Contributing
 ************
 
 Thank you everyone who does. And *everyone* is welcome to. And thanks for reading the `CONTRIBUTING`_ guidelines. And for adding yourselves to the `CONTRIBUTORS`_ list on your PR - you should! Many thanks. It's also great to hear how everyone uses wampy, so please do share how with me on your PR in comments.
 
-Thanks world.
+Thanks!
 
 
 .. _Crossbar.io docs: http://crossbar.io/docs/Quick-Start/
@@ -284,7 +309,7 @@ Thanks world.
 .. _examples: https://github.com/noisyboiler/wampy/blob/master/docs/examples/services.py#L26
 .. _autobahn: http://autobahn.ws/python/
 .. _nameko: https://github.com/nameko
-.. _nameko-wamp: https://github.com/noisyboiler/nameko-wamp
+.. _nameko_wamp: https://github.com/noisyboiler/nameko-wamp
 .. _Twisted: https://twistedmatrix.com/trac/
 .. _WAMP: http://wamp-proto.org/static/rfc/draft-oberstet-hybi-crossbar-wamp.html
 .. _CONTRIBUTING: https://github.com/noisyboiler/wampy/blob/master/CONTRIBUTING.md
@@ -294,3 +319,4 @@ Thanks world.
 .. _Flask: https://github.com/pallets/flask
 .. _flask_wamp: https://github.com/noisyboiler/flask-wamp
 .. _Flask-WAMP: https://github.com/noisyboiler/flask-wamp
+.. _here: https://medium.com/@noisyboiler/the-web-application-messaging-protocol-d8efe95aeb67

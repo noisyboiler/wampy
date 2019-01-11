@@ -41,6 +41,10 @@ DEFAULT_ROLES = {
 }
 DEFAULT_TIMEOUT = 10  # seconds
 
+# disabled by default. override with OS env variables.
+DEFAULT_HEARTBEAT_SECONDS = 0
+DEFAULT_HEARTBEAT_TIMEOUT_SECONDS = 2
+
 SUBSCRIBER = "subscriber"
 
 # WAMP URIs
