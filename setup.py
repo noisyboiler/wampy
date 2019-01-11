@@ -42,7 +42,7 @@ setup(
     ],
     extras_require={
         'dev': [
-            "crossbar==18.4.1",  # cannot go above this, see Crossbar issue 1333
+            "crossbar==18.4.1",  # cannot go >, see Crossbar issue 1333
             "pytest>=4.0.2",
             "mock>=1.3.0",
             "colorlog",
