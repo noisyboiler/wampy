@@ -44,10 +44,10 @@ setup(
     extras_require={
         'dev': [
             "crossbar==18.4.1",  # cannot go >, see Crossbar issue 1333
-            "pytest==4.0.2",
-            "mock==1.3.0",
+            "pytest>=4.0.2",
+            "mock>=1.3.0",
             "colorlog",
-            "flake8==3.5.0",
+            "flake8>=3.5.0",
             "gevent-websocket==0.10.1",
             "coverage>=3.7.1",
             "Twisted==17.9.0",
