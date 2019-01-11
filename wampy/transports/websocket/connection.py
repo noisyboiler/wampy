@@ -294,8 +294,10 @@ class WebSocket(Transport, ParseUrlMixin):
                             if maybe_my_pong.payload == payload:
                                 pong = maybe_my_pong
                             else:
-                                logger.info('not my Pong')
-                                # return it for another green thread to use
+                                # possibly Pinging faster than the server is
+                                # Ponging, else Hub hasn't scheduled the right
+                                # gthread yet.
+                                logger.error('Pongs out of order?')
                                 self.pongs.put(maybe_my_pong)
 
                 if pong is None:

@@ -193,6 +193,8 @@ def test_pinging(router):
             client.start()
             wait_for_session(client)
 
+            assert client.is_pinging
+
             ws = client.session.connection
             assert ws.missed_pongs == 0
 
