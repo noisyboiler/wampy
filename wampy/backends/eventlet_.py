@@ -11,10 +11,14 @@ from wampy.interfaces import Async
 class Eventlet(Async):
 
     def __init__(self):
-        self.message_queue = eventlet.Queue()
+        self.message_queue = eventlet.queue.Queue()
 
     def queue(self):
         return eventlet.queue.Queue()
+
+    @property
+    def QueueEmpty(self):
+        return eventlet.queue.Empty
 
     def Timeout(self, timeout, raise_after=True):
         return eventlet.Timeout(timeout, raise_after)
@@ -33,7 +37,7 @@ class Eventlet(Async):
         return gthread
 
     def sleep(self, time=0):
-        return eventlet.sleep(time)
+        eventlet.sleep(time)
 
     def _wait_for_message(self, timeout):
         q = self.message_queue

@@ -265,6 +265,7 @@ class WebSocket(Transport, ParseUrlMixin):
         return status, headers
 
     def start_pinging(self):
+
         def websocket_ping_thread(socket):
             s = sched.scheduler(time, async_adapter.sleep)
 
@@ -276,19 +277,34 @@ class WebSocket(Transport, ParseUrlMixin):
                 ping = Ping(payload=payload, mask_payload=True)
                 socket.sendall(bytes(ping.frame))
                 pong = None
+
                 with async_adapter.Timeout(
                     heartbeat_timeout, raise_after=False
                 ):
                     while pong is None:
-                        maybe_pong = self.pongs.peek(block=True)
-                        if maybe_pong.payload == payload:
-                            pong = self.pongs.get()
+                        # required for Hub to implelent TimeOut
+                        async_adapter.sleep()
+
+                        try:
+                            maybe_my_pong = self.pongs.get(block=False)
+                        except async_adapter.QueueEmpty:
+                            continue
+
+                        if maybe_my_pong:
+                            if maybe_my_pong.payload == payload:
+                                pong = maybe_my_pong
+                            else:
+                                logger.info('not my Pong')
+                                # return it for another green thread to use
+                                self.pongs.put(maybe_my_pong)
 
                 if pong is None:
+                    logger.warning('missed a Pong from the server')
                     self.missed_pongs += 1
 
             def pinger(sc):
                 try:
+                    # do i need to spawn here???
                     async_adapter.spawn(send_ping_and_expect_pong)
                 except OSError:
                     # connection closed by parent thread, or wampy
