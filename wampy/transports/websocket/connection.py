@@ -275,7 +275,21 @@ class WebSocket(Transport, ParseUrlMixin):
                 # a Pong back echoing the same payload - but within the
                 # deadline of ``heartbeat_timeout_seconds``.
                 ping = Ping(payload=payload, mask_payload=True)
-                socket.sendall(bytes(ping.frame))
+
+                try:
+                    socket.sendall(bytes(ping.frame))
+                except OSError:
+                    # connection closed by parent thread, or wampy
+                    # has been disconnected from server...
+                    # either way, this gthread will be killed as
+                    # soon if the Close message is received else
+                    # schedule another Ping
+                    logger.info('ping failed')
+                    pass
+                except BrokenPipeError:
+                    logger.info('server ripped out from under us!')
+                    pass
+
                 pong = None
 
                 with async_adapter.Timeout(
@@ -301,22 +315,12 @@ class WebSocket(Transport, ParseUrlMixin):
                                 self.pongs.put(maybe_my_pong)
 
                 if pong is None:
-                    logger.warning('missed a Pong from the server')
+                    logger.info('missed a Pong from the server')
                     self.missed_pongs += 1
 
             def pinger(sc):
-                try:
-                    # do i need to spawn here???
-                    async_adapter.spawn(send_ping_and_expect_pong)
-                except OSError:
-                    # connection closed by parent thread, or wampy
-                    # has been disconnected from server...
-                    # either way, this gthread will be killed as
-                    # soon if the Close message is received else
-                    # schedule another Ping
-                    logger.error('ping failed')
-                    pass
-
+                # do i need to spawn here???
+                async_adapter.spawn(send_ping_and_expect_pong)
                 s.enter(heartbeat, 1, pinger, (sc,))
 
             s.enter(heartbeat, 1, pinger, (s,))
