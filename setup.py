@@ -48,7 +48,7 @@ setup(
             "mock>=1.3.0",
             "colorlog",
             "flake8>=3.5.0",
-            "gevent-websocket==0.10.1",
+            "gevent-websocket>=0.10.1",
             "coverage>=3.7.1",
             "Twisted==17.9.0",
         ],
