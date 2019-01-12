@@ -43,13 +43,13 @@ setup(
     extras_require={
         'dev': [
             "crossbar==18.4.1",  # cannot go >, see Crossbar issue 1333
+            "Twisted==17.9.0",
             "pytest>=4.0.2",
             "mock>=1.3.0",
-            "colorlog",
+            "colorlog>=3.1.4",
             "flake8>=3.5.0",
             "gevent-websocket>=0.10.1",
             "coverage>=3.7.1",
-            "Twisted==17.9.0",
         ],
         'docs': [
             "Sphinx==1.4.5",
