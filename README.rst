@@ -310,6 +310,7 @@ Thanks!
 .. _autobahn: http://autobahn.ws/python/
 .. _nameko: https://github.com/nameko
 .. _nameko_wamp: https://github.com/noisyboiler/nameko-wamp
+.. _nameko-wamp: https://github.com/noisyboiler/nameko-wamp
 .. _Twisted: https://twistedmatrix.com/trac/
 .. _WAMP: http://wamp-proto.org/static/rfc/draft-oberstet-hybi-crossbar-wamp.html
 .. _CONTRIBUTING: https://github.com/noisyboiler/wampy/blob/master/CONTRIBUTING.md
