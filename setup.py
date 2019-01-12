@@ -35,22 +35,21 @@ setup(
     packages=find_packages(),
     install_requires=[
         "attrs>=17.4.0 ",
-        "eventlet==0.24.1",
-        "six>=1.10.0",
-        "si>==1.11.0",
-        "simplejson==3.11.1",
+        "eventlet>=0.24.1",
+        "six>=1.11.0",
+        "simplejson>=3.11.1",
         "gevent>1.1",  # fixes infinite SSL recursion bug
     ],
     extras_require={
         'dev': [
-            "crossbar==18.4.1",
-            "pytest==4.0.2",
-            "mock==1.3.0",
-            "colorlog",
-            "flake8==3.5.0",
-            "gevent-websocket==0.10.1",
-            "coverage>=3.7.1",
+            "crossbar==18.4.1",  # cannot go >, see Crossbar issue 1333
             "Twisted==17.9.0",
+            "pytest>=4.0.2",
+            "mock>=1.3.0",
+            "colorlog>=3.1.4",
+            "flake8>=3.5.0",
+            "gevent-websocket>=0.10.1",
+            "coverage>=3.7.1",
         ],
         'docs': [
             "Sphinx==1.4.5",
