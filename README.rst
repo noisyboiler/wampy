@@ -17,6 +17,8 @@
 .. |Python36| image:: https://img.shields.io/badge/python-3.6-blue.svg
 .. _Python36: https://pypi.python.org/pypi/wampy/
 
+.. image:: https://coveralls.io/repos/github/noisyboiler/wampy/badge.svg?branch=master
+
 *****
 wampy
 *****
