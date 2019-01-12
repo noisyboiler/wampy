@@ -1,0 +1,12 @@
+[run]
+branch = False
+source =
+    wampy
+omit =
+    test/*
+
+[report]
+exclude_lines =
+    pragma: no cover
+
+show_missing = True
