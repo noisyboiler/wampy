@@ -18,7 +18,6 @@
 .. _Python36: https://pypi.python.org/pypi/wampy/
 
 .. image:: https://coveralls.io/repos/github/noisyboiler/wampy/badge.svg?branch=master
-:target: https://coveralls.io/github/noisyboiler/wampy?branch=master
 
 *****
 wampy
