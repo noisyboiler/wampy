@@ -47,10 +47,11 @@ wampy features
 - Client Authentication
 - Transport Layer Security
 - CLI for easy and rapid development
-- Pytest fixtures to use when testing your projects
+- Pytest fixtures to use when testing your projects, including a Crossbar.io fixture that tears down between each test
 - nameko_ integration with nameko_wamp_
 - Flask_ integration with flask_wamp_ 
 - configurable and extensible async backends (beta)
+- Alpha features (see below)
 
 QuickStart - Connect and Go!
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -224,6 +225,20 @@ Notice ``topic`` is *always* first, followed by ``kwargs``. Happy to explore how
 
 See `ReadTheDocs`_ for more detailed documentation.
 
+
+*******************
+Have Fun With Wampy
+*******************
+
+You can simply import a wampy client into a Python shell and start creating WAMP apps. Open a few shells and start clients running! Or start an example app and open a shell and start calling it. Don't forget to start Crossbar first though!
+
+::
+
+    $ make install
+
+    $ crossbar start --config ./wampy/testing/configs/crossbar.json
+
+
 **********
 Extensions
 **********
@@ -254,10 +269,11 @@ Swapping back is easy.
 
 Async.io would require a complete re-write, and if you're already using the standard library and want to use **wampy** that is *not* a problem - just roll with the default gevent - as the two event loops can run side by side.
 
+Why does wampy support both eventlet and gevent? Because wampy is not a framework like Flask or nameko, and wampy tries to make as few assumptions about the process it is running in as possible. Wampy is intended to be integrated into existing Python apps as an easy way to send and receive WAMP messages, and if your app is already committed to a paritcular async architecture, then wampy may not be usable unless he can switch between them freely. And do remember: both options are compatible with the core asyncio library, so don't be put off if your app uses this.
+
 **************
 Alpha Features
 **************
-
 
 WebSocket Client -> Server Pings
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

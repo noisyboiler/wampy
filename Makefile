@@ -1,3 +1,6 @@
+install:
+	pip install --editable .[dev]
+
 tests:
 	pip install --editable .[dev]
 	py.test ./test -vs
