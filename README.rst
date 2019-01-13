@@ -27,7 +27,7 @@ wampy
 
 .. pull-quote ::
 
-    WAMP RPC and Pub/Sub for your Python apps and microservices
+    WAMP RPC and Pub/Sub for python interactive shells, scripts, apps and microservices
 
 For a background as to what WAMP is, please see `here`_.
 
