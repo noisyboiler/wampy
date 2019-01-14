@@ -14,11 +14,6 @@ script:
   - pip install --editable .[dev]
   - py.test ./test -s -vv
 
-os:
-  - linux
-  - osx
-
-matrix:
-  include:
-    - python: '3.6'
-      env: WAMPY_ASYNC_NAME=eventlet
+env:
+  - WAMPY_ASYNC_NAME=eventlet
+  - WAMPY_ASYNC_NAME=gevent
