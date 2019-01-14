@@ -50,7 +50,7 @@ wampy features
 - Pytest fixtures to use when testing your projects, including a Crossbar.io fixture that tears down between each test
 - nameko_ integration with nameko_wamp_
 - Flask_ integration with flask_wamp_ 
-- configurable and extensible async backends (beta)
+- Compatible with gevent, eventlet and asyncio
 - Alpha features (see below)
 
 QuickStart - Connect and Go!
