@@ -325,7 +325,7 @@ Thanks!
 .. _ReadTheDocs: http://wampy.readthedocs.io/en/latest/
 .. _WAMP Protocol: http://wamp-proto.org/
 .. _examples: https://github.com/noisyboiler/wampy/blob/master/docs/examples/services.py#L26
-.. _autobahn: http://autobahn.ws/python/
+.. _autobahn: https://github.com/crossbario/autobahn-python
 .. _nameko: https://github.com/nameko
 .. _nameko_wamp: https://github.com/noisyboiler/nameko-wamp
 .. _nameko-wamp: https://github.com/noisyboiler/nameko-wamp
