@@ -8,12 +8,18 @@ python:
   - "3.5"
   - "3.6"
 
-script:
-  - pip install --upgrade setuptools
-  - pip install .
+install:
+  - pip install --upgrade setuptools coverage
   - pip install --editable .[dev]
-  - py.test ./test -s -vv
+  - pip install pytest-cov
+  - pip install coveralls
+
+script:
+  - pytest -s -vv --cov=./wampy
 
 env:
   - WAMPY_ASYNC_NAME=eventlet
   - WAMPY_ASYNC_NAME=gevent
+
+after_success:
+  - coveralls
