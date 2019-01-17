@@ -44,7 +44,8 @@ wampy features
 
 - Remote Procedure Calls over websockets
 - Publish and Subscribe over websockets
-- Client Authentication
+- Use wampy as a microservice/app, or in your Flask or nameko apps, or in scripts.... or just in a Python shell!
+- Client Authentication (Ticket and WCA)
 - Transport Layer Security
 - CLI for easy and rapid development
 - Pytest fixtures to use when testing your projects, including a Crossbar.io fixture that tears down between each test
