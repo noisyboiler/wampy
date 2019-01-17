@@ -1,6 +1,10 @@
+install:
+	pip install --editable .[dev]
 
 tests:
 	pip install --editable .[dev]
+	pip install coverage
+	pip install pytest-cov
 	py.test ./test -vs
 
 lint:

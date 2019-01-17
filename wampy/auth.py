@@ -13,9 +13,9 @@ def compute_wcs(key, challenge):
     challenge and a (derived) key.
 
     :param key: The key derived (via PBKDF2) from the secret.
-    :type key: bytes
+    :type key: str/bytes
     :param challenge: The authentication challenge to sign.
-    :type challenge: bytes
+    :type challenge: str/bytes
 
     :return: The authentication signature.
     :rtype: bytes
