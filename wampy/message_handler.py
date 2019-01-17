@@ -69,18 +69,18 @@ class MessageHandler(object):
         self.session._message_queue.put(message_obj)
 
     def handle_challenge(self, message_obj):
-        logger.debug("client has been Challenged")
         if 'WAMPYSECRET' not in os.environ:
+            logger.warning('WAMPYSECRET not in environ')
             # unable to handle this so delegate to the Client
             self.session._message_queue.put(message_obj)
             return
 
         secret = os.environ['WAMPYSECRET']
         if message_obj.auth_method == 'ticket':
-            logger.debug("proceeding with ticket authentication method")
+            logger.info("proceeding with ticket authentication method")
             message = Authenticate(secret)
         else:
-            logger.debug("proceeding with wampcra authentication method")
+            logger.info("assuming wampcra authentication method")
             challenge_data = message_obj.challenge
             signature = compute_wcs(secret, str(challenge_data))
             message = Authenticate(signature.decode("utf-8"))
