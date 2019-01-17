@@ -153,8 +153,20 @@ class MessageHandler(object):
     def process_result(self, message_obj, result, exc=None):
         result_kwargs = {}
 
-        procedure_name = self.session.registration_map[
-            message_obj.registration_id]
+        if self.session.session_id is None:
+            logger.error(
+                'wampy has already ended the WAMP session. not processing %s',
+                message_obj
+            )
+            return
+
+        try:
+            procedure_name = self.session.registration_map[
+                message_obj.registration_id
+            ]
+        except KeyError:
+            import pdb
+            pdb.set_trace()
 
         if exc is not None:
             from wampy.messages import Error
