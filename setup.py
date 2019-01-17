@@ -39,6 +39,7 @@ setup(
         "six>=1.11.0",
         "simplejson>=3.11.1",
         "gevent>1.1",  # fixes infinite SSL recursion bug
+        "typing>=3.6.6",
     ],
     extras_require={
         'dev': [
