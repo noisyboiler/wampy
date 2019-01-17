@@ -8,6 +8,7 @@ import os
 from wampy.auth import compute_wcs
 from wampy.errors import WampProtocolError
 from wampy.messages import Authenticate, MESSAGE_TYPE_MAP
+from wampy.messages import Error, Yield
 
 logger = logging.getLogger('wampy.messagehandler')
 
@@ -151,8 +152,6 @@ class MessageHandler(object):
         self.client.register_roles()
 
     def process_result(self, message_obj, result, exc=None):
-        result_kwargs = {}
-
         if self.session.session_id is None:
             logger.error(
                 'wampy has already ended the WAMP session. not processing %s',
@@ -164,9 +163,7 @@ class MessageHandler(object):
             message_obj.registration_id
         ]
 
-        if exc is not None:
-            from wampy.messages import Error
-
+        if exc:
             error_message = Error(
                 request_type=68,  # the failing message wamp code
                 request_id=message_obj.request_id,
@@ -178,22 +175,20 @@ class MessageHandler(object):
                     'call_kwargs': message_obj.call_kwargs,
                 },
             )
-            logger.info("returning with Error: %s", error_message)
+            logger.error("returning with Error: %s", error_message)
             self.session.send_message(error_message)
 
-        else:
-            from wampy.messages import Yield
+        result_kwargs = {}
+        result_kwargs['message'] = result
+        result_kwargs['meta'] = {}
+        result_kwargs['meta']['procedure_name'] = procedure_name
+        result_kwargs['meta']['session_id'] = self.session.id
+        result_args = [result]
 
-            result_kwargs['message'] = result
-            result_kwargs['meta'] = {}
-            result_kwargs['meta']['procedure_name'] = procedure_name
-            result_kwargs['meta']['session_id'] = self.session.id
-            result_args = [result]
-
-            yield_message = Yield(
-                message_obj.request_id,
-                result_args=result_args,
-                result_kwargs=result_kwargs,
-            )
-            logger.debug("yielding response: %s", yield_message)
-            self.session.send_message(yield_message)
+        yield_message = Yield(
+            message_obj.request_id,
+            result_args=result_args,
+            result_kwargs=result_kwargs,
+        )
+        logger.debug("yielding response: %s", yield_message)
+        self.session.send_message(yield_message)
