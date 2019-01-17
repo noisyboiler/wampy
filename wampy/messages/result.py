@@ -2,8 +2,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from . base import Message
 
-class Result(object):
+
+class Result(Message):
     """ The Dealer sends a "RESULT" message to the original
     Caller ::
 
@@ -33,9 +35,6 @@ class Result(object):
         self.details = details_dict
         self.yield_args = yield_args
         self.yield_kwargs = yield_kwargs
-
-    def __str__(self):
-        return str(self.message)
 
     @property
     def message(self):
