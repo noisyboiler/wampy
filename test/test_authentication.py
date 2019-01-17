@@ -49,7 +49,7 @@ def foo_service(router, config_path):
         yield
 
 
-@pytest.mark.skipif(sys.version_info < (3, 0), reason="requires python3")
+@pytest.mark.skipif(sys.version_info == (3, 6), reason="requires python3")
 def test_compute_wcs():
     secret = 'prq7+YkJ1/KlW1X0YczMHw=='
     challenge_data = {
