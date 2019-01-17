@@ -1,5 +1,3 @@
-install:
-	pip install --editable .[dev]
 
 tests:
 	pip install --editable .[dev]
@@ -8,8 +6,8 @@ tests:
 lint:
 	flake8 .
 
-coverage:
-	py.test --cov-report term-missing --cov=wampy ./test/ -vs
+coverage-report:
+	pytest -s -vv --cov=./wampy
 
 dev-install-requirements:
 	pip install --editable .[dev]
