@@ -160,13 +160,9 @@ class MessageHandler(object):
             )
             return
 
-        try:
-            procedure_name = self.session.registration_map[
-                message_obj.registration_id
-            ]
-        except KeyError:
-            import pdb
-            pdb.set_trace()
+        procedure_name = self.session.registration_map[
+            message_obj.registration_id
+        ]
 
         if exc is not None:
             from wampy.messages import Error
