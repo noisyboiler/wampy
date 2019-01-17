@@ -50,7 +50,7 @@ def foo_service(router, config_path):
 
 
 @pytest.mark.skipif(sys.version_info == (3, 6), reason="requires python3")
-def test_compute_wcs():
+def test_compute_wamp_challenge_response():
     secret = 'prq7+YkJ1/KlW1X0YczMHw=='
     challenge_data = {
         "authid": "peter",
