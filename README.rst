@@ -37,7 +37,7 @@ With **wampy**, you can quickly and easily create your own **WAMP** clients, whe
 
 **wampy** tries to provide an intuitive API for your **WAMP** messaging.
 
-See `ReadTheDocs`_ for more detailed documentation.
+See `ReadTheDocs`_ for more detailed documentation, but the README here is detailed enough to get going.
 
 wampy features
 ~~~~~~~~~~~~~~
