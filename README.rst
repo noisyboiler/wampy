@@ -98,6 +98,8 @@ Before any messaging can happen you need a **Router**. Messages are then routed 
 
 For the quickest of starts I suggest that you use **Crossbar.io** and start it up on the default host and port, and with the default **realm** and **roles**. See the `Crossbar.io docs`_ for the instructions on this or alternatively run with **wampy's** testing setup.
 
+Note, if you already have Crossbar installed and running you do *not* need these steps, because the dev requirements also include Crossbar.
+
 ::
 
     $ pip install --editable .[dev]
