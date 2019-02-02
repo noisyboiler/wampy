@@ -21,12 +21,12 @@ class UnreliableCallee(Client):
 
 @pytest.yield_fixture
 def unreliable_callee(router, config_path):
-    with UnreliableCallee(router=router):
+    with UnreliableCallee(url=router.url):
         yield
 
 
 def test_handle_value_error(unreliable_callee, router):
-    with Client(router=router, name="caller") as client:
+    with Client(url=router.url, name="caller") as client:
 
         with pytest.raises(WampyError) as exc_info:
             client.rpc.get_foo(1, 2, three=3)

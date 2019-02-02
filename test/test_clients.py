@@ -90,7 +90,9 @@ def test_client_connects_to_router_by_url(router):
 
 def test_url_without_protocol(router, client_cls):
     with pytest.raises(ValueError):
-        client_cls(url="localhost:8080")
+        with client_cls(url="localhost:8080"):
+            # we must start a Session to test this
+            pass
 
 
 def test_url_without_port_uses_default(router, client_cls):
@@ -106,7 +108,7 @@ def test_client_connects_to_router_by_instance(router):
     class MyClient(Client):
         pass
 
-    client = MyClient(router=router)
+    client = MyClient(url=router.url)
 
     assert client.session is None
 

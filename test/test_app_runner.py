@@ -19,10 +19,12 @@ class TestAppRunner(object):
             'docs.examples.services:FooService',
         ]
 
-        runner = run(apps, config_path=config_path, router=router)
+        runner = run(
+            apps, config_path=config_path, router_url=router.url
+        )
 
         # now check we can call these wonderful services
-        client = Client(router=router)
+        client = Client(url=router.url)
         with client:
             date = client.rpc.get_todays_date()
             binary_number = client.rpc.get_binary_number(46)
