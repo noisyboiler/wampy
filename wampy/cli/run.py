@@ -59,9 +59,11 @@ class AppRunner(object):
         print('stoped')
 
 
-def run(apps, config_path, router=None):
-    if router is None:
+def run(apps, config_path, router=None, router_url=None):
+    if router_url is None and router is None:
+        # TODO: remove the local Crossbar repr from the app runner
         router = Crossbar(config_path)
+        router_url = router.url
 
     print("starting up services...")
     runner = AppRunner()
@@ -69,7 +71,7 @@ def run(apps, config_path, router=None):
         module_name, app_name = app.split(':')
         mod = import_module(module_name)
         app_class = getattr(mod, app_name)
-        app = app_class(router=router)
+        app = app_class(url=router_url)
         runner.add_app(app)
 
     try:
