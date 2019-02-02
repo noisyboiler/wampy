@@ -145,6 +145,7 @@ class Client(object):
             router_url=self.url,
             message_handler=self.message_handler,
             ipv=self.ipv,
+            cert_path=self.cert_path,
         )
 
         # establish the session

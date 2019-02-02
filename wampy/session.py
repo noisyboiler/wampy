@@ -36,7 +36,7 @@ class Session(ParseUrlMixin):
 
     """
 
-    def __init__(self, client, router_url, message_handler, ipv):
+    def __init__(self, client, router_url, message_handler, ipv, cert_path):
         """ A Session between a Client and a Router.
 
         The WAMP layer of the internal architecture.
@@ -62,6 +62,7 @@ class Session(ParseUrlMixin):
 
         self.message_handler = message_handler
         self.ipv = ipv
+        self.cert_path = cert_path
 
         if self.scheme == "ws":
             self.transport = WebSocket(
