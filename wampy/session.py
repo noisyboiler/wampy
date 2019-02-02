@@ -5,7 +5,10 @@
 import logging
 
 from wampy.backends import async_adapter
-from wampy.errors import ConnectionError, WampyTimeOutError, WampProtocolError
+from wampy.errors import (
+    ConnectionError, WampyError, WampyTimeOutError,
+    WampProtocolError,
+)
 from wampy.messages import MESSAGE_TYPE_MAP
 from wampy.messages.hello import Hello
 from wampy.messages.goodbye import Goodbye
