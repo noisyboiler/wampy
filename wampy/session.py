@@ -11,11 +11,13 @@ from wampy.messages.hello import Hello
 from wampy.messages.goodbye import Goodbye
 from wampy.messages.register import Register
 from wampy.messages.subscribe import Subscribe
+from wampy.mixins import ParseUrlMixin
+from wampy.transports import WebSocket, SecureWebSocket
 
 logger = logging.getLogger('wampy.session')
 
 
-class Session(object):
+class Session(ParseUrlMixin):
     """ A transient conversation between two Peers attached to a
     Realm and running over a Transport.
 
@@ -34,7 +36,7 @@ class Session(object):
 
     """
 
-    def __init__(self, client, router_url, transport, message_handler):
+    def __init__(self, client, router_url, message_handler, ipv):
         """ A Session between a Client and a Router.
 
         The WAMP layer of the internal architecture.
@@ -42,20 +44,42 @@ class Session(object):
         :Parameters:
             client : instance
                 An instance of :class:`peers.Client`
-            router : instance
-                An instance of :class:`peers.Router`
-            transport : instance
-                An instance of ``wampy.transports``.
+            router_url : string
+                The URL of the Router Peer.
             message_handler : instance
                 An instance of ``wampy.message_handler.MessageHandler``,
                 or a subclass of it. Handles incoming WAMP Messages.
+            ipv : int
+                The Internet Protocol version for the Transport to use
 
         """
         self.client = client
-        self.router_url = router_url
-        self.transport = transport
-        self.connection = self.transport.connect(upgrade=True)
+        self.url = router_url
+        # decomposes the url, adding new Session instance variables for
+        # them, so that the Session can decide on the Transport it needs
+        # to use to connect to the Router
+        self.parse_url()
+
         self.message_handler = message_handler
+        self.ipv = ipv
+
+        if self.scheme == "ws":
+            self.transport = WebSocket(
+                server_url=self.url,
+                ipv=self.ipv,
+            )
+        elif self.scheme == "wss":
+            self.transport = SecureWebSocket(
+                server_url=self.url,
+                ipv=self.ipv,
+                certificate_path=self.cert_path,
+            )
+        else:
+            raise WampyError(
+                'wampy only suppoers network protocol "ws" or "wss"'
+            )
+
+        self.connection = self.transport.connect(upgrade=True)
 
         self.request_ids = {}
         self.subscription_map = {}

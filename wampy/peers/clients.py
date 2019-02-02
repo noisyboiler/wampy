@@ -14,15 +14,13 @@ from wampy.errors import WampProtocolError, WampyError, WampyTimeOutError
 from wampy.session import Session
 from wampy.messages import Abort, Cancel, Challenge
 from wampy.message_handler import MessageHandler
-from wampy.mixins import ParseUrlMixin
 from wampy.roles.caller import CallProxy, RpcProxy
 from wampy.roles.publisher import PublishProxy
-from wampy.transports import WebSocket, SecureWebSocket
 
 logger = logging.getLogger("wampy.clients")
 
 
-class Client(ParseUrlMixin):
+class Client(object):
     """ A WAMP Client for use in Python applications, scripts and shells.
     """
 
@@ -75,8 +73,6 @@ class Client(ParseUrlMixin):
         """
         # the endpoint of a WAMP Router
         self.url = url or CROSSBAR_DEFAULT
-        # decomposes the url, adding new Client instance variables for them
-        self.parse_url()
         # when using Secure WebSockets
         self.cert_path = cert_path
         self.ipv = ipv
@@ -98,25 +94,6 @@ class Client(ParseUrlMixin):
         # although wampy will send the appropriate instructions in the Call
         # message, we still implement our own cuttoff
         self.call_timeout = call_timeout
-
-        # this conversation is over a transport. WAMP messages are transmitted
-        # as WebSocket messages by default (well, actually... that's because no
-        # other transports are supported!)
-        if self.scheme == "ws":
-            self.transport = WebSocket(
-                server_url=self.url,
-                ipv=self.ipv,
-            )
-        elif self.scheme == "wss":
-            self.transport = SecureWebSocket(
-                server_url=self.url,
-                ipv=self.ipv,
-                certificate_path=self.cert_path,
-            )
-        else:
-            raise WampyError(
-                'wampy only suppoers network protocol "ws" or "wss"'
-            )
 
         self._session = None
 
@@ -166,8 +143,8 @@ class Client(ParseUrlMixin):
         self._session = Session(
             client=self,
             router_url=self.url,
-            transport=self.transport,
             message_handler=self.message_handler,
+            ipv=self.ipv,
         )
 
         # establish the session
@@ -196,7 +173,7 @@ class Client(ParseUrlMixin):
         if self.session and self.session.id:
             self.session.end()
 
-        self.transport.disconnect()
+        self.session.transport.disconnect()
 
     def send_message(self, message):
         self.session.send_message(message)
