@@ -19,7 +19,9 @@ class TestAppRunner(object):
             'docs.examples.services:FooService',
         ]
 
-        runner = run(apps, config_path=config_path, url=router.url)
+        runner = run(
+            apps, config_path=config_path, router_url=router.url
+        )
 
         # now check we can call these wonderful services
         client = Client(url=router.url)
