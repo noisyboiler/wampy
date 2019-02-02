@@ -34,7 +34,7 @@ class Session(object):
 
     """
 
-    def __init__(self, client, router, transport, message_handler):
+    def __init__(self, client, router_url, transport, message_handler):
         """ A Session between a Client and a Router.
 
         The WAMP layer of the internal architecture.
@@ -52,7 +52,7 @@ class Session(object):
 
         """
         self.client = client
-        self.router = router
+        self.router_url = router_url
         self.transport = transport
         self.connection = self.transport.connect(upgrade=True)
         self.message_handler = message_handler
@@ -69,14 +69,6 @@ class Session(object):
         # to this queue.
         self._message_queue = async_adapter.message_queue
         self._listen(self.connection)
-
-    @property
-    def host(self):
-        return self.router.host
-
-    @property
-    def port(self):
-        return self.router.port
 
     @property
     def realm(self):

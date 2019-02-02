@@ -27,11 +27,11 @@ class TestIP4(object):
         return './wampy/testing/configs/crossbar.json'
 
     def test_ipv4_websocket_connection(self, config_path, router):
-        service = DateService(router=router)
+        service = DateService(url=router.url)
         with service:
             wait_for_registrations(service, 1)
 
-            client = Client(router=router)
+            client = Client(url=router.url)
 
             with client:
                 result = client.rpc.get_todays_date()
@@ -49,11 +49,11 @@ class TestIP6(object):
 
     @pytest.mark.skip(reason="Travis errors wheh swapping between IPV 4 & 6")
     def test_ipv6_websocket_connection(self, config_path, router):
-        service = DateService(router=router)
+        service = DateService(url=router.url)
         with service:
             wait_for_registrations(service, 1)
 
-            client = Client(router=router)
+            client = Client(url=router.url)
 
             with client:
                 result = client.rpc.get_todays_date()
@@ -81,10 +81,10 @@ class TestSecureWebSocket(object):
         except AttributeError:
             pytest.skip('Python Environment does not support TLS')
 
-        with DateService(router=router) as service:
+        with DateService(url=router.url) as service:
             wait_for_registrations(service, 1)
 
-            client = Client(router=router)
+            client = Client(url=router.url)
             with client:
                 wait_for_session(client)
                 result = client.rpc.get_todays_date()

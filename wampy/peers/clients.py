@@ -14,7 +14,7 @@ from wampy.errors import WampProtocolError, WampyError, WampyTimeOutError
 from wampy.session import Session
 from wampy.messages import Abort, Cancel, Challenge
 from wampy.message_handler import MessageHandler
-from wampy.peers.routers import Router
+from wampy.mixins import ParseUrlMixin
 from wampy.roles.caller import CallProxy, RpcProxy
 from wampy.roles.publisher import PublishProxy
 from wampy.transports import WebSocket, SecureWebSocket
@@ -22,16 +22,15 @@ from wampy.transports import WebSocket, SecureWebSocket
 logger = logging.getLogger("wampy.clients")
 
 
-class Client(object):
+class Client(ParseUrlMixin):
     """ A WAMP Client for use in Python applications, scripts and shells.
     """
 
     def __init__(
-        self, url=None, cert_path=None,
+        self, url=None, cert_path=None, ipv=4,
         realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
         message_handler=None, name=None,
         call_timeout=DEFAULT_TIMEOUT,
-        router=None,
     ):
         """ A WAMP Client "Peer".
 
@@ -51,7 +50,10 @@ class Client(object):
                 to 443.
             cert_path : str
                 If using ``wss`` protocol, a certificate might be required by
-                the Router. If so, provide here.
+                the Router. If so, provide the path to the certificate here
+                which will be used when connecting the Secure WebSocket.
+            ipv : int
+                The Internet Protocol version. Defaults to 4.
             realm : str
                 The routing namespace to construct the ``Session`` over.
                 Defaults to ``realm1``.
@@ -69,55 +71,51 @@ class Client(object):
                 A Caller might want to issue a call and provide a timeout after
                 which the call will finish.
                 The value should be in seconds.
-            router : instance
-                An alternative way to connect to a Router rather than ``url``.
-                An instance of a Router Peer, e.g.
-                ``wampy.peers.routers.Crossbar``
-                This is more configurable and powerful, but requires a copy
-                of the Router's config file, making this only really useful
-                in single host setups or testing.
 
         """
-        if url and router:
-            raise WampyError(
-                'Both ``url`` and ``router`` decide how your client connects '
-                'to the Router, and so only one can be defined on '
-                'instantiation. Please choose one or the other.'
-            )
-
         # the endpoint of a WAMP Router
         self.url = url or CROSSBAR_DEFAULT
+        # decomposes the url, adding new Client instance variables for them
+        self.parse_url()
+        # when using Secure WebSockets
+        self.cert_path = cert_path
+        self.ipv = ipv
 
         # the ``realm`` is the administrive domain to route messages over.
         self.realm = realm
         # the ``roles`` define what Roles (features) the Client can act,
         # but also configure behaviour such as auth
         self.roles = roles
-        # a Session is a transient conversation between two Peers - a Client
-        # and a Router. Here we model the Peer we are going to connect to.
-        self.router = router or Router(url=self.url, cert_path=cert_path)
+
         # wampy uses a decoupled "messge handler" to process incoming messages.
         # wampy also provides a very adequate default.
         self.message_handler = message_handler or MessageHandler()
+
         # generally ``name`` is used for debugging and logging only
         self.name = name or self.__class__.__name__
+
+        # we cannot rely on Routers to implement WAMP call timeout yet.
+        # although wampy will send the appropriate instructions in the Call
+        # message, we still implement our own cuttoff
         self.call_timeout = call_timeout
 
         # this conversation is over a transport. WAMP messages are transmitted
         # as WebSocket messages by default (well, actually... that's because no
         # other transports are supported!)
-        if self.router.scheme == "ws":
+        if self.scheme == "ws":
             self.transport = WebSocket(
-                server_url=self.router.url, ipv=self.router.ipv,
+                server_url=self.url,
+                ipv=self.ipv,
             )
-        elif self.router.scheme == "wss":
+        elif self.scheme == "wss":
             self.transport = SecureWebSocket(
-                server_url=self.router.url, ipv=self.router.ipv,
-                certificate_path=self.router.certificate,
+                server_url=self.url,
+                ipv=self.ipv,
+                certificate_path=self.cert_path,
             )
         else:
             raise WampyError(
-                'Network protocl must be "ws" or "wss"'
+                'wampy only suppoers network protocol "ws" or "wss"'
             )
 
         self._session = None
@@ -167,7 +165,7 @@ class Client(object):
         # before they are passed back to the client.
         self._session = Session(
             client=self,
-            router=self.router,
+            router_url=self.url,
             transport=self.transport,
             message_handler=self.message_handler,
         )

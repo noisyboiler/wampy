@@ -55,33 +55,33 @@ class ReallySlowService(Client):
 
 @pytest.fixture
 def date_service(router):
-    with DateService(router=router) as serv:
+    with DateService(url=router.url) as serv:
         wait_for_registrations(serv, 1)
         yield
 
 
 @pytest.fixture
 def hello_service(router):
-    with HelloService(router=router):
+    with HelloService(url=router.url):
         yield
 
 
 @pytest.fixture
 def binary_number_service(router):
-    with BinaryNumberService(router=router):
+    with BinaryNumberService(url=router.url):
         yield
 
 
 @pytest.fixture
 def really_slow_service(router):
-    with ReallySlowService(router=router):
+    with ReallySlowService(url=router.url):
         yield
 
 
 class TestClientCall:
 
     def test_call_with_no_args_or_kwargs(self, date_service, router):
-        client = Client(router=router)
+        client = Client(url=router.url)
         with client:
             response = client.call("get_todays_date")
 
@@ -90,14 +90,14 @@ class TestClientCall:
         assert response == today.isoformat()
 
     def test_call_with_args_but_no_kwargs(self, hello_service, router):
-        caller = Client(router=router)
+        caller = Client(url=router.url)
         with caller:
             response = caller.call("say_hello", "Simon")
 
         assert response == "Hello Simon"
 
     def test_call_with_args_and_kwargs(self, hello_service, router):
-        caller = Client(router=router)
+        caller = Client(url=router.url)
         with caller:
             response = caller.call("say_greeting", "Simon", greeting="watcha")
 
@@ -107,21 +107,21 @@ class TestClientCall:
 class TestClientRpc:
 
     def test_rpc_with_no_args_but_a_default_kwarg(self, hello_service, router):
-        caller = Client(router=router)
+        caller = Client(url=router.url)
         with caller:
             response = caller.rpc.say_greeting("Simon")
 
         assert response == "hola to Simon"
 
     def test_rpc_with_args_but_no_kwargs(self, hello_service, router):
-        caller = Client(router=router)
+        caller = Client(url=router.url)
         with caller:
             response = caller.rpc.say_hello("Simon")
 
         assert response == "Hello Simon"
 
     def test_rpc_with_no_args_but_a_kwarg(self, hello_service, router):
-        caller = Client(router=router)
+        caller = Client(url=router.url)
         with caller:
             response = caller.rpc.say_greeting("Simon", greeting="goodbye")
 
@@ -138,7 +138,7 @@ class TestCallerTimeout:
     def test_timeout_values(
         self, call_timeout, wait, reward, router, really_slow_service,
     ):
-        with Client(router=router, call_timeout=call_timeout) as client:
+        with Client(url=router.url, call_timeout=call_timeout) as client:
             try:
                 resp = client.rpc.requires_patience(wait_in_seconds=wait)
             except WampyTimeOutError:

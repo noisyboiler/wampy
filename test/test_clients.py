@@ -106,7 +106,7 @@ def test_client_connects_to_router_by_instance(router):
     class MyClient(Client):
         pass
 
-    client = MyClient(router=router)
+    client = MyClient(url=router.url)
 
     assert client.session is None
 
