@@ -73,26 +73,6 @@ class TestSecureWebSocket(object):
     def url(self):
         return 'wss://localhost:9443'
 
-    def test_ipv4_secure_websocket_connection_by_router_instance(
-        self, config_path, url, router
-    ):
-        try:
-            ssl.PROTOCOL_TLSv1_2
-        except AttributeError:
-            pytest.skip('Python Environment does not support TLS')
-
-        with DateService(url=router.url) as service:
-            wait_for_registrations(service, 1)
-
-            client = Client(url=router.url)
-            with client:
-                wait_for_session(client)
-                result = client.rpc.get_todays_date()
-
-        today = date.today()
-
-        assert result == today.isoformat()
-
     def test_ipv4_secure_websocket_connection_by_router_url(
         self, config_path, router
     ):
