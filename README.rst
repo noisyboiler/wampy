@@ -44,7 +44,7 @@ wampy features
 
 - Remote Procedure Calls over websockets
 - Publish and Subscribe over websockets
-- Open Source and Open Thoughts - see  `internals`_ and then the entire WIKI
+- Open Source and Open *Thoughts* - see  `internals`_ and then the entire WIKI
 - Use **wampy** as a microservice/app, or in your Flask or nameko apps, or in scripts.... or just in a Python shell!
 - Client Authentication (Ticket and WCA)
 - Transport Layer Security
