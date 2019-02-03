@@ -171,7 +171,7 @@ class Client(object):
         )
         return response
 
-    def register_roles(self):
+    def _register_roles(self):
         # over-ride this if you want to customise how your client registers
         # its Roles
         logger.info("registering roles for: %s", self.name)
