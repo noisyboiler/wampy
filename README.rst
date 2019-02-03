@@ -319,6 +319,8 @@ Build the docs
 Contributing
 ************
 
+Firstly. read about the `internals`_.
+
 Thank you everyone who does. And *everyone* is welcome to. And thanks for reading the `CONTRIBUTING`_ guidelines. And for adding yourselves to the `CONTRIBUTORS`_ list on your PR - you should! Many thanks. It's also great to hear how everyone uses wampy, so please do share how with me on your PR in comments.
 
 Thanks!
@@ -342,3 +344,5 @@ Thanks!
 .. _flask_wamp: https://github.com/noisyboiler/flask-wamp
 .. _Flask-WAMP: https://github.com/noisyboiler/flask-wamp
 .. _here: https://medium.com/@noisyboiler/the-web-application-messaging-protocol-d8efe95aeb67
+.. _internals: https://github.com/noisyboiler/wampy/wiki/Internal-Architecture
+
