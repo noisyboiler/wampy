@@ -3,16 +3,17 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import logging
+import os
 
 from wampy.backends import async_adapter
 from wampy.errors import (
     ConnectionError, WampyError, WampyTimeOutError,
     WampProtocolError,
 )
-from wampy.messages.hello import Hello
-from wampy.messages.goodbye import Goodbye
-from wampy.messages.register import Register
-from wampy.messages.subscribe import Subscribe
+from wampy.messages import (
+    Abort, Cancel, Challenge, Hello, Goodbye, Register, Subscribe,
+)
+
 from wampy.mixins import ParseUrlMixin
 from wampy.transports import WebSocket, SecureWebSocket
 
@@ -121,10 +122,27 @@ class Session(ParseUrlMixin):
         message = message_obj.message
         self.connection.send(message)
 
-    def recv_message(self, timeout=None):
-        message = async_adapter.receive_message(
-            timeout=timeout or self.call_timeout,
-        )
+    def recv_message(self, source_request_id=None, timeout=None):
+        try:
+            message = async_adapter.receive_message(
+                timeout=timeout or self.call_timeout,
+            )
+        except WampProtocolError as wamp_err:
+            logger.error(wamp_err)
+            raise
+        except WampyTimeOutError:
+            if source_request_id:
+                logger.warning(
+                    'cancelling Call after wampy timed the Call out'
+                )
+                cancelation = Cancel(request_id=source_request_id)
+                self.send_message(cancelation)
+            raise
+        except Exception as exc:
+            logger.warning("rpc failed!!")
+            logger.exception(str(exc))
+            raise
+
         return message
 
     def _say_hello(self):
@@ -135,8 +153,21 @@ class Session(ParseUrlMixin):
 
         message = Hello(realm=self.realm, details=details)
         self.send_message(message)
-        response = self.recv_message()
-        return response
+        message_obj = self.recv_message()
+
+        # raise if Router aborts handshake or we cannot respond to a
+        # Challenge.
+        if message_obj.WAMP_CODE == Abort.WAMP_CODE:
+            raise WampyError(message_obj.message)
+
+        if message_obj.WAMP_CODE == Challenge.WAMP_CODE:
+            if 'WAMPYSECRET' not in os.environ:
+                raise WampyError(
+                    "Wampy requires a client's secret to be "
+                    "in the environment as ``WAMPYSECRET``"
+                )
+
+            raise WampyError("Failed to handle CHALLENGE")
 
     def _say_goodbye(self):
         message = Goodbye()

@@ -4,14 +4,11 @@
 
 import inspect
 import logging
-import os
 
 from wampy.constants import (
     CROSSBAR_DEFAULT, DEFAULT_TIMEOUT, DEFAULT_ROLES, DEFAULT_REALM,
 )
-from wampy.errors import WampProtocolError, WampyError, WampyTimeOutError
 from wampy.session import Session
-from wampy.messages import Abort, Cancel, Challenge
 from wampy.message_handler import MessageHandler
 from wampy.roles.caller import CallProxy, RpcProxy
 from wampy.roles.publisher import PublishProxy
@@ -24,10 +21,9 @@ class Client(object):
     """
 
     def __init__(
-        self, url=None, cert_path=None, ipv=4,
-        realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
-        message_handler_cls=None, name=None,
-        call_timeout=DEFAULT_TIMEOUT,
+        self, url=CROSSBAR_DEFAULT, cert_path=None, ipv=4, name=None,
+        realm=DEFAULT_REALM, roles=DEFAULT_ROLES, call_timeout=DEFAULT_TIMEOUT,
+        message_handler_cls=None,
     ):
         """ A WAMP Client "Peer".
 
@@ -64,7 +60,7 @@ class Client(object):
 
         """
         # the endpoint of a WAMP Router
-        self.url = url or CROSSBAR_DEFAULT
+        self.url = url
         # when using Secure WebSockets
         self.cert_path = cert_path
         self.ipv = ipv
@@ -148,23 +144,9 @@ class Client(object):
         )
 
         # establish the session
-        message_obj = self.session.begin()
+        self.session.begin()
 
-        # raise if Router aborts handshake or we cannot respond to a
-        # Challenge.
-        if message_obj.WAMP_CODE == Abort.WAMP_CODE:
-            raise WampyError(message_obj.message)
-
-        if message_obj.WAMP_CODE == Challenge.WAMP_CODE:
-            if 'WAMPYSECRET' not in os.environ:
-                raise WampyError(
-                    "Wampy requires a client's secret to be "
-                    "in the environment as ``WAMPYSECRET``"
-                )
-
-            raise WampyError("Failed to handle CHALLENGE")
-
-        logger.debug(
+        logger.info(
             'client %s has established a session with id "%s"',
             self.name, self.session.id
         )
@@ -178,33 +160,18 @@ class Client(object):
     def send_message(self, message):
         self.session.send_message(message)
 
-    def recv_message(self):
-        return self.session.recv_message()
+    def recv_message(self, source_request_id=None):
+        return self.session.recv_message(source_request_id=source_request_id)
 
     def make_rpc(self, message):
-        logger.debug("%s sending message: %s", self.name, message)
-
-        self.session.send_message(message)
-
-        try:
-            response = self.session.recv_message()
-        except WampProtocolError as wamp_err:
-            logger.error(wamp_err)
-            raise
-        except WampyTimeOutError:
-            logger.warning('cancelling Call after wampy timed the Call out')
-            cancelation = Cancel(request_id=message.request_id)
-            self.session.send_message(cancelation)
-            raise
-        except Exception as exc:
-            logger.warning("rpc failed!!")
-            logger.exception(str(exc))
-            raise
-
+        self.send_message(message)
+        response = self.recv_message(
+            source_request_id=message.request_id,
+        )
         return response
 
     def register_roles(self):
-        # over-ride this if you want to customise how your client regisers
+        # over-ride this if you want to customise how your client registers
         # its Roles
         logger.info("registering roles for: %s", self.name)
 
@@ -223,7 +190,8 @@ class Client(object):
                 procedure_name = maybe_role.__name__
                 invocation_policy = maybe_role.invocation_policy
                 self.session._register_procedure(
-                    procedure_name, invocation_policy)
+                    procedure_name, invocation_policy,
+                )
 
                 logger.debug(
                     '%s registered callee "%s"', self.name, procedure_name,
@@ -233,7 +201,9 @@ class Client(object):
                 topic = maybe_role.topic
                 handler_name = maybe_role.handler.__name__
                 handler = getattr(self, handler_name)
-                self.session._subscribe_to_topic(handler, topic)
+                self.session._subscribe_to_topic(
+                    handler, topic,
+                )
 
                 logger.debug(
                     '%s subscribed to topic "%s"', self.name, topic,
