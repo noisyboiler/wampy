@@ -26,7 +26,7 @@ class SubscribingClient(Client):
 
 @pytest.yield_fixture
 def foo_subscriber(router):
-    client = SubscribingClient(router=router)
+    client = SubscribingClient(url=router.url)
     with client:
         yield client
 
@@ -34,7 +34,7 @@ def foo_subscriber(router):
 def test_cannot_publish_nothing_to_topic(foo_subscriber, router):
     assert foo_subscriber.call_count == 0
 
-    client = Client(router=router)
+    client = Client(url=router.url)
 
     with client:
         with pytest.raises(WampyError):
@@ -46,7 +46,7 @@ def test_cannot_publish_nothing_to_topic(foo_subscriber, router):
 def test_cannot_publish_args_to_topic(foo_subscriber, router):
     assert foo_subscriber.call_count == 0
 
-    client = Client(router=router)
+    client = Client(url=router.url)
 
     with client:
 
@@ -71,7 +71,7 @@ def test_cannot_publish_args_to_topic(foo_subscriber, router):
 def test_publish_kwargs_to_topic(foo_subscriber, router):
     assert foo_subscriber.call_count == 0
 
-    client = Client(router=router)
+    client = Client(url=router.url)
 
     client.start()
     client.publish(topic="foo", message="foobar")
@@ -102,14 +102,14 @@ def test_kwargs_are_received(router):
         def foo_topic_handler(self, **kwargs):
             SubscribingClient.received_kwargs = kwargs
 
-    reader = SubscribingClient(router=router)
+    reader = SubscribingClient(url=router.url)
 
     assert SubscribingClient.received_kwargs is None
 
     with reader:
         assert SubscribingClient.received_kwargs is None
 
-        publisher = Client(router=router)
+        publisher = Client(url=router.url)
 
         assert SubscribingClient.received_kwargs is None
 

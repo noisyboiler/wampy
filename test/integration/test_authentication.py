@@ -44,7 +44,7 @@ def foo_service(router, config_path):
         'authid': 'foo-service',
     }
 
-    with FooService(router=router, roles=roles):
+    with FooService(url=router.url, roles=roles):
         yield
 
 
@@ -61,7 +61,7 @@ def test_connection_is_aborted_when_not_authorised(router):
     }
 
     client = Client(
-        router=router, roles=roles, name="unauthenticated-client-one")
+        url=router.url, roles=roles, name="unauthenticated-client-one")
 
     with pytest.raises(WampyError) as exc_info:
         client.start()
@@ -92,7 +92,7 @@ def test_connection_exits_if_missing_client_secret(router):
     }
 
     client = Client(
-        router=router, roles=roles, name="unauthenticated-client-two")
+        url=router.url, roles=roles, name="unauthenticated-client-two")
 
     with pytest.raises(WampyError) as exc_info:
         client.start()
@@ -118,7 +118,7 @@ def test_connection_is_challenged(router):
 
     message_handler = CollectingMessageHandler()
     client = Client(
-        router=router,
+        url=router.url,
         roles=roles,
         message_handler=message_handler,
         name="unauthenticated-client"
@@ -155,7 +155,7 @@ def test_connection_is_ticket_challenged(router):
 
     message_handler = CollectingMessageHandler()
     client = Client(
-        router=router,
+        url=router.url,
         roles=roles,
         message_handler=message_handler,
         name="unauthenticated-client"
@@ -191,7 +191,7 @@ def test_incorrect_secret(router):
     }
 
     client = Client(
-        router=router,
+        url=router.url,
         roles=roles,
         name="bad-client"
     )
@@ -224,7 +224,7 @@ def test_incorrect_ticket(router):
     }
 
     client = Client(
-        router=router,
+        url=router.url,
         roles=roles,
         name="bad-client"
     )
@@ -259,7 +259,7 @@ def test_peter_cannot_call_get_foo(router, foo_service):
 
     message_handler = CollectingMessageHandler()
     client = Client(
-        router=router,
+        url=router.url,
         roles=roles,
         message_handler=message_handler,
         name="unauthenticated-client-three",

@@ -11,6 +11,7 @@ Largely experimental for now.... sorry.
 """
 import os
 import sys
+from warnings import warn
 
 from wampy.peers.routers import Crossbar
 
@@ -59,9 +60,17 @@ class AppRunner(object):
         print('stoped')
 
 
-def run(apps, config_path, router=None):
-    if router is None:
+def run(apps, config_path=None, router=None, router_url=None):
+    if router_url is None:
+        warn(
+            'router instances are deprecated: use ``router_url`` instead '
+            'and forget about ``config_path`` and ``router``. thanks.'
+        )
+
+    if router_url is None and router is None:
+        # this will be removed in 1.0 release - or before
         router = Crossbar(config_path)
+        router_url = router.url
 
     print("starting up services...")
     runner = AppRunner()
@@ -69,7 +78,7 @@ def run(apps, config_path, router=None):
         module_name, app_name = app.split(':')
         mod = import_module(module_name)
         app_class = getattr(mod, app_name)
-        app = app_class(router=router)
+        app = app_class(url=router_url)
         runner.add_app(app)
 
     try:
