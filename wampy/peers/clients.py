@@ -6,7 +6,7 @@ import inspect
 import logging
 
 from wampy.constants import (
-    CROSSBAR_DEFAULT, DEFAULT_TIMEOUT, DEFAULT_ROLES, DEFAULT_REALM,
+    DEFAULT_ROUTER_URL, DEFAULT_TIMEOUT, DEFAULT_ROLES, DEFAULT_REALM,
 )
 from wampy.session import Session
 from wampy.message_handler import MessageHandler
@@ -21,7 +21,7 @@ class Client(object):
     """
 
     def __init__(
-        self, url=CROSSBAR_DEFAULT, cert_path=None, ipv=4, name=None,
+        self, url=DEFAULT_ROUTER_URL, cert_path=None, ipv=4, name=None,
         realm=DEFAULT_REALM, roles=DEFAULT_ROLES, call_timeout=DEFAULT_TIMEOUT,
         message_handler_cls=None,
     ):

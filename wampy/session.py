@@ -201,8 +201,8 @@ class Session(ParseUrlMixin):
                     if frame:
                         message = frame.payload
                         # spawn a new green thread to process the Message to
-                        # ensure that we don't block, for example, an Invocation
-                        # may be expensive.
+                        # ensure that we don't block, for example, an
+                        # Invocation may be expensive.
                         # Messages make their way to the Client via the
                         # `_message_queue`, else the handler can simply respond
                         # to Messages such as Challenge without bothering the

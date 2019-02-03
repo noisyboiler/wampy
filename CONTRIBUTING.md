@@ -28,7 +28,7 @@ Please follow the following convention:
 
     # wampy imports
     from wampy.constants import (
-        CROSSBAR_DEFAULT, DEFAULT_ROLES, DEFAULT_REALM,  # trailing commas are appreciated
+        DEFAULT_ROUTER_URL, DEFAULT_ROLES, DEFAULT_REALM,  # trailing commas are appreciated
     )
     from wampy.session import Session
     from wampy.messages import Abort, Challenge
