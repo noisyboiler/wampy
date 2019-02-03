@@ -77,6 +77,8 @@ class Client(object):
 
         # wampy uses a decoupled "messge handler" to process incoming messages.
         # wampy also provides a very adequate default.
+        # the Client instance is passed into the handler because Callee's and
+        # Subscribers are declared on subclasses of the Client class.
         self.message_handler = (
             message_handler_cls(client=self) if message_handler_cls
             else MessageHandler(client=self)
