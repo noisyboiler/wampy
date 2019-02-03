@@ -7,8 +7,7 @@ import logging
 import os
 
 from wampy.constants import (
-    CROSSBAR_DEFAULT, DEFAULT_TIMEOUT, DEFAULT_ROLES,
-    DEFAULT_REALM,
+    CROSSBAR_DEFAULT, DEFAULT_TIMEOUT, DEFAULT_ROLES, DEFAULT_REALM,
 )
 from wampy.errors import WampProtocolError, WampyError, WampyTimeOutError
 from wampy.session import Session
@@ -31,13 +30,6 @@ class Client(object):
         call_timeout=DEFAULT_TIMEOUT,
     ):
         """ A WAMP Client "Peer".
-
-        WAMP is designed for application code to run within Clients,
-        i.e. Peers.
-
-        Peers have the roles Callee, Caller, Publisher, and Subscriber.
-
-        Subclass this base class to implemente the Roles for your application.
 
         :Parameters:
             url : string
