@@ -136,7 +136,7 @@ class Session(ParseUrlMixin):
                     'cancelling Call after wampy timed the Call out'
                 )
                 cancelation = Cancel(request_id=source_request_id)
-                self.session.send_message(cancelation)
+                self.send_message(cancelation)
             raise
         except Exception as exc:
             logger.warning("rpc failed!!")

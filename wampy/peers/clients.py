@@ -157,9 +157,15 @@ class Client(object):
 
         self.session.transport.disconnect()
 
-    def make_rpc(self, message):
+    def send_message(self, message):
         self.session.send_message(message)
-        response = self.session.recv_message(
+
+    def recv_message(self, source_request_id=None):
+        return self.session.recv_message(source_request_id=source_request_id)
+
+    def make_rpc(self, message):
+        self.send_message(message)
+        response = self.recv_message(
             source_request_id=message.request_id,
         )
         return response
