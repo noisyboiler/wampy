@@ -81,7 +81,6 @@ def test_client_connects_to_router_by_url(router):
 
     session = client.session
     assert session.id is not None
-    assert session.client is client
 
     client.stop()
 
@@ -117,7 +116,6 @@ def test_client_connects_to_router_by_instance(router):
 
     session = client.session
     assert session.id is not None
-    assert session.client is client
 
     client.stop()
 

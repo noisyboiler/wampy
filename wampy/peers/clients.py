@@ -52,8 +52,8 @@ class Client(object):
                 Defaults to ``wampy.constants.DEFAULT_ROLES``.
             message_handler : instance
                 An instance of ``wampy.message_handler.MessageHandler``, or
-                a subclass of. This controls the conversation between the
-                two Peers.
+                a subclass of. This implements and provides the required
+                actions for the the WAMP messages.
             name : string
                 Optional name for your ``Client``. Useful for when testing
                 your app or for logging.
@@ -77,7 +77,7 @@ class Client(object):
 
         # wampy uses a decoupled "messge handler" to process incoming messages.
         # wampy also provides a very adequate default.
-        self.message_handler = message_handler or MessageHandler()
+        self.message_handler = message_handler or MessageHandler(client=self)
 
         # generally ``name`` is used for debugging and logging only
         self.name = name or self.__class__.__name__
@@ -133,11 +133,13 @@ class Client(object):
         # pass in out ``MessageHandler`` which will process messages
         # before they are passed back to the client.
         self._session = Session(
-            client=self,
             router_url=self.url,
             message_handler=self.message_handler,
             ipv=self.ipv,
             cert_path=self.cert_path,
+            call_timeout=self.call_timeout,
+            realm=self.realm,
+            roles=self.roles,
         )
 
         # establish the session
