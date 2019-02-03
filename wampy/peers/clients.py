@@ -157,19 +157,15 @@ class Client(object):
 
         self.session.transport.disconnect()
 
-    def send_message(self, message):
-        self.session.send_message(message)
-
-    def recv_message(self):
-        return self.session.recv_message()
-
     def make_rpc(self, message):
         self.session.send_message(message)
-        response = self.session.recv_message()
+        response = self.session.recv_message(
+            source_request_id=message.request_id,
+        )
         return response
 
     def register_roles(self):
-        # over-ride this if you want to customise how your client regisers
+        # over-ride this if you want to customise how your client registers
         # its Roles
         logger.info("registering roles for: %s", self.name)
 
@@ -188,7 +184,8 @@ class Client(object):
                 procedure_name = maybe_role.__name__
                 invocation_policy = maybe_role.invocation_policy
                 self.session._register_procedure(
-                    procedure_name, invocation_policy)
+                    procedure_name, invocation_policy,
+                )
 
                 logger.debug(
                     '%s registered callee "%s"', self.name, procedure_name,
@@ -198,7 +195,9 @@ class Client(object):
                 topic = maybe_role.topic
                 handler_name = maybe_role.handler.__name__
                 handler = getattr(self, handler_name)
-                self.session._subscribe_to_topic(handler, topic)
+                self.session._subscribe_to_topic(
+                    handler, topic,
+                )
 
                 logger.debug(
                     '%s subscribed to topic "%s"', self.name, topic,

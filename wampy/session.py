@@ -122,7 +122,7 @@ class Session(ParseUrlMixin):
         message = message_obj.message
         self.connection.send(message)
 
-    def recv_message(self, timeout=None):
+    def recv_message(self, source_request_id=None, timeout=None):
         try:
             message = async_adapter.receive_message(
                 timeout=timeout or self.call_timeout,
@@ -131,9 +131,12 @@ class Session(ParseUrlMixin):
             logger.error(wamp_err)
             raise
         except WampyTimeOutError:
-            logger.warning('cancelling Call after wampy timed the Call out')
-            cancelation = Cancel(request_id=message.request_id)
-            self.session.send_message(cancelation)
+            if source_request_id:
+                logger.warning(
+                    'cancelling Call after wampy timed the Call out'
+                )
+                cancelation = Cancel(request_id=source_request_id)
+                self.session.send_message(cancelation)
             raise
         except Exception as exc:
             logger.warning("rpc failed!!")
