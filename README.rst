@@ -102,7 +102,7 @@ Note, if you already have Crossbar installed and running you do *not* need these
 
 ::
 
-    $ pip install --editable .[dev]
+    $ make install
 
     $ crossbar start --config ./wampy/testing/configs/crossbar.json
 
