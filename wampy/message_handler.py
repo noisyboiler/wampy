@@ -147,7 +147,7 @@ class MessageHandler(object):
     def handle_welcome(self, message_obj):
         self.session.session_id = message_obj.session_id
         self.session._message_queue.put(message_obj)
-        self.client.register_roles()
+        self.client._register_roles()
 
     def process_result(self, message_obj, result, exc=None):
         if self.session.session_id is None:
