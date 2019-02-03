@@ -67,7 +67,7 @@ class MessageHandler(object):
 
     def handle_challenge(self, message_obj):
         if 'WAMPYSECRET' not in os.environ:
-            logger.warning('WAMPYSECRET not in environ')
+            logger.error('WAMPYSECRET required in environ')
             # unable to handle this so delegate to the Client
             self.session._message_queue.put(message_obj)
             return
