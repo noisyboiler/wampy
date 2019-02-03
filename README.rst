@@ -102,7 +102,7 @@ Note, if you already have Crossbar installed and running you do *not* need these
 
 ::
 
-    $ make install
+    $ make dev-install
 
     $ crossbar start --config ./wampy/testing/configs/crossbar.json
 
