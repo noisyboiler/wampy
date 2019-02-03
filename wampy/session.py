@@ -162,6 +162,12 @@ class Session(ParseUrlMixin):
             raise WampyError(message_obj.message)
 
         if message_obj.WAMP_CODE == Challenge.WAMP_CODE:
+            if 'WAMPYSECRET' not in os.environ:
+                raise WampyError(
+                    "Wampy requires a client's secret to be "
+                    "in the environment as ``WAMPYSECRET``"
+                )
+
             raise WampyError("Failed to handle CHALLENGE")
 
     def _say_goodbye(self):
