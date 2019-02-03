@@ -30,7 +30,7 @@ class CallProxy:
 
     def __call__(self, procedure, *args, **kwargs):
         message = Call(procedure=procedure, args=args, kwargs=kwargs)
-        response = self.client.make_rpc(message)
+        response = self.client._make_rpc(message)
         wamp_code = response.WAMP_CODE
 
         if wamp_code == Error.WAMP_CODE:
@@ -70,7 +70,7 @@ class RpcProxy:
             message = Call(
                 procedure=name, options=options, args=args, kwargs=kwargs,
             )
-            response = self.client.make_rpc(message)
+            response = self.client._make_rpc(message)
 
             wamp_code = response.WAMP_CODE
             if wamp_code == Error.WAMP_CODE:

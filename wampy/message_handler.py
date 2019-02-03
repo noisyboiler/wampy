@@ -6,7 +6,6 @@ import logging
 import os
 
 from wampy.auth import compute_wcs
-from wampy.errors import WampProtocolError
 from wampy.messages import Authenticate, MESSAGE_TYPE_MAP
 from wampy.messages import Error, Yield
 
@@ -45,14 +44,8 @@ class MessageHandler(object):
         message = json.loads(message)
         wamp_code = message[0]
         if wamp_code not in MESSAGE_TYPE_MAP:
-            raise WampProtocolError(
-                'unexpected WAMP code: {}'.format(wamp_code)
-            )
-
-        logger.debug(
-            "received message: %s (%s)",
-            MESSAGE_TYPE_MAP[wamp_code], message
-        )
+            logger.warning('unexpected WAMP code: %s', wamp_code)
+            return
 
         message_class = MESSAGE_TYPE_MAP[wamp_code]
         # instantiate our Message obj using the incoming payload - but slicing
@@ -66,6 +59,7 @@ class MessageHandler(object):
     def handle_abort(self, message_obj):
         logger.warning(
             "The Router has Aborted the handshake: %s", message_obj.message)
+        # handle this in the Session object
         self.session._message_queue.put(message_obj)
 
     def handle_authenticate(self, message_obj):
@@ -73,7 +67,7 @@ class MessageHandler(object):
 
     def handle_challenge(self, message_obj):
         if 'WAMPYSECRET' not in os.environ:
-            logger.warning('WAMPYSECRET not in environ')
+            logger.error('WAMPYSECRET required in environ')
             # unable to handle this so delegate to the Client
             self.session._message_queue.put(message_obj)
             return
@@ -109,6 +103,7 @@ class MessageHandler(object):
         func(*payload_list, **payload_dict)
 
     def handle_goodbye(self, message_obj):
+        # the Session will close itself once it sees this
         self.session._message_queue.put(message_obj)
 
     def handle_subscribed(self, message_obj):
@@ -146,13 +141,13 @@ class MessageHandler(object):
         session.registration_map[message_obj.registration_id] = procedure_name
 
     def handle_result(self, message_obj):
+        # result of RPC needs to be passed back to the Client app
         self.session._message_queue.put(message_obj)
 
     def handle_welcome(self, message_obj):
-        logger.info("client %s has been welcomed", self.client.name)
         self.session.session_id = message_obj.session_id
         self.session._message_queue.put(message_obj)
-        self.client.register_roles()
+        self.client._register_roles()
 
     def process_result(self, message_obj, result, exc=None):
         if self.session.session_id is None:
@@ -193,5 +188,5 @@ class MessageHandler(object):
             result_args=result_args,
             result_kwargs=result_kwargs,
         )
-        logger.debug("yielding response: %s", yield_message)
+
         self.session.send_message(yield_message)
