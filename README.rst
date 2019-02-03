@@ -319,9 +319,11 @@ Build the docs
 Contributing
 ************
 
-Firstly. read about the `internals`_.
+Firstly. thank you everyone who does. And *everyone* is welcome to. And thanks for reading the `CONTRIBUTING`_ guidelines. And for adding yourselves to the `CONTRIBUTORS`_ list on your PR - you should! Many thanks. It's also great to hear how everyone uses wampy, so please do share how with me on your PR in comments.
 
-Thank you everyone who does. And *everyone* is welcome to. And thanks for reading the `CONTRIBUTING`_ guidelines. And for adding yourselves to the `CONTRIBUTORS`_ list on your PR - you should! Many thanks. It's also great to hear how everyone uses wampy, so please do share how with me on your PR in comments.
+Then, please read about the `internals`_.
+
+Finally.... get coding!!
 
 Thanks!
 
