@@ -156,15 +156,10 @@ class Session(ParseUrlMixin):
         self.send_message(message)
         message_obj = self.recv_message()
 
-
-        if message_obj.WAMP_CODE == Challenge.WAMP_CODE:
-            if 'WAMPYSECRET' not in os.environ:
-                raise WampyError(
-                    "Wampy requires a client's secret to be "
-                    "in the environment as ``WAMPYSECRET``"
-                )
-
-            raise WampyError("Failed to handle CHALLENGE")
+        # raise if Router aborts handshake or we cannot respond to a
+        # Challenge.
+        if message_obj.WAMP_CODE == Abort.WAMP_CODE:
+            raise WampyError(message_obj.message)
 
     def _say_goodbye(self):
         message = Goodbye()

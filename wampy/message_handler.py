@@ -59,6 +59,7 @@ class MessageHandler(object):
     def handle_abort(self, message_obj):
         logger.warning(
             "The Router has Aborted the handshake: %s", message_obj.message)
+        # handle this in the Session object
         self.session._message_queue.put(message_obj)
 
     def handle_authenticate(self, message_obj):
