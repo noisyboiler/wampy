@@ -97,7 +97,8 @@ class Session(ParseUrlMixin):
         # a connection and put them on a queue to be processed
         self._managed_thread = None
         # the MessageHandler is responsible for putting messages on
-        # to this queue.
+        # to this queue which are then returned to the Client. The
+        # queue is shared between the green threads.
         self._message_queue = async_adapter.message_queue
         self._listen(self.connection)
 
@@ -199,6 +200,13 @@ class Session(ParseUrlMixin):
                     frame = connection.receive()
                     if frame:
                         message = frame.payload
+                        # spawn a new green thread to process the Message to
+                        # ensure that we don't block, for example, an Invocation
+                        # may be expensive.
+                        # Messages make their way to the Client via the
+                        # `_message_queue`, else the handler can simply respond
+                        # to Messages such as Challenge without bothering the
+                        # Client Peer.
                         async_adapter.spawn(
                             self.message_handler.handle_message,
                             message,
