@@ -10,7 +10,7 @@ from wampy.auth import compute_wcs
 
 
 # deterministic only for specifc python versions
-@pytest.mark.skipif(sys.version_info != (3, 6), reason="requires python3")
+@pytest.mark.skipif(sys.version_info.major != 3, reason="requires python3")
 def test_compute_wamp_challenge_response():
     secret = 'prq7+YkJ1/KlW1X0YczMHw=='
     challenge_data = {
