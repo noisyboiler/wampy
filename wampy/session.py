@@ -172,7 +172,7 @@ class Session(ParseUrlMixin):
                     )
             except WampyTimeOutError:
                 logger.warning('no response to Goodbye.... server gone away?')
-            except WampProtocolError as exc:
+            except WampProtocolError:
                 logger.exception('failed to say Goodbye')
 
     def _listen(self, connection):
