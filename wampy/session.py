@@ -9,7 +9,6 @@ from wampy.errors import (
     ConnectionError, WampyError, WampyTimeOutError,
     WampProtocolError,
 )
-from wampy.messages import MESSAGE_TYPE_MAP
 from wampy.messages.hello import Hello
 from wampy.messages.goodbye import Goodbye
 from wampy.messages.register import Register
@@ -39,14 +38,15 @@ class Session(ParseUrlMixin):
 
     """
 
-    def __init__(self, client, router_url, message_handler, ipv, cert_path):
+    def __init__(
+        self, router_url, message_handler, ipv, cert_path,
+        call_timeout, realm, roles,
+    ):
         """ A Session between a Client and a Router.
 
         The WAMP layer of the internal architecture.
 
         :Parameters:
-            client : instance
-                An instance of :class:`peers.Client`
             router_url : string
                 The URL of the Router Peer.
             message_handler : instance
@@ -56,7 +56,6 @@ class Session(ParseUrlMixin):
                 The Internet Protocol version for the Transport to use
 
         """
-        self.client = client
         self.url = router_url
         # decomposes the url, adding new Session instance variables for
         # them, so that the Session can decide on the Transport it needs
@@ -66,6 +65,9 @@ class Session(ParseUrlMixin):
         self.message_handler = message_handler
         self.ipv = ipv
         self.cert_path = cert_path
+        self.call_timeout = call_timeout
+        self.realm = realm
+        self.roles = roles
 
         if self.scheme == "ws":
             self.transport = WebSocket(
@@ -99,10 +101,6 @@ class Session(ParseUrlMixin):
         self._listen(self.connection)
 
     @property
-    def realm(self):
-        return self.client.realm
-
-    @property
     def id(self):
         return self.session_id
 
@@ -120,30 +118,17 @@ class Session(ParseUrlMixin):
         self._managed_thread = None
 
     def send_message(self, message_obj):
-        message_type = MESSAGE_TYPE_MAP[message_obj.WAMP_CODE]
         message = message_obj.message
-
-        logger.debug(
-            'sending "%s" message: "%s" for client "%s"',
-            message_type,
-            message,
-            self.client.name,
-        )
-
         self.connection.send(message)
 
     def recv_message(self, timeout=None):
         message = async_adapter.receive_message(
-            timeout=timeout or self.client.call_timeout,
-        )
-        logger.debug(
-            'received message: "%s" for client "%s"',
-            message.name, self.client.name,
+            timeout=timeout or self.call_timeout,
         )
         return message
 
     def _say_hello(self):
-        details = self.client.roles
+        details = self.roles
         for role, features in details['roles'].items():
             features.setdefault('features', {})
             features['features'].setdefault('call_timeout', True)
@@ -186,7 +171,6 @@ class Session(ParseUrlMixin):
                         async_adapter.spawn(
                             self.message_handler.handle_message,
                             message,
-                            self.client
                         )
                 except (
                     SystemExit, KeyboardInterrupt, ConnectionError,

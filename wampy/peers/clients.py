@@ -26,7 +26,7 @@ class Client(object):
     def __init__(
         self, url=None, cert_path=None, ipv=4,
         realm=DEFAULT_REALM, roles=DEFAULT_ROLES,
-        message_handler=None, name=None,
+        message_handler_cls=None, name=None,
         call_timeout=DEFAULT_TIMEOUT,
     ):
         """ A WAMP Client "Peer".
@@ -50,10 +50,10 @@ class Client(object):
             roles : dictionary
                 Description of the Roles implemented by the ``Client``.
                 Defaults to ``wampy.constants.DEFAULT_ROLES``.
-            message_handler : instance
-                An instance of ``wampy.message_handler.MessageHandler``, or
-                a subclass of. This controls the conversation between the
-                two Peers.
+            message_handler_cls : Class
+                A ``wampy.message_handler.MessageHandler`` class, or
+                a subclass of. This implements and provides the required
+                actions for the the WAMP messages.
             name : string
                 Optional name for your ``Client``. Useful for when testing
                 your app or for logging.
@@ -77,7 +77,12 @@ class Client(object):
 
         # wampy uses a decoupled "messge handler" to process incoming messages.
         # wampy also provides a very adequate default.
-        self.message_handler = message_handler or MessageHandler()
+        # the Client instance is passed into the handler because Callee's and
+        # Subscribers are declared on subclasses of the Client class.
+        self.message_handler = (
+            message_handler_cls(client=self) if message_handler_cls
+            else MessageHandler(client=self)
+        )
 
         # generally ``name`` is used for debugging and logging only
         self.name = name or self.__class__.__name__
@@ -133,11 +138,13 @@ class Client(object):
         # pass in out ``MessageHandler`` which will process messages
         # before they are passed back to the client.
         self._session = Session(
-            client=self,
             router_url=self.url,
             message_handler=self.message_handler,
             ipv=self.ipv,
             cert_path=self.cert_path,
+            call_timeout=self.call_timeout,
+            realm=self.realm,
+            roles=self.roles,
         )
 
         # establish the session

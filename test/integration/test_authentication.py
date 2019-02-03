@@ -115,11 +115,10 @@ def test_connection_is_challenged(router):
         'authid': 'peter',
     }
 
-    message_handler = CollectingMessageHandler()
     client = Client(
         url=router.url,
         roles=roles,
-        message_handler=message_handler,
+        message_handler_cls=CollectingMessageHandler,
         name="unauthenticated-client"
     )
 
@@ -152,11 +151,10 @@ def test_connection_is_ticket_challenged(router):
         'authid': 'martin',
     }
 
-    message_handler = CollectingMessageHandler()
     client = Client(
         url=router.url,
         roles=roles,
-        message_handler=message_handler,
+        message_handler_cls=CollectingMessageHandler,
         name="unauthenticated-client"
     )
 
@@ -256,11 +254,10 @@ def test_peter_cannot_call_get_foo(router, foo_service):
         'authid': 'peter',
     }
 
-    message_handler = CollectingMessageHandler()
     client = Client(
         url=router.url,
         roles=roles,
-        message_handler=message_handler,
+        message_handler_cls=CollectingMessageHandler,
         name="unauthenticated-client-three",
     )
 

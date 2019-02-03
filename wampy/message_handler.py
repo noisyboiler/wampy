@@ -33,8 +33,14 @@ class MessageHandler(object):
         and you'll lose your background worker too.
 
     """
+    def __init__(self, client):
+        self.client = client
 
-    def handle_message(self, message, client):
+    @property
+    def session(self):
+        return self.client.session
+
+    def handle_message(self, message):
         # all WAMP paylods on a websocket frame are JSON
         message = json.loads(message)
         wamp_code = message[0]
@@ -47,9 +53,6 @@ class MessageHandler(object):
             "received message: %s (%s)",
             MESSAGE_TYPE_MAP[wamp_code], message
         )
-
-        self.client = client
-        self.session = client.session
 
         message_class = MESSAGE_TYPE_MAP[wamp_code]
         # instantiate our Message obj using the incoming payload - but slicing

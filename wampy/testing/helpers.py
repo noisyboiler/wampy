@@ -60,12 +60,12 @@ def wait_for_messages(client, number_of_messages):
 
 class CollectingMessageHandler(MessageHandler):
 
-    def __init__(self):
-        super(CollectingMessageHandler, self).__init__()
+    def __init__(self, client):
+        super(CollectingMessageHandler, self).__init__(client)
         self.messages_received = []
 
-    def handle_message(self, message, client):
+    def handle_message(self, message):
         self.messages_received.append(json.loads(message))
         super(CollectingMessageHandler, self).handle_message(
-            message, client
+            message,
         )
