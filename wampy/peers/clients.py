@@ -130,9 +130,10 @@ class Client(object):
         return PublishProxy(client=self)
 
     def start(self):
-        # create a Session repr between ourselves and the Router.
-        # pass in out ``MessageHandler`` which will process messages
-        # before they are passed back to the client.
+        # create a Session between ourselves and the Router.
+        # the ``MessageHandler`` will process incoming messages
+        # and pass back any messages that the client needs, such
+        # as RPC responses and Subscriptions.
         self._session = Session(
             router_url=self.url,
             message_handler=self.message_handler,
@@ -143,7 +144,6 @@ class Client(object):
             roles=self.roles,
         )
 
-        # establish the session
         self.session.begin()
 
         logger.info(
@@ -163,7 +163,8 @@ class Client(object):
     def recv_message(self, source_request_id=None):
         return self.session.recv_message(source_request_id=source_request_id)
 
-    def make_rpc(self, message):
+    def _make_rpc(self, message):
+        # _make_rpc should not be called directly, rather by a Proxy object
         self.send_message(message)
         response = self.recv_message(
             source_request_id=message.request_id,

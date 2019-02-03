@@ -156,10 +156,6 @@ class Session(ParseUrlMixin):
         self.send_message(message)
         message_obj = self.recv_message()
 
-        # raise if Router aborts handshake or we cannot respond to a
-        # Challenge.
-        if message_obj.WAMP_CODE == Abort.WAMP_CODE:
-            raise WampyError(message_obj.message)
 
         if message_obj.WAMP_CODE == Challenge.WAMP_CODE:
             if 'WAMPYSECRET' not in os.environ:

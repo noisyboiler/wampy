@@ -6,7 +6,6 @@ import logging
 import os
 
 from wampy.auth import compute_wcs
-from wampy.errors import WampProtocolError
 from wampy.messages import Authenticate, MESSAGE_TYPE_MAP
 from wampy.messages import Error, Yield
 
@@ -45,14 +44,8 @@ class MessageHandler(object):
         message = json.loads(message)
         wamp_code = message[0]
         if wamp_code not in MESSAGE_TYPE_MAP:
-            raise WampProtocolError(
-                'unexpected WAMP code: {}'.format(wamp_code)
-            )
-
-        logger.debug(
-            "received message: %s (%s)",
-            MESSAGE_TYPE_MAP[wamp_code], message
-        )
+            logger.warning('unexpected WAMP code: %s', wamp_code)
+            return
 
         message_class = MESSAGE_TYPE_MAP[wamp_code]
         # instantiate our Message obj using the incoming payload - but slicing
