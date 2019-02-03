@@ -161,6 +161,9 @@ class Session(ParseUrlMixin):
         if message_obj.WAMP_CODE == Abort.WAMP_CODE:
             raise WampyError(message_obj.message)
 
+        if message_obj.WAMP_CODE == Challenge.WAMP_CODE:
+            raise WampyError("Failed to handle CHALLENGE")
+
     def _say_goodbye(self):
         message = Goodbye()
         try:

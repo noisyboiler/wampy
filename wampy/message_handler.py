@@ -103,6 +103,7 @@ class MessageHandler(object):
         func(*payload_list, **payload_dict)
 
     def handle_goodbye(self, message_obj):
+        # the Session will close itself once it sees this
         self.session._message_queue.put(message_obj)
 
     def handle_subscribed(self, message_obj):
@@ -140,10 +141,10 @@ class MessageHandler(object):
         session.registration_map[message_obj.registration_id] = procedure_name
 
     def handle_result(self, message_obj):
+        # result of RPC needs to be passed back to the Client app
         self.session._message_queue.put(message_obj)
 
     def handle_welcome(self, message_obj):
-        logger.info("client %s has been welcomed", self.client.name)
         self.session.session_id = message_obj.session_id
         self.session._message_queue.put(message_obj)
         self.client.register_roles()
@@ -187,5 +188,5 @@ class MessageHandler(object):
             result_args=result_args,
             result_kwargs=result_kwargs,
         )
-        logger.debug("yielding response: %s", yield_message)
+
         self.session.send_message(yield_message)
