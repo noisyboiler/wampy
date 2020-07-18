@@ -7,12 +7,14 @@ python:
   - "3.4"
   - "3.5"
   - "3.6"
+  - "3.7"
+  - "3.8"
 
 install:
-  - pip install --upgrade setuptools coverage
-  - pip install --editable .[dev]
-  - pip install pytest-cov
-  - pip install coveralls
+  - pip3 install --upgrade setuptools coverage
+  - pip3 install --editable .[dev]
+  - pip3 install pytest-cov
+  - pip3 install coveralls
 
 script:
   - pytest -s -vv --cov=./wampy

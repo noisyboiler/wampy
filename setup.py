@@ -38,12 +38,11 @@ setup(
         "eventlet>=0.24.1",
         "six>=1.11.0",
         "simplejson>=3.11.1",
-        "gevent>1.1",  # fixes infinite SSL recursion bug
+        "gevent==20.4.0",
     ],
     extras_require={
         'dev': [
-            "crossbar==18.4.1",  # cannot go >, see Crossbar issue 1333
-            "Twisted==17.9.0",
+            "crossbar==20.7.1",
             "pytest>=4.0.2",
             "mock>=1.3.0",
             "colorlog>=3.1.4",
