@@ -66,6 +66,9 @@ target/
 node.pid
 node.key
 
+#Mac
+.DS_Store
+
 #wampy
 config.yaml
 key.*

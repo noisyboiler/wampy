@@ -1,7 +1,7 @@
 ![Travis](https://travis-ci.org/noisyboiler/wampy.svg?branch=master)
 ![Python35](https://img.shields.io/badge/python-3.5-blue.svg)
 ![Python36](https://img.shields.io/badge/python-3.6-blue.svg)
-![Python37](https://img.shields.io/badge/python-3.7-blue.svg)
+![Python37](https://img.shields.io/badge/python-3.7.3-blue.svg)
 ![Python38](https://img.shields.io/badge/python-3.8-blue.svg)
 
 ![image](https://coveralls.io/repos/github/noisyboiler/wampy/badge.svg?branch=master)
