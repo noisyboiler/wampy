@@ -16,7 +16,7 @@ with open(path.join(here, 'README.md')) as f:
 
 setup(
     name='wampy',
-    version='0.9.21',
+    version='0.9.22',
     description='WAMP RPC and Pub/Sub for python interactive shells, scripts, apps and microservices',  # noqa
     long_description=long_description,
     url='https://github.com/noisyboiler/wampy',
@@ -26,15 +26,16 @@ setup(
     classifiers=[
         'Development Status :: 4 - Beta',
         'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
     ],
     keywords='WAMP RPC',
     packages=find_packages(),
     install_requires=[
-        "attrs>=17.4.0 ",
+        "attrs==19.2.0",
         "eventlet>=0.24.1",
         "six>=1.11.0",
         "simplejson>=3.11.1",

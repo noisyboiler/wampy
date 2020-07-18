@@ -1,8 +1,8 @@
-![Travis](https://travis-ci.org/noisyboiler/wampy.svg?branch=master)\_
-![Python27](https://img.shields.io/badge/python-2.7-blue.svg)\_
-![Python34](https://img.shields.io/badge/python-3.4-blue.svg)\_
-![Python35](https://img.shields.io/badge/python-3.5-blue.svg)\_
-![Python36](https://img.shields.io/badge/python-3.8-blue.svg)\_
+![Travis](https://travis-ci.org/noisyboiler/wampy.svg?branch=master)
+![Python35](https://img.shields.io/badge/python-3.5-blue.svg)
+![Python36](https://img.shields.io/badge/python-3.6-blue.svg)
+![Python37](https://img.shields.io/badge/python-3.7-blue.svg)
+![Python38](https://img.shields.io/badge/python-3.8-blue.svg)
 
 ![image](https://coveralls.io/repos/github/noisyboiler/wampy/badge.svg?branch=master)
 
