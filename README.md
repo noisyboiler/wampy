@@ -281,6 +281,9 @@ Swapping back is easy.
 
     $ export WAMPY_ASYNC_NAME=gevent
 
+
+Gevent is officially supported bu eventlet no longer is, sorry.
+
 Async.io would require a complete re-write, and if you're already using
 the standard library and want to use **wampy** that is *not* a problem -
 just roll with the default gevent - as the two event loops can run side

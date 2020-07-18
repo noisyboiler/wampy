@@ -17,9 +17,5 @@ install:
 script:
   - pytest -s -vv --cov=./wampy
 
-env:
-  - WAMPY_ASYNC_NAME=eventlet
-  - WAMPY_ASYNC_NAME=gevent
-
 after_success:
   - coveralls
