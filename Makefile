@@ -16,8 +16,8 @@ unit-tests:
 lint:
 	flake8 .
 
-coverage-report:
-	pytest -s -vv --cov=./wampy
+coverage:
+	coverage run --source ./wampy -m py.test ./test/ && coverage repor
 
 crossbar:
 	crossbar start --config ./wampy/testing/configs/crossbar.json

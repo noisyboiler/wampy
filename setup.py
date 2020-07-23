@@ -43,13 +43,14 @@ setup(
     ],
     extras_require={
         'dev': [
-            "crossbar==20.7.1",
-            "pytest>=4.0.2",
-            "mock>=1.3.0",
             "colorlog>=3.1.4",
+            "coverage>=3.7.1",
+            "crossbar==20.7.1",
             "flake8>=3.5.0",
             "gevent-websocket>=0.10.1",
-            "coverage>=3.7.1",
+            "pytest>=4.0.2",
+            "mock>=1.3.0",
+            "pytest-capturelog==0.7"
         ],
         'docs': [
             "Sphinx==1.4.5",
