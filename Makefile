@@ -17,7 +17,7 @@ lint:
 	flake8 .
 
 coverage:
-	coverage run --source ./wampy -m py.test ./test/ && coverage repor
+	coverage run --source ./wampy -m py.test ./test/ && coverage report
 
 crossbar:
 	crossbar start --config ./wampy/testing/configs/crossbar.json

@@ -4,7 +4,7 @@
 ![Python37](https://img.shields.io/badge/python-3.7.3-blue.svg)
 ![Python38](https://img.shields.io/badge/python-3.8-blue.svg)
 
-![image](https://coveralls.io/repos/github/noisyboiler/wampy/badge.svg?branch=master)
+![image](./coverage.svg)
 
 wampy
 =====
