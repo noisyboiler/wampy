@@ -4,30 +4,38 @@
 
 # Set default logging handler to avoid "No handler found" warnings.
 import logging
-
-try:  # Python 2.7+
-    from logging import NullHandler
-except ImportError:
-    class NullHandler(logging.Handler):
-        def emit(self, record):
-            pass
+from logging import NullHandler
 
 from wampy.config.defaults import async_name
 from wampy.constants import EVENTLET, GEVENT
 from wampy.peers.clients import Client  # noqa
 
+logger = logging.getLogger("wampy")
 
-root = logging.getLogger(__name__)
-root.addHandler(NullHandler())
 
-root.info('wampy starting up with event loop: %s', async_name)
+def configure_logging():
+    FORMAT = '%(asctime)-15s %(levelname)s:%(message)s'
+    logging.basicConfig(format=FORMAT)
 
-if async_name == GEVENT:
-    import gevent.monkey
-    root.warning('gevent about to monkey patch your environment')
-    gevent.monkey.patch_all()
+    root = logging.getLogger()
+    root.addHandler(NullHandler())
 
-if async_name == EVENTLET:
-    import eventlet
-    root.warning('eventlet about to monkey patch your environment')
-    eventlet.monkey_patch()
+    logger.info("logging configured")
+
+
+def configure_async():
+    if async_name == GEVENT:
+        import gevent.monkey
+        gevent.monkey.patch_all()
+        logger.warning('gevent monkey-patched your environment')
+
+    if async_name == EVENTLET:
+        import eventlet
+        eventlet.monkey_patch()
+        logger.warning('eventlet monkey-patched your environment')
+
+
+configure_logging()
+configure_async()
+
+logger.info('wampy starting up with event loop: %s', async_name)

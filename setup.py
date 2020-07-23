@@ -10,13 +10,13 @@ here = path.abspath(path.dirname(__file__))
 
 
 # Get the long description from the README file
-with open(path.join(here, 'README.rst')) as f:
+with open(path.join(here, 'README.md')) as f:
     long_description = f.read()
 
 
 setup(
     name='wampy',
-    version='0.9.21',
+    version='0.9.22',
     description='WAMP RPC and Pub/Sub for python interactive shells, scripts, apps and microservices',  # noqa
     long_description=long_description,
     url='https://github.com/noisyboiler/wampy',
@@ -26,30 +26,31 @@ setup(
     classifiers=[
         'Development Status :: 4 - Beta',
         'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7.3',
+        'Programming Language :: Python :: 3.8',
     ],
     keywords='WAMP RPC',
     packages=find_packages(),
     install_requires=[
-        "attrs>=17.4.0 ",
+        "attrs==19.2.0",
         "eventlet>=0.24.1",
         "six>=1.11.0",
         "simplejson>=3.11.1",
-        "gevent>1.1",  # fixes infinite SSL recursion bug
+        "gevent==20.4.0",
     ],
     extras_require={
         'dev': [
-            "crossbar==18.4.1",  # cannot go >, see Crossbar issue 1333
-            "Twisted==17.9.0",
-            "pytest>=4.0.2",
-            "mock>=1.3.0",
             "colorlog>=3.1.4",
+            "coverage>=3.7.1",
+            "crossbar==20.7.1",
             "flake8>=3.5.0",
             "gevent-websocket>=0.10.1",
-            "coverage>=3.7.1",
+            "pytest>=4.0.2",
+            "mock>=1.3.0",
+            "pytest-capturelog==0.7"
         ],
         'docs': [
             "Sphinx==1.4.5",
