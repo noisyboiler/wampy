@@ -32,8 +32,11 @@ class Crossbar(ParseUrlMixin):
         connect to as you would any other server.
 
         """
-        with open(config_path) as data_file:
-            config_data = json.load(data_file)
+        try:
+            with open(config_path) as data_file:
+                config_data = json.load(data_file)
+        except FileNotFoundError:
+            raise FileNotFoundError(f'{config_path} not found')
 
         self.config = config_data
         self.config_path = config_path
