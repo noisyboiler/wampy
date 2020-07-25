@@ -231,6 +231,4 @@ def test_pings_and_missed_pongs(
                 with patch.object(ws, 'handle_pong'):
                     async_adapter.sleep(sleep)
 
-            assert client.is_pinging is False
-
     assert ws.missed_pongs == expected_missed_pongs

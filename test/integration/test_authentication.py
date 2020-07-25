@@ -7,12 +7,12 @@ import os
 import pytest
 
 from wampy.errors import WampyError
-from wampy.messages import Challenge, Error, Welcome, Goodbye
+from wampy.messages import Abort, Challenge, Error, Welcome, Goodbye
 from wampy.peers.clients import Client
 from wampy.roles.callee import callee
 
 from wampy.testing.helpers import (
-    CollectingMessageHandler, wait_for_messages)
+    CollectingMessageHandler, wait_for_messages, wait_for_messages)
 
 
 @pytest.fixture(scope="function")
@@ -60,10 +60,13 @@ def test_connection_is_aborted_when_not_authorised(router):
     }
 
     client = Client(
-        url=router.url, roles=roles, name="unauthenticated-client-one")
+        url=router.url, roles=roles, name="unauthenticated-client-one",
+        message_handler_cls=CollectingMessageHandler
+    )
 
     with pytest.raises(WampyError) as exc_info:
         client.start()
+        wait_for_messages(client, 1)
 
     client.stop()
 
@@ -130,6 +133,7 @@ def test_connection_is_challenged(router):
     assert messages[1][0] == Welcome.WAMP_CODE
 
     client.stop()
+    messages = wait_for_messages(client, 3)
 
     # now also expect a Goodbye message
     assert len(messages) == 3
@@ -166,6 +170,7 @@ def test_connection_is_ticket_challenged(router):
     assert messages[1][0] == Welcome.WAMP_CODE
 
     client.stop()
+    messages = wait_for_messages(client, 3)
 
     # now also expect a Goodbye message
     assert len(messages) == 3
@@ -223,14 +228,18 @@ def test_incorrect_ticket(router):
     client = Client(
         url=router.url,
         roles=roles,
-        name="bad-client"
+        name="bad-client",
+        message_handler_cls=CollectingMessageHandler,
     )
 
     with pytest.raises(WampyError) as exc_info:
         client.start()
 
-    exception = exc_info.value
+        messages = wait_for_messages(client, 2)
+        assert messages[0][0] == Challenge.WAMP_CODE
+        assert messages[1][0] == Abort.WAMP_CODE
 
+    exception = exc_info.value
     message = str(exception)
 
     assert (
@@ -265,14 +274,11 @@ def test_peter_cannot_call_get_foo(router, foo_service):
 
     with pytest.raises(WampyError):
         client.rpc.get_foo()
+        messages = wait_for_messages(client, 4)
+        # now also expect a Goodbye message
+        assert len(messages) == 4
+        assert messages[0][0] == Challenge.WAMP_CODE
+        assert messages[1][0] == Welcome.WAMP_CODE
+        assert messages[2][0] == Error.WAMP_CODE
 
     client.stop()
-
-    messages = wait_for_messages(client, 4)
-
-    # now also expect a Goodbye message
-    assert len(messages) == 4
-    assert messages[0][0] == Challenge.WAMP_CODE
-    assert messages[1][0] == Welcome.WAMP_CODE
-    assert messages[2][0] == Error.WAMP_CODE
-    assert messages[3][0] == Goodbye.WAMP_CODE
