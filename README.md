@@ -282,7 +282,9 @@ Swapping back is easy.
     $ export WAMPY_ASYNC_NAME=gevent
 
 
-Gevent is officially supported bu eventlet no longer is, sorry.
+Gevent is officially supported but eventlet no longer is, sorry. There
+were issues with Eventlet and Python 3.7 that I cannot currently work
+around.
 
 Async.io would require a complete re-write, and if you're already using
 the standard library and want to use **wampy** that is *not* a problem -

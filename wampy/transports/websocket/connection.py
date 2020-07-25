@@ -90,8 +90,6 @@ class WebSocket(Transport, ParseUrlMixin):
 
         while True:
 
-            print("waiting")
-
             try:
                 bytes_ = conn.recv(bufsize)
             except socket.timeout as e:
@@ -129,7 +127,6 @@ class WebSocket(Transport, ParseUrlMixin):
 
                 break
 
-        print('done')
         if frame is None:
             raise WampProtocolError("No frame returned")
 

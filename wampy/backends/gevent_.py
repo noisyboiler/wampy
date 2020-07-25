@@ -11,8 +11,8 @@ from wampy.interfaces import Async
 
 class Gevent(Async):
 
-    def __init__(self, message_queue=gevent.queue.Queue):
-        self.message_queue = message_queue()
+    def __init__(self, message_queue=gevent.queue.Queue()):
+        self.message_queue = message_queue
 
     def __str__(self):
         return 'GeventAsyncAdapter'

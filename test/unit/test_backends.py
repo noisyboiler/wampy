@@ -31,7 +31,7 @@ class TestGeventadapter:
         timeout = adapter.Timeout(timeout=10)
         assert isinstance(timeout, gevent.Timeout)
 
-    def test_receive_message(self):
+    def test_receive_message_g(self):
         mock_queue = Mock()
         mock_queue.qsize.side_effect = [3, 2, 1]
         mock_queue.get.side_effect = [1, 2, 3]

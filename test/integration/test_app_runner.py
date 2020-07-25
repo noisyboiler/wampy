@@ -6,6 +6,9 @@ from wampy.cli.run import run
 from wampy.peers.clients import Client
 
 
+@pytest.mark.skip(
+    reason="no way of currently stopping the app runner from here"
+)
 class TestAppRunner(object):
 
     @pytest.fixture
