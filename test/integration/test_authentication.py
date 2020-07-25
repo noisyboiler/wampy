@@ -12,7 +12,8 @@ from wampy.peers.clients import Client
 from wampy.roles.callee import callee
 
 from wampy.testing.helpers import (
-    CollectingMessageHandler, wait_for_messages, wait_for_messages)
+    CollectingMessageHandler, wait_for_messages,
+)
 
 
 @pytest.fixture(scope="function")

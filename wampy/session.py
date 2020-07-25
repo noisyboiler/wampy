@@ -5,13 +5,15 @@
 import logging
 import os
 
+from wampy.auth import compute_wcs
 from wampy.backends import async_adapter
 from wampy.errors import (
     ConnectionError, WampyError, WampyTimeOutError,
     WampProtocolError,
 )
 from wampy.messages import (
-    Abort, Cancel, Challenge, Hello, Goodbye, Register, Subscribe,
+    Abort, Authenticate, Cancel, Challenge, Hello, Goodbye, Register,
+    Subscribe, Welcome,
 )
 
 from wampy.mixins import ParseUrlMixin
@@ -41,7 +43,7 @@ class Session(ParseUrlMixin):
 
     def __init__(
         self, router_url, message_handler, ipv, cert_path,
-        call_timeout, realm, roles,
+        call_timeout, realm, roles, client_name,
     ):
         """ A Session between a Client and a Router.
 
@@ -69,6 +71,7 @@ class Session(ParseUrlMixin):
         self.call_timeout = call_timeout
         self.realm = realm
         self.roles = roles
+        self.client_name = client_name
 
         if self.scheme == "ws":
             self.transport = WebSocket(
@@ -100,30 +103,34 @@ class Session(ParseUrlMixin):
         # to this queue which are then returned to the Client. The
         # queue is shared between the green threads.
         self._message_queue = async_adapter.message_queue
-        self._listen(self.connection)
+        self._listen()
 
     @property
     def id(self):
         return self.session_id
 
+    # TODO wrap in HELLO
     def begin(self):
-        return self._say_hello()
+        self._say_hello()
+        # wait for the Welcome Message which the MessageHandler returns to
+        # the Client via its private message queue
+        logger.info("Session requested")
 
-    def end(self):
-        self.connection.stop_pinging()
-        self._say_goodbye()
+    # TODO wrap in END
+    def end(self, goodbye_from):
+        self._say_goodbye(goodbye_from=goodbye_from)
         self.connection.disconnect()
-        self.subscription_map = {}
-        self.registration_map = {}
-        self.session_id = None
         self._managed_thread.kill()
-        self._managed_thread = None
+        self.session_id = None
 
     def send_message(self, message_obj):
         message = message_obj.message
         self.connection.send(message)
 
+    # TODO: move this to the Client to remove another layer of abstraction?
     def recv_message(self, source_request_id=None, timeout=None):
+        # Messages are passed from the MessageHandler to a queue on the
+        # Client.
         try:
             message = async_adapter.receive_message(
                 timeout=timeout or self.call_timeout,
@@ -154,11 +161,14 @@ class Session(ParseUrlMixin):
 
         message = Hello(realm=self.realm, details=details)
         self.send_message(message)
-        message_obj = self.recv_message()
 
+        message_obj = self.recv_message()
         # raise if Router aborts handshake or we cannot respond to a
         # Challenge.
         if message_obj.WAMP_CODE == Abort.WAMP_CODE:
+            # gracefully shut down the Client and raise
+            self.connection.disconnect()
+            self._managed_thread.kill()
             raise WampyError(message_obj.message)
 
         if message_obj.WAMP_CODE == Challenge.WAMP_CODE:
@@ -168,53 +178,71 @@ class Session(ParseUrlMixin):
                     "in the environment as ``WAMPYSECRET``"
                 )
 
-            raise WampyError("Failed to handle CHALLENGE")
+            secret = os.environ['WAMPYSECRET']
+            if message_obj.auth_method == 'ticket':
+                logger.info("proceeding with ticket authentication method")
+                message = Authenticate(secret)
+            else:
+                logger.info("assuming wampcra authentication method")
+                challenge_data = message_obj.challenge
+                signature = compute_wcs(secret, str(challenge_data))
+                message = Authenticate(signature.decode("utf-8"))
 
-    def _say_goodbye(self):
-        message = Goodbye()
-        try:
             self.send_message(message)
-        except Exception as exc:
-            # we can't be sure what the Exception is here because it will
-            # be from the Router implementation
-            logger.exception("GOODBYE failed!: %s", exc)
-        else:
-            try:
-                message = self.recv_message(timeout=1)
-                if message.WAMP_CODE != Goodbye.WAMP_CODE:
-                    raise WampProtocolError(
-                        "Unexpected response from GOODBYE message: {}".format(
-                            message
-                        )
-                    )
-            except WampyTimeOutError:
-                logger.warning('no response to Goodbye.... server gone away?')
-            except WampProtocolError:
-                logger.exception('failed to say Goodbye')
+            message_obj = self.recv_message()
 
-    def _listen(self, connection):
+            # raise if Router aborts handshake or we cannot respond to a
+            # Challenge.
+            if message_obj.WAMP_CODE == Abort.WAMP_CODE:
+                # gracefully shut down the Client and raise
+                self.connection.disconnect()
+                self._managed_thread.kill()
+                raise WampyError(message_obj.message)
+            elif message_obj.WAMP_CODE == Welcome.WAMP_CODE:
+                logger.info(
+                    "%s has been Authenticated and Welcomed", self.client_name,
+                )
+
+    def _say_goodbye(self, goodbye_from):
+        logger.info("%s is saying GoodBye", goodbye_from)
+        message = Goodbye()
+        self.send_message(message)
+
+        message_obj = self.recv_message()
+        if message_obj.WAMP_CODE != Goodbye.WAMP_CODE:
+            raise WampyError(
+                "Expecting a Goodbye from the Router: got a "
+                f"{message_obj.WAMP_CODE} instead",
+            )
+
+    def _listen(self):
+        # listens on the TCP socket connection to Crossbar.
+        # Full Frames are always WAMP messages, which are passed to
+        # a MessageHandler.
+        connection = self.connection
 
         def connection_handler():
             while True:
-                try:
-                    frame = connection.receive()
-                    if frame:
-                        message = frame.payload
-                        # spawn a new green thread to process the Message to
-                        # ensure that we don't block, for example, an
-                        # Invocation may be expensive.
-                        # Messages make their way to the Client via the
-                        # `_message_queue`, else the handler can simply respond
-                        # to Messages such as Challenge without bothering the
-                        # Client Peer.
-                        async_adapter.spawn(
-                            self.message_handler.handle_message,
-                            message,
-                        )
-                except (
-                    SystemExit, KeyboardInterrupt, ConnectionError,
-                    WampProtocolError,
-                ):
+                if not self._managed_thread.ready():
+                    async_adapter.sleep()
+
+                if not connection.socket.closed:
+                    try:
+                        frame = connection.receive()
+                        if frame:
+                            message = frame.payload
+                            logger.info("handling %s", message)
+                            self.message_handler.handle_message(message)
+                    except (
+                        SystemExit, KeyboardInterrupt, ConnectionError,
+                        WampProtocolError,
+                    ):
+                        logger.exception("connection has been terminated")
+                        break
+
+                else:
+                    # this is likely the parent gthread closing it deliberately
+                    logger.warning("connection gthread has closed")
                     break
 
         gthread = async_adapter.spawn(connection_handler)
@@ -236,6 +264,7 @@ class Session(ParseUrlMixin):
 
     def _register_procedure(self, procedure_name, invocation_policy="single"):
         """ Register a "procedure" on a Client as callable over the Router.
+        The REGISTERED Message is handled by the MessageHandler.
         """
         options = {"invoke": invocation_policy}
         message = Register(procedure=procedure_name, options=options)

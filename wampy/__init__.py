@@ -8,14 +8,13 @@ from logging import NullHandler
 
 from wampy.config.defaults import async_name
 from wampy.constants import EVENTLET, GEVENT
-from wampy.peers.clients import Client  # noqa
 
 logger = logging.getLogger("wampy")
 
 
 def configure_logging():
     FORMAT = '%(asctime)-15s %(levelname)s:%(message)s'
-    logging.basicConfig(format=FORMAT)
+    logging.basicConfig(format=FORMAT, level=logging.INFO)
 
     root = logging.getLogger()
     root.addHandler(NullHandler())
@@ -35,7 +34,7 @@ def configure_async():
         logger.warning('eventlet monkey-patched your environment')
 
 
-configure_logging()
 configure_async()
+configure_logging()
 
 logger.info('wampy starting up with event loop: %s', async_name)

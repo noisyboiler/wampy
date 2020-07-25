@@ -3,12 +3,17 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import datetime
+from time import sleep
 
 import pytest
 
 from wampy.peers.clients import Client
 from wampy.roles.callee import callee
+
 from wampy.testing.helpers import assert_stops_raising, wait_for_session
+from wampy.testing.helpers import (
+    CollectingMessageHandler, wait_for_messages,
+)
 
 
 class DateService(Client):
@@ -153,3 +158,22 @@ def test_can_start_two_clients(router):
         assert app_two.session is None
 
     assert_stops_raising(assert_session_closed, timeout=2)
+
+
+def test_client_stays_alive(router):
+    client = BinaryNumberService(
+        url=router.url,
+        message_handler_cls=CollectingMessageHandler,
+        name="foobar",
+    )
+
+    client.start()
+    wait_for_session(client)
+
+    sleep(5)
+
+    result = client.rpc.get_binary(100)
+    wait_for_messages(client, 4)
+    assert result == '0b1100100'
+
+    client.stop()

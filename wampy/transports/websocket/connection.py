@@ -64,6 +64,7 @@ class WebSocket(Transport, ParseUrlMixin):
         return self
 
     def disconnect(self):
+        logger.warning("disconnecting from %s", self.url)
         if self.socket:
             try:
                 self.socket.shutdown(socket.SHUT_RDWR)
@@ -74,6 +75,7 @@ class WebSocket(Transport, ParseUrlMixin):
 
     def send(self, message):
         frame = Text(payload=json_serialize(message))
+        logger.info('send message: %s', message)
         websocket_message = frame.frame
         self._send_raw(websocket_message)
 
@@ -84,10 +86,14 @@ class WebSocket(Transport, ParseUrlMixin):
     def receive(self, bufsize=1):
         frame = None
         received_bytes = bytearray()
+        conn = self.socket
 
         while True:
+
+            print("waiting")
+
             try:
-                bytes_ = self.socket.recv(bufsize)
+                bytes_ = conn.recv(bufsize)
             except socket.timeout as e:
                 message = str(e)
                 raise ConnectionError('timeout: "{}"'.format(message))
@@ -103,6 +109,7 @@ class WebSocket(Transport, ParseUrlMixin):
             except IncompleteFrameError as exc:
                 bufsize = exc.required_bytes
             else:
+                # non WAMP-handled opcides
                 if frame.opcode == frame.OPCODE_PING:
                     # Opcode 0x9 marks a ping frame. It does not contain wamp
                     # data, so the frame is not returned.
@@ -122,9 +129,18 @@ class WebSocket(Transport, ParseUrlMixin):
 
                 break
 
+        print('done')
         if frame is None:
             raise WampProtocolError("No frame returned")
 
+        if frame.opcode not in (
+            frame.OPCODE_TEXT, frame.OPCODE_CLOSE, frame.OPCODE_BINARY
+        ):
+            raise WampProtocolError(
+                f"Non Text frame returned: {frame.opcode}"
+            )
+
+        logger.info(f"returning {frame.opcode}")
         return frame
 
     def _connect(self):
@@ -162,7 +178,7 @@ class WebSocket(Transport, ParseUrlMixin):
             )
 
         self.socket = _socket
-        logger.debug("socket connected")
+        logger.info("socket connected")
 
     def _handshake(self, upgrade):
         handshake_headers = self._get_handshake_headers(upgrade=upgrade)
@@ -342,19 +358,19 @@ class WebSocket(Transport, ParseUrlMixin):
     def handle_pong(self, pong_frame):
         self.pongs.put(pong_frame)
 
-    def handle_close(self, close_frame):
-        logger.warning(
-            'server closed connection: %s', close_frame.payload,
-        )
-        self.stop_pinging()
-        self.disconnect()
-
     def stop_pinging(self):
         try:
             self.pinger_thread.kill()
         except AttributeError:
             pass
         self.is_pinging = False
+
+    def handle_close(self, close_frame):
+        logger.warning(
+            'server closed connection: %s', close_frame.payload,
+        )
+        self.stop_pinging()
+        self.disconnect()
 
 
 class SecureWebSocket(WebSocket):
