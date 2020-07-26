@@ -3,12 +3,17 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import datetime
+from time import sleep
 
 import pytest
 
 from wampy.peers.clients import Client
 from wampy.roles.callee import callee
-from wampy.testing.helpers import wait_for_session
+
+from wampy.testing.helpers import assert_stops_raising, wait_for_session
+from wampy.testing.helpers import (
+    CollectingMessageHandler, wait_for_messages,
+)
 
 
 class DateService(Client):
@@ -80,11 +85,14 @@ def test_client_connects_to_router_by_url(router):
     wait_for_session(client)
 
     session = client.session
-    assert session.id is not None
+    assert session and session.id is not None
 
     client.stop()
 
-    assert client.session.id is None
+    def assert_session_closed():
+        assert client.session is None
+
+    assert_stops_raising(assert_session_closed, timeout=2)
 
 
 def test_url_without_protocol(router, client_cls):
@@ -115,11 +123,14 @@ def test_client_connects_to_router_by_instance(router):
     wait_for_session(client)
 
     session = client.session
-    assert session.id is not None
+    assert session and session.id is not None
 
     client.stop()
 
-    assert client.session.id is None
+    def assert_session_closed():
+        assert client.session is None
+
+    assert_stops_raising(assert_session_closed, timeout=2)
 
 
 def test_can_start_two_clients(router):
@@ -142,5 +153,27 @@ def test_can_start_two_clients(router):
     app_one.stop()
     app_two.stop()
 
-    assert app_one.session.id is None
-    assert app_two.session.id is None
+    def assert_session_closed():
+        assert app_one.session is None
+        assert app_two.session is None
+
+    assert_stops_raising(assert_session_closed, timeout=2)
+
+
+def test_client_stays_alive(router):
+    client = BinaryNumberService(
+        url=router.url,
+        message_handler_cls=CollectingMessageHandler,
+        name="foobar",
+    )
+
+    client.start()
+    wait_for_session(client)
+
+    sleep(5)
+
+    result = client.rpc.get_binary(100)
+    wait_for_messages(client, 4)
+    assert result == '0b1100100'
+
+    client.stop()

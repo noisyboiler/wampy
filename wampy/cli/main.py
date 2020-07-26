@@ -1,10 +1,12 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
 import argparse
+import logging
 
 from . import run
+
+logger = logging.getLogger("wampy")
 
 
 def setup_parser():
@@ -14,7 +16,8 @@ def setup_parser():
     for module in [run, ]:
         name = module.__name__.split('.')[-1]
         module_parser = subparsers.add_parser(
-            name, description=module.__doc__)
+            name, description=module.__doc__
+        )
         module.init_parser(module_parser)
         module_parser.set_defaults(main=module.main)
 
@@ -24,4 +27,5 @@ def setup_parser():
 def main():
     parser = setup_parser()
     args = parser.parse_args()
+    logger.info("starting CLI with args: %s", args)
     args.main(args)

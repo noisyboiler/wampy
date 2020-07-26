@@ -26,7 +26,7 @@ def assert_stops_raising(
 def wait_for_subscriptions(client, number_of_subscriptions):
     with async_adapter.Timeout(TIMEOUT):
         while (
-            len(client.session.subscription_map.keys())
+            len(client._session.subscription_map.keys())
             < number_of_subscriptions
         ):
             async_adapter.sleep(0.01)
@@ -35,7 +35,7 @@ def wait_for_subscriptions(client, number_of_subscriptions):
 def wait_for_registrations(client, number_of_registrations):
     with async_adapter.Timeout(TIMEOUT):
         while (
-            len(client.session.registration_map.keys())
+            len(client._session.registration_map.keys())
             < number_of_registrations
         ):
             async_adapter.sleep(0.01)
@@ -43,13 +43,13 @@ def wait_for_registrations(client, number_of_registrations):
 
 def wait_for_session(client):
     with async_adapter.Timeout(TIMEOUT):
-        while client.session.id is None:
+        while client._session.id is None:
             async_adapter.sleep(0.01)
 
 
 def wait_for_messages(client, number_of_messages):
     messages_received = (
-        client.session.message_handler.messages_received)
+        client._session.message_handler.messages_received)
 
     with async_adapter.Timeout(TIMEOUT):
         while len(messages_received) < number_of_messages:
