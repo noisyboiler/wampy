@@ -309,7 +309,6 @@ class WebSocket(Transport, ParseUrlMixin):
                     heartbeat_timeout, raise_after=False
                 ):
                     while pong is None:
-                        # required for Hub to implelent TimeOut
                         async_adapter.sleep()
 
                         try:
