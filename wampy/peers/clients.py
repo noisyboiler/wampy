@@ -88,7 +88,20 @@ class Client(object):
         # message, we still implement our own cuttoff
         self.call_timeout = call_timeout
 
-        self._session = None
+        # create a Session between ourselves and the Router.
+        # the ``MessageHandler`` will process incoming messages
+        # and pass back any messages that the client needs, such
+        # as RPC responses and Subscriptions.
+        self._session = Session(
+            router_url=self.url,
+            message_handler=self.message_handler,
+            ipv=self.ipv,
+            cert_path=self.cert_path,
+            call_timeout=self.call_timeout,
+            realm=self.realm,
+            roles=self.roles,
+            client_name=self.name,
+        )
 
     def __enter__(self):
         self.start()
@@ -99,7 +112,9 @@ class Client(object):
 
     @property
     def session(self):
-        return self._session
+        if self._session.session_id:
+            return self._session
+        return None
 
     @property
     def subscription_map(self):
@@ -115,7 +130,7 @@ class Client(object):
 
     @property
     def is_pinging(self):
-        return self.session.connection.is_pinging
+        return self._session.connection.is_pinging
 
     @property
     def call(self):
@@ -130,32 +145,11 @@ class Client(object):
         return PublishProxy(client=self)
 
     def start(self):
-        # create a Session between ourselves and the Router.
-        # the ``MessageHandler`` will process incoming messages
-        # and pass back any messages that the client needs, such
-        # as RPC responses and Subscriptions.
-        self._session = Session(
-            router_url=self.url,
-            message_handler=self.message_handler,
-            ipv=self.ipv,
-            cert_path=self.cert_path,
-            call_timeout=self.call_timeout,
-            realm=self.realm,
-            roles=self.roles,
-        )
-
-        self.session.begin()
-
-        logger.info(
-            'client %s has established a session with id "%s"',
-            self.name, self.session.id
-        )
+        self._session.begin()
 
     def stop(self):
-        if self.session and self.session.id:
-            self.session.end()
-
-        self.session.transport.disconnect()
+        if self.session:
+            self.session.end(goodbye_from=self.name)
 
     def send_message(self, message):
         self.session.send_message(message)
@@ -191,11 +185,7 @@ class Client(object):
                 procedure_name = maybe_role.__name__
                 invocation_policy = maybe_role.invocation_policy
                 self.session._register_procedure(
-                    procedure_name, invocation_policy,
-                )
-
-                logger.debug(
-                    '%s registered callee "%s"', self.name, procedure_name,
+                    procedure_name, invocation_policy
                 )
 
             if hasattr(maybe_role, 'subscriber'):
@@ -206,6 +196,4 @@ class Client(object):
                     handler, topic,
                 )
 
-                logger.debug(
-                    '%s subscribed to topic "%s"', self.name, topic,
-                )
+        logger.info("waiting for registration of roles for: %s", self.name)

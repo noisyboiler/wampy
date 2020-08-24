@@ -10,8 +10,11 @@ from wampy.interfaces import Async
 
 class Eventlet(Async):
 
-    def __init__(self):
-        self.message_queue = eventlet.queue.Queue()
+    def __init__(self, message_queue=eventlet.queue.Queue()):
+        self.message_queue = message_queue
+
+    def __str__(self):
+        return 'EventletAsyncAdapter'
 
     def queue(self):
         return eventlet.queue.Queue()

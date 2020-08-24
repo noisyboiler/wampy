@@ -9,11 +9,16 @@ wampy run module:app
 Largely experimental for now.... sorry.
 
 """
+import errno
+import logging
 import os
 import sys
-from warnings import warn
+
+import gevent
 
 from wampy.peers.routers import Crossbar
+
+logger = logging.getLogger("cli")
 
 
 class CommandError(Exception):
@@ -48,32 +53,24 @@ class AppRunner(object):
 
     def start(self):
         for app in self.apps:
-            print("starting up app: %s", app.name)
+            print("starting up app: %s" % app.name)
             app.start()
-            print("{} is now running and connected.".format(app.name))
-
-        print('all services started!')
+            print("{} is now starting up.".format(app.name))
 
     def stop(self):
         for app in self.apps:
             app.stop()
-        print('stoped')
+        print('runner stopped')
+        sys.exit(0)
 
 
-def run(apps, config_path=None, router=None, router_url=None):
-    if router_url is None:
-        warn(
-            'router instances are deprecated: use ``router_url`` instead '
-            'and forget about ``config_path`` and ``router``. thanks.'
-        )
-
-    if router_url is None and router is None:
-        # this will be removed in 1.0 release - or before
-        router = Crossbar(config_path)
-        router_url = router.url
+def run(apps, config_path=None):
+    router = Crossbar(config_path=config_path)
+    router_url = router.url
 
     print("starting up services...")
     runner = AppRunner()
+
     for app in apps:
         module_name, app_name = app.split(':')
         mod = import_module(module_name)
@@ -81,15 +78,21 @@ def run(apps, config_path=None, router=None, router_url=None):
         app = app_class(url=router_url)
         runner.add_app(app)
 
-    try:
-        runner.start()
-    except (Exception, KeyboardInterrupt):
+    while True:
         try:
-            runner.stop()
+            gevent.sleep()
+        except OSError as exc:
+            if exc.errno == errno.EINTR:
+                continue
+            raise
         except KeyboardInterrupt:
-            runner.stop()
-
-    return runner
+            try:
+                runner.stop()
+            except KeyboardInterrupt:
+                runner.stop()
+        except Exception:
+            logger.exception("cannot start runner")
+            break
 
 
 def main(args):
@@ -98,7 +101,6 @@ def main(args):
 
     app = args.application
     config_path = args.config
-
     run(app, config_path)
 
 

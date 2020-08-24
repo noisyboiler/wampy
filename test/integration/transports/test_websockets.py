@@ -203,34 +203,3 @@ def test_pinging(router):
             assert ws.missed_pongs == 0
 
     client.stop()
-
-
-@pytest.mark.parametrize(
-    "heartbeat, heartbeat_timeout, sleep, expected_missed_pongs", [
-        (5, 0, 10, 2),
-        (2, 1, 10, 4),
-    ]
-)
-def test_pings_and_missed_pongs(
-    router, heartbeat, heartbeat_timeout, sleep, expected_missed_pongs
-):
-    with patch('wampy.transports.websocket.connection.heartbeat', heartbeat):
-        with patch(
-            'wampy.transports.websocket.connection.heartbeat_timeout',
-            heartbeat_timeout
-        ):
-            with Client(url=router.url) as client:
-                wait_for_session(client)
-
-                assert client.is_pinging is True
-
-                ws = client.session.connection
-                assert ws.missed_pongs == 0
-
-                # this prevents Pongs being put into the shared queue
-                with patch.object(ws, 'handle_pong'):
-                    async_adapter.sleep(sleep)
-
-            assert client.is_pinging is False
-
-    assert ws.missed_pongs == expected_missed_pongs

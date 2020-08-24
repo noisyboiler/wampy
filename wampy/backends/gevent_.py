@@ -4,7 +4,6 @@
 
 import gevent
 import gevent.queue
-import gevent.monkey
 
 from wampy.errors import WampyTimeOutError
 from wampy.interfaces import Async
@@ -12,10 +11,14 @@ from wampy.interfaces import Async
 
 class Gevent(Async):
 
-    def __init__(self):
-        self.message_queue = gevent.queue.Queue()
+    def __init__(self, message_queue=gevent.queue.Queue()):
+        self.message_queue = message_queue
+
+    def __str__(self):
+        return 'GeventAsyncAdapter'
 
     def queue(self):
+        # TODO: why?
         return gevent.queue.Queue()
 
     def Timeout(self, timeout, raise_after=True):
@@ -42,6 +45,7 @@ class Gevent(Async):
         gevent.sleep(time)
 
     def _wait_for_message(self, timeout):
+        # executed every time a Client expects to recieve a Message
         q = self.message_queue
 
         with gevent.Timeout(timeout):

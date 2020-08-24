@@ -1,13 +1,13 @@
-dev-install:
-	pip install --editable .[dev]
+install:
+	pip3 install --editable .[dev]
 
-doc-install:
-	pip install --editable .[doc]
+docs:
+	pip3 install --editable .[doc]
 
 tests:
-	pip install --editable .[dev]
-	pip install coverage
-	pip install pytest-cov
+	pip3 install --editable .[dev]
+	pip3 install coverage
+	pip3 install pytest-cov
 	py.test ./test -vs
 
 unit-tests:
@@ -16,8 +16,8 @@ unit-tests:
 lint:
 	flake8 .
 
-coverage-report:
-	pytest -s -vv --cov=./wampy
+coverage:
+	coverage run --source ./wampy -m py.test ./test/ && coverage report
 
 crossbar:
 	crossbar start --config ./wampy/testing/configs/crossbar.json

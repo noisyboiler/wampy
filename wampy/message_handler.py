@@ -3,10 +3,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 import json
 import logging
-import os
 
-from wampy.auth import compute_wcs
-from wampy.messages import Authenticate, MESSAGE_TYPE_MAP
+from wampy.messages import MESSAGE_TYPE_MAP
 from wampy.messages import Error, Yield
 
 logger = logging.getLogger('wampy.messagehandler')
@@ -37,12 +35,13 @@ class MessageHandler(object):
 
     @property
     def session(self):
-        return self.client.session
+        return self.client._session
 
     def handle_message(self, message):
         # all WAMP paylods on a websocket frame are JSON
         message = json.loads(message)
         wamp_code = message[0]
+
         if wamp_code not in MESSAGE_TYPE_MAP:
             logger.warning('unexpected WAMP code: %s', wamp_code)
             return
@@ -53,36 +52,33 @@ class MessageHandler(object):
         message_obj = message_class(*message[1:])
 
         handler_name = "handle_{}".format(message_obj.name)
+        logger.info("handling %s", message_class)
         handler = getattr(self, handler_name)
         handler(message_obj)
 
     def handle_abort(self, message_obj):
         logger.warning(
-            "The Router has Aborted the handshake: %s", message_obj.message)
-        # handle this in the Session object
+            "The Router has Aborted the handshake: %s",
+            message_obj.message,
+        )
+        # we can't raise from inside a green thread (it'll not be seen) and
+        # we can't gracefully disconnect and kill other remaining gthreads
+        # from here, either.
         self.session._message_queue.put(message_obj)
 
     def handle_authenticate(self, message_obj):
         self.session._message_queue.put(message_obj)
 
     def handle_challenge(self, message_obj):
-        if 'WAMPYSECRET' not in os.environ:
-            logger.error('WAMPYSECRET required in environ')
-            # unable to handle this so delegate to the Client
-            self.session._message_queue.put(message_obj)
-            return
+        self.session._message_queue.put(message_obj)
 
-        secret = os.environ['WAMPYSECRET']
-        if message_obj.auth_method == 'ticket':
-            logger.info("proceeding with ticket authentication method")
-            message = Authenticate(secret)
-        else:
-            logger.info("assuming wampcra authentication method")
-            challenge_data = message_obj.challenge
-            signature = compute_wcs(secret, str(challenge_data))
-            message = Authenticate(signature.decode("utf-8"))
-
-        self.session.send_message(message)
+    def handle_close(self, close_frame):
+        self.session.connection.stop_pinging()
+        self.session.connection.disconnect()
+        self.session.session_id = None
+        logger.warning(
+            'server closed connection: %s', close_frame.payload,
+        )
 
     def handle_error(self, message_obj):
         logger.error("received error: %s", message_obj.message)
@@ -103,7 +99,6 @@ class MessageHandler(object):
         func(*payload_list, **payload_dict)
 
     def handle_goodbye(self, message_obj):
-        # the Session will close itself once it sees this
         self.session._message_queue.put(message_obj)
 
     def handle_subscribed(self, message_obj):
@@ -139,6 +134,7 @@ class MessageHandler(object):
         session = self.session
         procedure_name = session.request_ids[message_obj.request_id]
         session.registration_map[message_obj.registration_id] = procedure_name
+        logger.info("registrated %s for %s", procedure_name, self.client.name)
 
     def handle_result(self, message_obj):
         # result of RPC needs to be passed back to the Client app
@@ -146,7 +142,11 @@ class MessageHandler(object):
 
     def handle_welcome(self, message_obj):
         self.session.session_id = message_obj.session_id
+        logger.info("Welcomed %s", self.client)
         self.session._message_queue.put(message_obj)
+        # this may look to be more appropriate on the Client following starting
+        # a Session, but a Session is not guaranteed - and this is the only
+        # place that it is.
         self.client._register_roles()
 
     def process_result(self, message_obj, result, exc=None):
