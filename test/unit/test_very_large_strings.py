@@ -1,5 +1,11 @@
+from wampy.peers.clients import Client
 
 
+def test_send_really_long_string(echo_service, router):
+    really_long_string = "a" * 100000
 
-def test_send_really_long_string(router, client):
-    really_long_string = "a" * really_long_string
+    caller = Client(url=router.url)
+    with caller:
+        response = caller.rpc.echo(message=really_long_string)
+
+    assert response['message'] == really_long_string
