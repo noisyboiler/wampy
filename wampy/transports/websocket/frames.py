@@ -5,6 +5,7 @@
 import array
 import logging
 import os
+import struct
 from struct import pack, unpack_from
 
 from wampy.errors import WebsocktProtocolError, IncompleteFrameError
@@ -17,23 +18,54 @@ class Frame(object):
     """ The framing is what distinguishes the connection from a raw TCP
     one - it's part of the websocket protocol.
 
-    """
-    #    ws-frame      = frame-fin           ; 1 bit in length
-    #                    frame-rsv1          ; 1 bit in length
-    #                    frame-rsv2          ; 1 bit in length
-    #                    frame-rsv3          ; 1 bit in length
-    #                    frame-opcode        ; 4 bits in length
-    #                    frame-masked        ; 1 bit in length
-    #                    frame-payload-length    ; either 7, 7+16,
-    #                                            ; or 7+64 bits in
-    #                                            ; length
-    #                    [ frame-masking-key ]   ; 32 bits in length
-    #                    frame-payload-data      ; n*8 bits in
-    #                                            ; length, where
-    #
-    #                                            ; n >= 0
+    Frames can have a payload length of up to 9,223,372,036,854,775,807
+    bytes (due to the fact that the protocol allows for a 63bit length
+    indicator).
 
-    # protocol constants are represented in base16/hexidecimal.
+    The primary purpose of fragmentation is to allow sending a message
+    that is of unknown size when the message is started without having
+    to buffer that message - it is *not* supported by wampy.
+
+    This is how a websocket frame looks according to RFC 6455
+
+      0                   1                   2                   3
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+     +-+-+-+-+-------+-+-------------+-------------------------------+
+     |F|R|R|R| opcode|M| Payload len |    Extended payload length    |
+     |I|S|S|S|  (4)  |A|     (7)     |             (16/64)           |
+     |N|V|V|V|       |S|             |   (if payload len==126/127)   |
+     | |1|2|3|       |K|             |                               |
+     +-+-+-+-+-------+-+-------------+ - - - - - - - - - - - - - - - +
+     |     Extended payload length continued, if payload len == 127  |
+     + - - - - - - - - - - - - - - - +-------------------------------+
+     |                               |Masking-key, if MASK set to 1  |
+     +-------------------------------+-------------------------------+
+     | Masking-key (continued)       |          Payload Data         |
+     +-------------------------------- - - - - - - - - - - - - - - - +
+     :                     Payload Data continued ...                :
+     + - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - +
+     |                     Payload Data continued ...                |
+     +---------------------------------------------------------------+
+
+
+        ws-frame      = frame-fin           ; 1 bit in length
+                        frame-rsv1          ; 1 bit in length
+                        frame-rsv2          ; 1 bit in length
+                        frame-rsv3          ; 1 bit in length
+                        frame-opcode        ; 4 bits in length
+                        frame-masked        ; 1 bit in length
+                        frame-payload-length    ; either 7, 7+16,
+                                                ; or 7+64 bits in
+                                                ; length
+                        [ frame-masking-key ]   ; 32 bits in length
+                        frame-payload-data      ; n*8 bits in
+                                                ; length, where
+
+                                                ; n >= 0
+
+    protocol constants are represented in base16/hexidecimal.
+
+    """
 
     # always use "text" as the type of data to send
     TEXT = 0x01  # 1, 00000001
@@ -82,14 +114,14 @@ class Frame(object):
     LENGTH_16 = 1 << 16  # 0x10000, 65536, 10000000000000000
     MAX_LENGTH = 1 << 63  # 1 x 2**63
 
-    def __init__(self, raw_bytes):
+    def __init__(self, raw_bytes, payload=None):
         """ Represent a complete websocket frame """
-        self.raw_bytes = bytearray(raw_bytes)
-        self.fin_bit = self.raw_bytes[0] >> 7
-        self.opcode = self.raw_bytes[0] & 0xf
-        self.payload_length_indicator = self.raw_bytes[1] & 0b1111111
-
         self._raw_bytes = raw_bytes
+        self._payload = payload
+
+        self.fin_bit = self._raw_bytes[0] >> 7
+        self.opcode = self._raw_bytes[0] & 0xf
+        self.payload_length_indicator = self._raw_bytes[1] & 0b1111111
 
     def __str__(self):
         return self.payload
@@ -101,12 +133,14 @@ class Frame(object):
     @property
     def payload(self):
         try:
-            if self.payload_length_indicator < 126:
-                payload_str = self.raw_bytes[2:].decode('utf-8')
+            if self._payload:
+                payload_str = self._payload.decode('utf-8')
+            elif self.payload_length_indicator < 126:
+                payload_str = self._raw_bytes[2:].decode('utf-8')
             elif self.payload_length_indicator == 126:
-                payload_str = self.raw_bytes[4:].decode('utf-8')
+                payload_str = self._raw_bytes[4:].decode('utf-8')
             else:
-                payload_str = self.raw_bytes[6:].decode('utf-8')
+                payload_str = self._raw_bytes[6:].decode('utf-8')
         except UnicodeDecodeError:
             logger.error('cannot decode %s', self.raw_bytes)
             raise
@@ -118,6 +152,11 @@ class FrameFactory(object):
 
     @classmethod
     def from_bytes(cls, buffered_bytes):
+        # the first 2 bytes are *always* used as headers - but sometimes
+        # more than 2 bytes are needed.
+        # our work must first be to determine the header length.
+        # note that here we are reading data from the *server*, so there
+        # is *never* a Mask (part of the protocol).
         if not buffered_bytes or len(buffered_bytes) < 2:
             raise IncompleteFrameError(required_bytes=1)
 
@@ -162,15 +201,20 @@ class FrameFactory(object):
             body_length = payload_length_indicator
 
         elif payload_length_indicator == 126:
-            # then we don't have enough knowledge yet.
-            # and actually the following two bytes indicate the payload length.
-            # get all buffered bytes beyond the header and the excluded 2 bytes
+            # This is a case where more than 2 bytes are needed for headers.
+            # "Extended payload" length is now used
+            # meaning that we can chop another 2 bytes off from our
+            # `available_bytes_for_body` and be confident that we are left with
+            # the payload
             body_candidate = available_bytes_for_body[2:]  # require >= 2 bytes
 
-        else:
-            # actually, the following eight bytes indicate the payload length.
-            # so check we have at least as much as we need, else exit.
-            body_candidate = available_bytes_for_body[6:]  # require >= 8 bytes
+        elif payload_length_indicator == 127:
+            # This is a case where more than 2 bytes are needed for headers.
+            # "Extended payload length continued" length is now used
+            # chop off Extended Payload bytes
+            body_candidate = available_bytes_for_body[8:]  # require >= 8 bytes
+            # in this case, we know that there are more bytes to receive
+            body_length = struct.unpack("!Q", buffered_bytes[2:10])[0]
 
         if len(body_candidate) < body_length:
             required_bytes = body_length - len(body_candidate)
@@ -188,7 +232,7 @@ class FrameFactory(object):
         if opcode == Frame.OPCODE_CLOSE:
             return Close(raw_bytes=buffered_bytes)
 
-        return Frame(raw_bytes=buffered_bytes)
+        return Frame(raw_bytes=buffered_bytes, payload=body_candidate)
 
     @classmethod
     def generate_mask(cls, mask_key, data):

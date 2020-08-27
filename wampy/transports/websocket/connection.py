@@ -96,6 +96,8 @@ class WebSocket(Transport, ParseUrlMixin):
                 message = str(e)
                 raise ConnectionError('timeout: "{}"'.format(message))
             except Exception as exc:
+                import pdb
+                pdb.set_trace()
                 raise ConnectionError('Connection lost: "{}"'.format(exc))
             if not bytes_:
                 break
