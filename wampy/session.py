@@ -120,10 +120,7 @@ class Session(ParseUrlMixin):
     def end(self, goodbye_from):
         self._say_goodbye(goodbye_from=goodbye_from)
         self.connection.disconnect()
-        try:
-            self._managed_thread.kill()
-        except TypeError:
-            pass
+        self._managed_thread.kill()
         self.session_id = None
 
     def send_message(self, message_obj):
@@ -247,8 +244,6 @@ class Session(ParseUrlMixin):
                         break
 
                 else:
-                    import pdb
-                    pdb.set_trace()
                     # this is likely the parent gthread closing it deliberately
                     logger.warning("connection gthread has closed")
                     break
