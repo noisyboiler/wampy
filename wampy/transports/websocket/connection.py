@@ -18,7 +18,7 @@ from wampy.constants import (
     WEBSOCKET_SUBPROTOCOLS, WEBSOCKET_VERSION,
 )
 from wampy.errors import (
-    IncompleteFrameError, WampProtocolError, WampyError,
+    IncompleteFrameError, NoFrameReturnedError, WampProtocolError, WampyError,
 )
 from wampy.interfaces import Transport
 from wampy.mixins import ParseUrlMixin
@@ -95,7 +95,7 @@ class WebSocket(Transport, ParseUrlMixin):
                 message = str(e)
                 raise ConnectionError('timeout: "{}"'.format(message))
             except OSError:
-                logger.error("socket connection lost? Bad File Descriptor?")
+                logger.info("socket connection lost? Bad File Descriptor?")
                 break
             except Exception as exc:
                 raise ConnectionError('Connection lost: "{}"'.format(exc))
@@ -130,7 +130,7 @@ class WebSocket(Transport, ParseUrlMixin):
                 break
 
         if frame is None:
-            raise WampProtocolError("No frame returned")
+            raise NoFrameReturnedError()
 
         if frame.opcode not in (
             frame.OPCODE_TEXT, frame.OPCODE_CLOSE, frame.OPCODE_BINARY

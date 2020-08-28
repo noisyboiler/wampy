@@ -8,7 +8,7 @@ import os
 from wampy.auth import compute_wcs
 from wampy.backends import async_adapter
 from wampy.errors import (
-    ConnectionError, WampyError, WampyTimeOutError,
+    NoFrameReturnedError, WampyError, WampyTimeOutError,
     WampProtocolError,
 )
 from wampy.messages import (
@@ -236,11 +236,10 @@ class Session(ParseUrlMixin):
                             message = frame.payload
                             logger.info("handling %s", message)
                             self.message_handler.handle_message(message)
-                    except (
-                        SystemExit, KeyboardInterrupt, ConnectionError,
-                        WampProtocolError,
-                    ):
-                        logger.exception("connection has been terminated")
+                    except (SystemExit, KeyboardInterrupt):
+                        logger.warning("system manually exited")
+                        break
+                    except NoFrameReturnedError:
                         break
 
                 else:

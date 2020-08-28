@@ -26,3 +26,7 @@ class WampyError(Exception):
 
 class WampyTimeOutError(Exception):
     pass
+
+
+class NoFrameReturnedError(Exception):
+    pass
