@@ -171,7 +171,7 @@ class FrameFactory(object):
         # Parse the first two buffered_bytes of header
         fin = buffered_bytes[0] >> 7
         if fin == 0:
-            logger.warning('fragmented frame received: %s', buffered_bytes)
+            raise RuntimeError("Fragmented Frames Not Supported")
 
         payload_length_indicator = buffered_bytes[1] & 0b1111111
         if payload_length_indicator == 0:
