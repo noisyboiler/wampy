@@ -6,6 +6,7 @@ import pytest
 
 from wampy.peers.clients import Client
 from wampy.roles.callee import callee
+from wampy.testing.helpers import wait_for_registrations, wait_for_session
 
 
 @pytest.fixture
@@ -13,14 +14,16 @@ def config_path():
     return './wampy/testing/configs/crossbar.json'
 
 
+class EchoService(Client):
+
+    @callee
+    def echo(self, **kwargs):
+        return kwargs
+
+
 @pytest.yield_fixture
 def echo_service(router):
-
-    class EchoService(Client):
-
-        @callee
-        def echo(self, **kwargs):
-            return kwargs
-
-    with EchoService(url=router.url):
+    with EchoService(url=router.url) as svc:
+        wait_for_session(svc)
+        wait_for_registrations(svc, 1)
         yield

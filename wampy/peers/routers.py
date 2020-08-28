@@ -8,8 +8,9 @@ import os
 import socket
 import subprocess
 from socket import error as socket_error
-from time import time as now, sleep
+from time import time as now
 
+from wampy.backends import async_adapter
 from wampy.errors import ConnectionError, WampyError
 from wampy.mixins import ParseUrlMixin
 
@@ -155,7 +156,7 @@ class Crossbar(ParseUrlMixin):
         else:
             # wait for a graceful shutdown
             logger.info("sleeping while Crossbar shuts down")
-            sleep(2)
+            async_adapter.sleep(2)
 
         self.started = False
 
