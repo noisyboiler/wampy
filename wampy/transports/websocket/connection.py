@@ -18,7 +18,7 @@ from wampy.constants import (
     WEBSOCKET_SUBPROTOCOLS, WEBSOCKET_VERSION,
 )
 from wampy.errors import (
-    IncompleteFrameError, ConnectionError, WampProtocolError, WampyError,
+    IncompleteFrameError, NoFrameReturnedError, WampProtocolError, WampyError,
 )
 from wampy.interfaces import Transport
 from wampy.mixins import ParseUrlMixin
@@ -75,7 +75,6 @@ class WebSocket(Transport, ParseUrlMixin):
 
     def send(self, message):
         frame = Text(payload=json_serialize(message))
-        logger.info('send message: %s', message)
         websocket_message = frame.frame
         self._send_raw(websocket_message)
 
@@ -95,6 +94,9 @@ class WebSocket(Transport, ParseUrlMixin):
             except socket.timeout as e:
                 message = str(e)
                 raise ConnectionError('timeout: "{}"'.format(message))
+            except OSError:
+                logger.info("socket connection lost? Bad File Descriptor?")
+                break
             except Exception as exc:
                 raise ConnectionError('Connection lost: "{}"'.format(exc))
             if not bytes_:
@@ -128,7 +130,7 @@ class WebSocket(Transport, ParseUrlMixin):
                 break
 
         if frame is None:
-            raise WampProtocolError("No frame returned")
+            raise NoFrameReturnedError()
 
         if frame.opcode not in (
             frame.OPCODE_TEXT, frame.OPCODE_CLOSE, frame.OPCODE_BINARY
