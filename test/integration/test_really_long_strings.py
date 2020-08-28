@@ -1,7 +1,7 @@
 from wampy.peers.clients import Client
 
 
-def test_send_really_long_string(echo_service, router):
+def test_send_really_long_string(router, echo_service):
     really_long_string = "a" * 1000
 
     caller = Client(url=router.url)
