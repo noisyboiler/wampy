@@ -19,6 +19,7 @@ setup(
     version='1.0.0',
     description='WAMP RPC and Pub/Sub for python interactive shells, scripts, apps and microservices',  # noqa
     long_description=long_description,
+    long_description_content_type='text/markdown',
     url='https://github.com/noisyboiler/wampy',
     author='Simon Harrison',
     author_email='noisyboiler@googlemail.com',
