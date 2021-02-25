@@ -40,7 +40,7 @@ setup(
         "eventlet>=0.24.1",
         "six>=1.11.0",
         "simplejson>=3.11.1",
-        "gevent==20.4.0",
+        "gevent==21.1.2",
     ],
     extras_require={
         'dev': [
