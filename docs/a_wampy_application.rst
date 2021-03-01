@@ -17,7 +17,7 @@ This is a fully fledged example of a wampy application that implements all 4 WAM
             weather = self.call("another.example.app.endpoint")
             return weather
 
-        @subscriber(topic="global-weather")
+        @subscribe(topic="global-weather")
         def weather_events(self, weather_data):
             # process weather data here
             self.publish(topic="wampy-weather", message=weather_data)
