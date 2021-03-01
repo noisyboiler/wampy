@@ -51,7 +51,7 @@ setup(
             "gevent-websocket>=0.10.1",
             "pytest>=4.0.2",
             "mock>=1.3.0",
-            "pytest-capturelog==0.7"
+            "pytest-capturelog==0.1.0"
         ],
         'docs': [
             "Sphinx==1.4.5",
