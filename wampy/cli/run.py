@@ -78,6 +78,8 @@ def run(apps, config_path=None):
         app = app_class(url=router_url)
         runner.add_app(app)
 
+    runner.start()
+
     while True:
         try:
             gevent.sleep()
