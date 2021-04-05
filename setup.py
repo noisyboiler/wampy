@@ -47,7 +47,7 @@ setup(
         'dev': [
             "colorlog>=3.1.4",
             "coverage>=3.7.1",
-            "crossbar==20.7.1",
+            "crossbar==21.3.1",
             "flake8>=3.5.0",
             "gevent-websocket>=0.10.1",
             "pytest>=4.0.2",
