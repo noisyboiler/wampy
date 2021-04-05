@@ -21,3 +21,8 @@ coverage:
 
 crossbar:
 	crossbar start --config ./wampy/testing/configs/crossbar.json
+
+deploy:
+	pip install -U twine wheel setuptools
+	python setup.py bdist_wheel --universal
+	twine upload dist/*
