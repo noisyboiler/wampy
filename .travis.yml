@@ -12,7 +12,7 @@ python:
 install:
   - sudo apt-get install libsnappy-dev  # this is for twisted's numerous dependencies
   - pip3 install --upgrade setuptools coverage
-  - pip3 install --editable .[dev]
+  - pip3 install --upgrade  --editable .[dev]
   - pip3 install pytest-cov
   - pip3 install coveralls
 
