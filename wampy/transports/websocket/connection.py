@@ -151,7 +151,7 @@ class WebSocket(Transport, ParseUrlMixin):
             _socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
             try:
-                _socket.connect((self.host.encode(), self.port))
+                _socket.connect((self.host, self.port))
             except socket_error as exc:
                 if exc.errno == 61:
                     logger.error(
