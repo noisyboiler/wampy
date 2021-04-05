@@ -16,7 +16,7 @@ with open(path.join(here, 'README.md')) as f:
 
 setup(
     name='wampy',
-    version='1.0.0',
+    version='1.1.0',
     description='WAMP RPC and Pub/Sub for python interactive shells, scripts, apps and microservices',  # noqa
     long_description=long_description,
     long_description_content_type='text/markdown',
