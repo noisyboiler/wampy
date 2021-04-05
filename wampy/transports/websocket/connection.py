@@ -7,7 +7,11 @@ import sched
 import socket
 import ssl
 import uuid
-from base64 import encodebytes
+try:
+    from base64 import encodestring as encodebytes
+except ImportError:
+    # who the hell OKed this backwards incompatible change??
+    from base64 import encodebytes
 from socket import error as socket_error
 from time import time
 
