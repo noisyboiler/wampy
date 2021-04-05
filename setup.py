@@ -37,11 +37,11 @@ setup(
     keywords='WAMP RPC',
     packages=find_packages(),
     install_requires=[
-        "attrs==19.2.0",
+        "attrs==20.3.0",
         "eventlet>=0.24.1",
         "six>=1.11.0",
         "simplejson>=3.11.1",
-        "gevent==20.4.0",
+        "gevent>=21.1.2",
     ],
     extras_require={
         'dev': [
@@ -52,7 +52,6 @@ setup(
             "gevent-websocket>=0.10.1",
             "pytest>=4.0.2",
             "mock>=1.3.0",
-            "pytest-capturelog==0.7"
         ],
         'docs': [
             "Sphinx==1.4.5",
