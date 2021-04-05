@@ -27,8 +27,6 @@ setup(
     classifiers=[
         'Development Status :: 4 - Beta',
         'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
@@ -47,7 +45,7 @@ setup(
         'dev': [
             "colorlog>=3.1.4",
             "coverage>=3.7.1",
-            "crossbar==21.3.1",
+            "crossbar==21.1.1",
             "flake8>=3.5.0",
             "gevent-websocket>=0.10.1",
             "pytest>=4.0.2",
