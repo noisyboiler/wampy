@@ -39,7 +39,7 @@ setup(
     install_requires=[
         "attrs==20.3.0",
         "eventlet>=0.24.1",
-        "six>=1.11.0",
+        "six==1.15.0",
         "simplejson>=3.11.1",
         "gevent>=21.1.2",
     ],
