@@ -16,7 +16,7 @@ with open(path.join(here, 'README.md')) as f:
 
 setup(
     name='wampy',
-    version='1.0.0',
+    version='1.1.0',
     description='WAMP RPC and Pub/Sub for python interactive shells, scripts, apps and microservices',  # noqa
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -27,31 +27,28 @@ setup(
     classifiers=[
         'Development Status :: 4 - Beta',
         'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
     ],
     keywords='WAMP RPC',
     packages=find_packages(),
     install_requires=[
-        "attrs==19.2.0",
+        "attrs==20.3.0",
         "eventlet>=0.24.1",
-        "six>=1.11.0",
+        "six==1.13.0",
         "simplejson>=3.11.1",
-        "gevent==21.1.2",
+        "gevent>=21.1.2",
     ],
     extras_require={
         'dev': [
             "colorlog>=3.1.4",
             "coverage>=3.7.1",
-            "crossbar==20.7.1",
+            "crossbar==21.3.1",
             "flake8>=3.5.0",
             "gevent-websocket>=0.10.1",
             "pytest>=4.0.2",
             "mock>=1.3.0",
-            "pytest-capturelog==0.1.0"
         ],
         'docs': [
             "Sphinx==1.4.5",

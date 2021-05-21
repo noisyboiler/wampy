@@ -78,13 +78,7 @@ def run(apps, config_path=None):
         app = app_class(url=router_url)
         runner.add_app(app)
 
-    try:
-        runner.start()
-    except (Exception, KeyboardInterrupt):
-        try:
-            runner.stop()
-        except KeyboardInterrupt:
-            runner.stop()
+    runner.start()
 
     while True:
         try:
