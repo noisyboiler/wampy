@@ -9,6 +9,7 @@ from mock import ANY
 from wampy.errors import WampyError
 from wampy.peers.clients import Client
 from wampy.roles.subscriber import subscribe
+from wampy.roles import subscriber  # subscriber should be the same with subscribe
 from wampy.testing.helpers import assert_stops_raising
 
 
@@ -29,6 +30,10 @@ def foo_subscriber(router):
     client = SubscribingClient(url=router.url)
     with client:
         yield client
+
+
+def test_alternative_subscriber_import_style():
+    assert subscribe is subscriber
 
 
 def test_cannot_publish_nothing_to_topic(foo_subscriber, router):
