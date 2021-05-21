@@ -11,6 +11,7 @@ from wampy.backends import get_async_adapter
 from wampy.errors import WampyTimeOutError
 from wampy.peers.clients import Client
 from wampy.roles.callee import callee
+from wampy.roles import callee as alt_callee  # alt_calee should be the same with callee
 from wampy.testing import wait_for_registrations
 
 
@@ -76,6 +77,10 @@ def binary_number_service(router):
 def really_slow_service(router):
     with ReallySlowService(url=router.url):
         yield
+
+
+def test_alternative_callee_import_style():
+    assert callee is alt_callee
 
 
 class TestClientCall:
