@@ -6,8 +6,8 @@ This is a fully fledged example of a wampy application that implements all 4 WAM
 ::
 
     from wampy.peers.clients import Client
-    from wampy.roles.subscriber import subscribe
-    from wampy.roles.callee import callee
+    from wampy.roles import subscriber
+    from wampy.roles import callee
 
 
     class WampyApp(Client):
@@ -17,7 +17,7 @@ This is a fully fledged example of a wampy application that implements all 4 WAM
             weather = self.call("another.example.app.endpoint")
             return weather
 
-        @subscribe(topic="global-weather")
+        @subscriber(topic="global-weather")
         def weather_events(self, weather_data):
             # process weather data here
             self.publish(topic="wampy-weather", message=weather_data)
