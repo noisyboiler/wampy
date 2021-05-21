@@ -25,7 +25,7 @@ This is a fully fledged example of a wampy application that implements all 4 WAM
 
 Here the method decorated by @callee is a callable remote procedure. In this example, it also acts as a Caller, by calling another remote procedure and then returning the result.
 
-And the method decorated by @subscribe implements the Subscriber Role, and when it receives an Event it then acts as a Publisher, and publishes a new message to a topic.
+And the method decorated by @subscriber implements the Subscriber Role, and when it receives an Event it then acts as a Publisher, and publishes a new message to a topic.
 
 Note that the ``call`` and ``publish`` APIs are provided by the super class, ``Client``.
 
